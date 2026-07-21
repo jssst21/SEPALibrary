@@ -1,0 +1,64 @@
+body{
+margin:0;
+font-family:Arial,Helvetica,sans-serif;
+background:#f4f4f4;
+color:#222;
+}
+.hero{
+background:#c8102e;
+color:white;
+padding:80px 10%;
+}
+.brand{
+letter-spacing:2px;
+font-size:.9rem;
+font-weight:bold;
+margin-bottom:20px;
+}
+h1{
+font-size:3.5rem;
+margin:0 0 20px;
+}
+.tagline{
+max-width:700px;
+font-size:1.2rem;
+line-height:1.6;
+}
+.buttons{
+margin-top:35px;
+}
+.btn{
+display:inline-block;
+padding:14px 28px;
+margin-right:15px;
+border-radius:6px;
+text-decoration:none;
+font-weight:bold;
+}
+.primary{
+background:white;
+color:#c8102e;
+}
+.secondary{
+border:2px solid white;
+color:white;
+}
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:25px;
+padding:50px 10%;
+}
+.card{
+background:white;
+padding:25px;
+border-radius:8px;
+box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+footer{
+background:#222;
+color:white;
+text-align:center;
+padding:30px;
+margin-top:40px;
+}
