@@ -1,5 +1,5 @@
 /* =========================================================
-   SEPA Resource Library - main stylesheet (v0.3)
+   SEPA Resource Library - main stylesheet (v0.4)
    Brand red: #651317
    ========================================================= */
 
@@ -49,33 +49,32 @@ a { color: var(--red); }
 }
 
 /* =========================================================
-   HOMEPAGE: left third = navigation, right two-thirds = photos
+   HOMEPAGE: centered logo on white, search, button cards
    ========================================================= */
 
-.home-layout {
-  display: grid;
-  grid-template-columns: minmax(300px, 1fr) 2fr;
-  height: 100vh;
-  min-height: 640px;
-}
+body.home { background: #fff; }
 
-.home-nav {
+.home-layout {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 28px 24px 16px;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 20px 28px 14px;
-  background: var(--card);
-  border-right: 1px solid var(--line);
-  overflow-y: auto;
 }
 
-.home-logo { display: block; align-self: center; margin-bottom: 14px; }
-.home-logo img { display: block; height: 104px; width: auto; }
+.home-header { text-align: center; }
+.home-logo { display: inline-block; }
+.home-logo img { display: block; height: 130px; width: auto; }
 
+.home-nav { margin-top: 20px; }
+
+.search { display: block; max-width: 560px; margin: 0 auto; }
 .search input {
   width: 100%;
   font: inherit;
   font-size: 17px;
-  padding: 10px 18px;
+  padding: 11px 20px;
   border: 1.5px solid var(--line);
   border-radius: 999px;
   background: var(--paper);
@@ -85,7 +84,7 @@ a { color: var(--red); }
 .search input::placeholder { color: #8f877f; }
 
 .nav-label {
-  margin: 16px 0 6px;
+  margin: 26px 0 10px;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: .06em;
@@ -93,88 +92,61 @@ a { color: var(--red); }
   color: var(--brass);
 }
 
-.nav-list { display: flex; flex-direction: column; gap: 6px; }
+/* Button cards */
+.nav-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
 
 .nav-btn {
-  display: block;
-  padding: 9px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 76px;
+  padding: 14px 16px;
   border: 1.5px solid var(--line);
-  border-radius: 8px;
-  background: var(--card);
+  border-radius: var(--radius);
+  background: #fff;
   color: var(--ink);
   font-weight: 600;
-  font-size: 16px;
+  font-size: 17px;
+  line-height: 1.3;
+  text-align: center;
   text-decoration: none;
+  box-shadow: 0 1px 3px rgba(42, 36, 32, .06);
 }
 .nav-btn:hover { border-color: var(--red); background: var(--red-tint); color: var(--red); }
 
-.no-results { margin: 12px 0 0; font-size: 15px; color: var(--ink-soft); }
+/* Small line icon above a button's text */
+.btn-icon {
+  width: 30px; height: 30px;
+  fill: none; stroke: var(--red); stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+  margin-bottom: 4px;
+}
+.nav-btn:has(.btn-icon) { flex-direction: column; }
+
+/* A button that shows a picture instead of text */
+.nav-btn-image { padding: 6px; }
+.nav-btn-image img { display: block; max-width: 100%; max-height: 64px; width: auto; height: auto; }
+
+.no-results { margin: 16px 0 0; font-size: 15px; color: var(--ink-soft); text-align: center; }
 
 .home-footer {
   margin-top: auto;
-  padding-top: 14px;
+  padding-top: 28px;
   font-size: 13px;
   color: var(--ink-soft);
   text-align: center;
 }
 
-/* ---------- Photo gallery ---------- */
-
-.gallery {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 10px;
-  padding: 10px;
-  margin: 0;
-}
-
-.tile {
-  position: relative;
-  margin: 0;
-  border-radius: var(--radius);
-  overflow: hidden;
-  min-height: 0;
-}
-.tile img {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-}
-.tile figcaption {
-  position: absolute; left: 0; right: 0; bottom: 0;
-  padding: 28px 16px 12px;
-  color: #fff;
-  font-weight: 600;
-  font-size: 15px;
-  background: linear-gradient(transparent, rgba(30, 15, 10, .55));
-}
-
-/* Mosaic: one large photo, five smaller */
-.t1 { grid-column: 1 / 3; grid-row: 1 / 3; }
-
-/* Warm placeholder colors, shown until real photos are added */
-.t1 { background: linear-gradient(135deg, #8a3b2e, #c9845a); }
-.t2 { background: linear-gradient(135deg, #b8875a, #e2c299); }
-.t3 { background: linear-gradient(135deg, #651317, #a5503f); }
-.t4 { background: linear-gradient(135deg, #c79a6b, #ecd5b3); }
-.t5 { background: linear-gradient(135deg, #7d4a33, #b97f57); }
-.t6 { background: linear-gradient(135deg, #a8664a, #dfae86); }
-
-/* ---------- Phones and narrow screens ---------- */
-
-@media (max-width: 820px) {
-  .home-layout { display: block; height: auto; }
-  .home-nav { border-right: none; padding: 20px 16px; }
-  .home-logo img { height: 96px; }
-  .nav-btn { padding: 13px 16px; font-size: 17px; }
-  .gallery {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: none;
-    grid-auto-rows: 140px;
-  }
-  .t1 { grid-column: 1 / 3; grid-row: auto; grid-row-end: span 2; }
-  .home-footer { order: 1; }
+/* ---------- Phones ---------- */
+@media (max-width: 640px) {
+  .home-layout { padding: 20px 16px 12px; }
+  .home-logo img { height: 104px; }
+  .nav-list { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .nav-btn { min-height: 64px; font-size: 16px; }
 }
 
 /* =========================================================
@@ -196,3 +168,108 @@ a { color: var(--red); }
 .section a { font-weight: 600; }
 
 footer { text-align: center; padding: 30px; color: var(--ink-soft); }
+
+/* =========================================================
+   SHIFT SIGNUP PAGE (pages/shifts.html)
+   ========================================================= */
+
+.page-wrap { max-width: 760px; margin: 0 auto; padding: 20px 20px 48px; }
+
+.page-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.page-logo { display: block; height: 72px; width: auto; }
+.back-link { font-weight: 600; font-size: 16px; color: var(--red); }
+
+.page-title { margin-top: 18px; font-size: 32px; color: var(--ink); }
+.page-intro { margin: 6px 0 0; color: var(--ink-soft); }
+
+.notice {
+  margin: 16px 0 0; padding: 12px 16px; border-radius: 8px;
+  background: #fbf3e4; border: 1px solid #ecd9b4; font-size: 15px;
+}
+
+.step { margin-top: 28px; }
+.step[hidden] { display: none; }
+.step-title { font-size: 21px; }
+.step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  vertical-align: 3px; margin-right: 8px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--red); color: #fff;
+  font-family: 'Public Sans', Arial, sans-serif; font-size: 16px;
+}
+
+/* calendar */
+.cal { margin-top: 14px; border: 1.5px solid var(--line); border-radius: var(--radius); padding: 14px; background: #fff; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cal-month { font-size: 20px; }
+.cal-nav {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 1.5px solid var(--line); background: #fff; color: var(--red);
+  font-size: 20px; cursor: pointer;
+}
+.cal-nav:disabled { opacity: .3; cursor: default; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-dow span { text-align: center; font-size: 13px; font-weight: 700; color: var(--ink-soft); padding-bottom: 4px; }
+
+.cal-day {
+  position: relative;
+  height: 52px; border-radius: 8px;
+  border: 1.5px solid var(--line); background: #fff;
+  font: inherit; font-weight: 600; font-size: 17px; color: var(--ink);
+  cursor: pointer;
+}
+.cal-day.open::after, .cal-day.full::after, .dot {
+  content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #2e7d4f;
+}
+.cal-day.open::after, .cal-day.full::after { position: absolute; left: 50%; bottom: 6px; margin-left: -3.5px; }
+.cal-day.full::after, .dot.full { background: #b3aaa2; }
+.cal-day.open:hover { border-color: var(--red); background: var(--red-tint); }
+.cal-day.closed, .cal-day.full { background: #f6f4f2; color: #b3aaa2; border-color: transparent; cursor: default; }
+.cal-day.today { box-shadow: inset 0 0 0 2px var(--brass); }
+.cal-day.picked { background: var(--red); border-color: var(--red); color: #fff; }
+.cal-day.picked::after { background: #fff; }
+.cal-key { margin: 10px 0 0; font-size: 14px; color: var(--ink-soft); }
+
+/* shifts */
+.shift-list { margin-top: 14px; display: grid; gap: 10px; }
+.shift-btn {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center;
+  text-align: left; padding: 16px 18px;
+  border: 1.5px solid var(--line); border-radius: var(--radius); background: #fff;
+  font: inherit; color: var(--ink); cursor: pointer;
+}
+.shift-btn strong { font-size: 18px; }
+.shift-time { grid-column: 1; color: var(--ink-soft); font-size: 16px; }
+.shift-spots { grid-column: 2; grid-row: 1 / 3; font-weight: 600; font-size: 15px; color: #2e7d4f; }
+.shift-btn:hover { border-color: var(--red); background: var(--red-tint); }
+.shift-btn:disabled { background: #f6f4f2; color: #b3aaa2; cursor: default; }
+.shift-btn:disabled .shift-spots, .shift-btn:disabled .shift-time { color: #b3aaa2; }
+
+/* form */
+.picked { margin: 10px 0 4px; padding: 10px 14px; background: var(--red-tint); border-radius: 8px; font-weight: 600; }
+.field { display: block; margin-top: 14px; font-weight: 600; font-size: 16px; }
+.field input, .field textarea {
+  display: block; width: 100%; margin-top: 6px;
+  padding: 12px 14px; font: inherit; font-weight: 400;
+  border: 1.5px solid var(--line); border-radius: 8px; background: #fff;
+}
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--red); }
+.trap { position: absolute; left: -9999px; }
+.form-error { margin: 14px 0 0; color: #a12020; font-weight: 600; }
+.primary-btn {
+  margin-top: 20px; width: 100%; padding: 16px;
+  background: var(--red); color: #fff; border: none; border-radius: 999px;
+  font: inherit; font-weight: 700; font-size: 18px; cursor: pointer;
+}
+.primary-btn:hover { background: var(--red-dark); }
+.primary-btn:disabled { opacity: .6; }
+.done h2 { font-size: 26px; color: var(--red); }
+.link-btn { background: none; border: none; padding: 0; font: inherit; font-weight: 600; color: var(--red); text-decoration: underline; cursor: pointer; }
+
+@media (max-width: 640px) {
+  .page-logo { height: 56px; }
+  .page-title { font-size: 26px; }
+  .cal { padding: 10px; }
+  .cal-grid { gap: 4px; }
+  .cal-day { height: 44px; font-size: 16px; }
+}

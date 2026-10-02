@@ -1,4 +1,4 @@
-// SEPA Resource Library v0.3
+// SEPA Resource Library v0.4
 // Search box: as you type, only the matching buttons stay visible.
 (function () {
   var box = document.getElementById('search');

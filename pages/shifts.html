@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign Up for DAT Shifts - SEPA Resource Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="home">
+
+<div class="page-wrap">
+
+  <header class="page-top">
+    <a href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
+    <a class="back-link" href="../index.html">&larr; Back to home</a>
+  </header>
+
+  <h1 class="page-title">Sign Up for DAT Shifts</h1>
+  <p class="page-intro">Pick a day, choose a shift, and enter your name. That's it.</p>
+
+  <p class="notice" id="notice" hidden></p>
+
+  <!-- STEP 1: calendar -->
+  <section class="step" id="step-day">
+    <h2 class="step-title"><span class="step-num">1</span> Pick a day</h2>
+    <div class="cal">
+      <div class="cal-head">
+        <button type="button" class="cal-nav" id="prev" aria-label="Previous month">&larr;</button>
+        <h3 class="cal-month" id="month-label"></h3>
+        <button type="button" class="cal-nav" id="next" aria-label="Next month">&rarr;</button>
+      </div>
+      <div class="cal-grid cal-dow" aria-hidden="true">
+        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+      </div>
+      <div class="cal-grid" id="days"></div>
+      <p class="cal-key"><span class="dot"></span> Shifts open &nbsp; <span class="dot full"></span> Full</p>
+    </div>
+  </section>
+
+  <!-- STEP 2: shift -->
+  <section class="step" id="step-shift" hidden>
+    <h2 class="step-title"><span class="step-num">2</span> Choose a shift for <span id="day-label"></span></h2>
+    <div class="shift-list" id="shifts"></div>
+  </section>
+
+  <!-- STEP 3: details -->
+  <section class="step" id="step-info" hidden>
+    <h2 class="step-title"><span class="step-num">3</span> Your information</h2>
+    <p class="picked" id="picked"></p>
+    <form id="signup-form" novalidate>
+      <label class="field">Your name
+        <input name="name" autocomplete="name" required>
+      </label>
+      <label class="field">Phone
+        <input name="phone" type="tel" autocomplete="tel">
+      </label>
+      <label class="field">Email
+        <input name="email" type="email" autocomplete="email">
+      </label>
+      <label class="field">Notes (optional)
+        <textarea name="notes" rows="2"></textarea>
+      </label>
+      <label class="trap" aria-hidden="true">Leave blank <input name="website" tabindex="-1" autocomplete="off"></label>
+      <p class="form-error" id="form-error" hidden></p>
+      <button class="primary-btn" type="submit" id="submit-btn">Sign me up</button>
+    </form>
+  </section>
+
+  <!-- DONE -->
+  <section class="step done" id="step-done" hidden>
+    <h2>You're signed up. Thank you!</h2>
+    <p id="done-text"></p>
+    <p><button type="button" class="link-btn" id="again">Sign up for another shift</button></p>
+    <p><a class="back-link" href="../index.html">&larr; Back to home</a></p>
+  </section>
+
+</div>
+
+<script src="../js/shifts.js"></script>
+</body>
+</html>
