@@ -161,7 +161,7 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
   }
 
   // ---------- step 2: hours ----------
-  function pickDay(t) {
+  function pickDay(t, quiet) {
     pickedDate = t; choice = null;
     drawMonth();
     $('day-label').textContent = niceDate(t);
@@ -194,7 +194,7 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
 
     $('step-shift').hidden = false;
     $('step-info').hidden = true;
-    $('step-shift').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!quiet) $('step-shift').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function togglePanel(which, show) {
@@ -292,11 +292,11 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
       if (!res.ok) return showError(res.error || 'Something went wrong. Please try again.');
       if (choice.type === 'one') data.one.push({ date: pickedDate, start: choice.start, hours: choice.hours });
       else data.rec.push({ days: choice.days, start: choice.start, hours: choice.hours, from: pickedDate });
-      $('done-text').textContent = info.name + ', you are signed up: ' + describe(choice) + '.' +
+      $('done-text').textContent = info.name + ': ' + describe(choice) + '.' +
         (preview ? ' (Preview mode: nothing was saved.)' : '');
-      ['step-day', 'step-shift', 'step-info'].forEach(function (id) { $(id).hidden = true; });
       $('step-done').hidden = false;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.body.classList.add('no-scroll');
+      $('again').focus();
     };
 
     if (preview) return setTimeout(function () { finish({ ok: true }); }, 400);
@@ -310,9 +310,10 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
   function again() {
     pickedDate = null; choice = null;
     $('signup-form').reset();
-    $('step-done').hidden = true; $('step-shift').hidden = true; $('step-info').hidden = true;
-    $('step-day').hidden = false;
-    drawMonth();
+    $('step-done').hidden = true; $('step-info').hidden = true;
+    document.body.classList.remove('no-scroll');
+    pickDay(data.today, true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // ---------- start ----------
@@ -330,5 +331,6 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
     $('rec-go').addEventListener('click', goRecurring);
     $('signup-form').addEventListener('submit', submit);
     $('again').addEventListener('click', again);
+    pickDay(data.today, true);   // show today's shifts right away
   });
 })();

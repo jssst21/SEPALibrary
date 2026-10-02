@@ -357,3 +357,32 @@ footer { text-align: center; padding: 30px; color: var(--ink-soft); }
   .rec-choices { grid-template-columns: 1fr; }
   .day-toggle { padding: 10px 2px; font-size: 13px; }
 }
+
+/* ---------- shift page: step headings + thank-you pop-up ---------- */
+.step-word { color: var(--red); margin-right: 4px; }
+.step-sub { margin: 4px 0 0; color: var(--ink-soft); }
+.step-sub strong { color: var(--ink); }
+
+.thanks-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(42, 20, 18, .55);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.thanks-overlay[hidden] { display: none; }
+.thanks-box {
+  width: 100%; max-width: 440px; background: #fff; border-radius: 16px;
+  padding: 32px 28px 20px; text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+  animation: thanks-pop .25s ease-out;
+}
+.thanks-check {
+  width: 72px; height: 72px; margin: 0 auto 12px; border-radius: 50%;
+  background: #2e7d4f; color: #fff; font-size: 40px; line-height: 72px; font-weight: 700;
+}
+.thanks-box h2 { font-size: 34px; color: var(--red); }
+.thanks-sub { margin: 4px 0 0; font-weight: 600; font-size: 18px; }
+.thanks-detail { margin: 12px 0 0; color: var(--ink-soft); }
+.thanks-box .back-link { display: inline-block; margin-top: 4px; }
+body.no-scroll { overflow: hidden; }
+@keyframes thanks-pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .thanks-box { animation: none; } }

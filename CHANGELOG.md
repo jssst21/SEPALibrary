@@ -1,6 +1,9 @@
 # Changelog
 
 ## v0.8
+- Shift page headings: Step One: Choose a Day / Step Two: Choose a Shift / Step Three: Your Information
+- "Thank You!" pop-up after signing up
+- Shift page opens with today already selected, so the shift buttons show right away
 - Shift signup reworked: 4 standard shifts (12-6 AM, 6 AM-12 PM, 12-6 PM, 6 PM-12 AM) with no limit,
   plus Custom (start/end sliders, 6-hour minimum, overnight allowed) and Recurring
   (pick weekdays, repeats every week until an admin stops it)

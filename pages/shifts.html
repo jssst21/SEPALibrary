@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.8">
+<link rel="stylesheet" href="../css/style.css?v=0.8.2">
 </head>
 <body class="home">
 
@@ -19,13 +19,13 @@
   </header>
 
   <h1 class="page-title">Sign Up for DAT Shifts</h1>
-  <p class="page-intro">Pick a day, choose your hours, and enter your name. That's it.</p>
+  <p class="page-intro">Choose a day, choose a shift, and enter your name. That's it.</p>
 
   <p class="notice" id="notice" hidden></p>
 
   <!-- STEP 1: calendar -->
   <section class="step" id="step-day">
-    <h2 class="step-title"><span class="step-num">1</span> Pick a day</h2>
+    <h2 class="step-title"><span class="step-word">Step One:</span> Choose a Day</h2>
     <div class="cal">
       <div class="cal-head">
         <button type="button" class="cal-nav" id="prev" aria-label="Previous month">&larr;</button>
@@ -42,7 +42,8 @@
 
   <!-- STEP 2: hours -->
   <section class="step" id="step-shift" hidden>
-    <h2 class="step-title"><span class="step-num">2</span> Choose your hours for <span id="day-label"></span></h2>
+    <h2 class="step-title"><span class="step-word">Step Two:</span> Choose a Shift</h2>
+    <p class="step-sub">for <strong id="day-label"></strong></p>
     <div class="shift-list" id="shifts"></div>
 
     <div class="shift-extra">
@@ -72,7 +73,7 @@
 
   <!-- STEP 3: details -->
   <section class="step" id="step-info" hidden>
-    <h2 class="step-title"><span class="step-num">3</span> Your information</h2>
+    <h2 class="step-title"><span class="step-word">Step Three:</span> Your Information</h2>
     <p class="picked" id="picked"></p>
     <form id="signup-form" novalidate>
       <label class="field">Your name
@@ -93,17 +94,21 @@
     </form>
   </section>
 
-  <!-- DONE -->
-  <section class="step done" id="step-done" hidden>
-    <h2>You're signed up. Thank you!</h2>
-    <p id="done-text"></p>
-    <p><button type="button" class="link-btn" id="again">Sign up for another shift</button></p>
-    <p><a class="back-link" href="../index.html">&larr; Back to home</a></p>
-  </section>
+  <!-- THANK YOU pop-up -->
+  <div class="thanks-overlay" id="step-done" hidden>
+    <div class="thanks-box" role="dialog" aria-modal="true" aria-labelledby="thanks-title">
+      <div class="thanks-check" aria-hidden="true">&#10003;</div>
+      <h2 id="thanks-title">Thank You!</h2>
+      <p class="thanks-sub">You're signed up.</p>
+      <p class="thanks-detail" id="done-text"></p>
+      <button type="button" class="primary-btn" id="again">Sign up for another shift</button>
+      <p><a class="back-link" href="../index.html">&larr; Back to home</a></p>
+    </div>
+  </div>
 
 </div>
 
-<script src="../js/config.js?v=0.8"></script>
-<script src="../js/shifts.js?v=0.8"></script>
+<script src="../js/config.js?v=0.8.2"></script>
+<script src="../js/shifts.js?v=0.8.2"></script>
 </body>
 </html>
