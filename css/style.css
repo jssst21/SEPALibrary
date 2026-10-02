@@ -320,8 +320,7 @@ footer { text-align: center; padding: 30px; color: var(--ink-soft); }
 
 .shift-spots.none { color: var(--ink-soft); font-weight: 500; }
 .shift-extra { margin-top: 10px; display: grid; gap: 10px; }
-.shift-btn-alt { border-style: dashed; }
-.shift-btn-alt.active { border-style: solid; border-color: var(--red); background: var(--red-tint); }
+.shift-btn-alt.active { border-color: var(--red); background: var(--red-tint); }
 
 .panel { padding: 16px 18px; border: 1.5px solid var(--red); border-radius: var(--radius); background: #fff; }
 .panel[hidden] { display: none; }
