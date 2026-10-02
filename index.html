@@ -2,46 +2,64 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SEPA Resource Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-<header class="header">
-<div class="logo">
-<div class="logo-icon">+</div>
-<div>
-<h1>SEPA Resource Library</h1>
-<p>Your volunteer launchpad</p>
-</div>
-</div>
-<div class="slideshow">Slideshow Placeholder</div>
-</header>
+<body class="home">
 
-<section class="search">
-<input type="text" placeholder="What are you looking for?">
-</section>
+<div class="home-layout">
 
-<section class="section">
-<h2>Volunteer Actions</h2>
-<div class="grid">
-<a class="card" href="#"><div class="icon">👥</div><h3>Sign Up for DAT Shifts</h3></a>
-<a class="card" href="#"><div class="icon">📅</div><h3>Classes & Events</h3></a>
-<a class="card" href="pages/practice.html"><div class="icon">💻</div><h3>Practice</h3></a>
-<a class="card" href="pages/forums.html"><div class="icon">💬</div><h3>Discussion Forums</h3></a>
-<a class="card" href="pages/new.html"><div class="icon">👋</div><h3>Are You New?</h3></a>
+  <!-- LEFT THIRD: logo, search, buttons -->
+  <aside class="home-nav">
+    <a class="home-logo" href="index.html">
+      <img src="images/logo.png" alt="SEPA Resource Library">
+    </a>
+
+    <label class="search" for="search">
+      <span class="visually-hidden">Search</span>
+      <input id="search" type="search" placeholder="What are you looking for?" autocomplete="off">
+    </label>
+
+    <p class="nav-label">Volunteer Actions</p>
+    <nav class="nav-list" aria-label="Volunteer Actions">
+      <a class="nav-btn" href="https://forms.cloud.microsoft/pages/responsepage.aspx?id=Ql1b3dPA0kq18WDts68nceEMzpJPqCZKouSpVwwiJZtUNlo3WVYzT1kyOTlRSVZMTUdBRjhVS05QWC4u&amp;route=shorturl">Sign Up for DAT Shifts</a>
+      <a class="nav-btn" href="https://www.redcross.org/sso/vc.html?resume=%2Fidp%2F8dKrrmyECH%2FresumeSAML20%2Fidp%2FSSO.ping&amp;spentity=http%3A%2F%2Fpingone.com%2Fd5b109be-ce0e-4a23-b2ea-171a180ac2a5">Classes &amp; Events</a>
+      <a class="nav-btn" href="pages/practice.html">Practice</a>
+      <a class="nav-btn" href="pages/forums.html">Discussion Forums</a>
+      <a class="nav-btn" href="pages/new.html">Are You New?</a>
+    </nav>
+
+    <p class="nav-label">Resources</p>
+    <nav class="nav-list" aria-label="Resources">
+      <a class="nav-btn" href="pages/dat-library.html">DAT &amp; Client Care Libraries</a>
+      <a class="nav-btn" href="pages/masscare.html">Mass Care Libraries</a>
+      <a class="nav-btn" href="pages/training.html">Training Center</a>
+      <a class="nav-btn" href="pages/redtalks.html">RED Talks</a>
+    </nav>
+
+    <p class="no-results" hidden>No matches. Try a different word.</p>
+
+    <footer class="home-footer">SEPA Resource Library v0.3</footer>
+  </aside>
+
+  <!-- RIGHT TWO-THIRDS: photo gallery
+       To add photos: put files named photo-1.jpg through photo-6.jpg
+       in the images/gallery folder. They appear automatically. -->
+  <main class="gallery" aria-label="Volunteer photos">
+    <figure class="tile t1"><img src="images/gallery/photo-1.jpg" alt="" onerror="this.remove()"><figcaption>Volunteers in action</figcaption></figure>
+    <figure class="tile t2"><img src="images/gallery/photo-2.jpg" alt="" onerror="this.remove()"><figcaption>Disaster Action Team</figcaption></figure>
+    <figure class="tile t3"><img src="images/gallery/photo-3.jpg" alt="" onerror="this.remove()"><figcaption>Shelter support</figcaption></figure>
+    <figure class="tile t4"><img src="images/gallery/photo-4.jpg" alt="" onerror="this.remove()"><figcaption>Training day</figcaption></figure>
+    <figure class="tile t5"><img src="images/gallery/photo-5.jpg" alt="" onerror="this.remove()"><figcaption>Community events</figcaption></figure>
+    <figure class="tile t6"><img src="images/gallery/photo-6.jpg" alt="" onerror="this.remove()"><figcaption>Our team</figcaption></figure>
+  </main>
+
 </div>
-</section>
 
-<section class="section">
-<h2>Resources</h2>
-<div class="grid">
-<a class="card" href="pages/dat-library.html"><div class="icon">📁</div><h3>DAT & Client Care Libraries</h3></a>
-<a class="card" href="pages/masscare.html"><div class="icon">🏠</div><h3>Mass Care Libraries</h3></a>
-<a class="card" href="pages/training.html"><div class="icon">🎓</div><h3>Training Center</h3></a>
-<a class="card" href="pages/redtalks.html"><div class="icon">📖</div><h3>RED Talks</h3></a>
-</div>
-</section>
-
-<footer>SEPA Resource Library Prototype v0.2</footer>
-</body></html>
+<script src="js/script.js"></script>
+</body>
+</html>
