@@ -1,11 +1,21 @@
 # Changelog
 
+## v0.5
+- "DAT & Client Care Libraries" button renamed "FAQs and Common Documents"
+- "Mass Care Libraries" renamed "Mass Care Resources"
+- Stylesheet links carry a version number (?v=0.5.1) so browsers load fresh styles after updates. Bump it each release.
+- All homepage buttons open in a new tab
+- "Sign Up for DAT Shifts" button uses a picture (images/sign-up-shifts.jpg)
+- "Classes and Events Calendar" button uses a real class photo with the matching red banner (images/classes-events-calendar.jpg)
+- tools/make_button.py builds the matching red-banner button pictures
+- "Are You New?" button now uses the volunteer group photo with a matching red banner (images/are-you-new.jpg)
+- All inside pages now match the homepage look (logo, "Back to home" link) and their titles match the buttons
+
 ## v0.4
 - Photo gallery removed for now
 - Logo centered at top on a white background
 - Navigation shown as button cards (Volunteer Actions and Resources)
 - "Are You New?" button uses a picture (images/are-you-new.png)
-- Calendar icon on Classes & Events
 - Practice button renamed "Practice RC Care and SCIA Here"
 - New DAT shift signup calendar (pages/shifts.html), not yet linked from homepage. Signups go to a Google Sheet.
   Shifts, spots and admin email are edited in that Sheet. Setup: SHIFT-SIGNUP-SETUP.md
