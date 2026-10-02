@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9
+- Daily 7 AM email report of new shift signups (one-time + recurring) to the Settings admin email(s)
+- Instant per-signup emails now off by default (Settings switch: YES/NO)
+- Backend redeployed as version 3 (same URL); 7 AM schedule turned on (Eastern time)
+
 ## v0.8
 - Shift page headings: Step One: Choose a Day / Step Two: Choose a Shift / Step Three: Your Information
 - "Thank You!" pop-up after signing up

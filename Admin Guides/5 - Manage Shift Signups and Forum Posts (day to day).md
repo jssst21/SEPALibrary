@@ -15,7 +15,12 @@ Volunteers pick a day, then choose one of the 4 standard shifts
 - **Recurring signups** (same hours every week on chosen weekdays): **Recurring** tab.
   These repeat until removed. To stop one, type **YES** in "Stopped" (keeps a record) or delete the row.
 - **Minimum hours for Custom shifts:** **Settings** tab, "Minimum hours for a custom shift" (currently 6).
-- **Get an email for each signup:** **Settings** tab, "Admin email" (currently sepalibrary@gmail.com).
+- **Daily signup report:** every morning at **7 AM** an email lists everyone who signed up since the
+  last report (one-time and recurring, with phone/email and notes). It goes to the address(es) in
+  **Settings**, "Admin email(s) for the daily 7 AM signup report" (currently sepalibrary@gmail.com).
+  Add more admins by separating emails with commas. Leave it blank to stop the report.
+- **Instant email per signup:** off by default. Type **YES** in Settings, "Also email each signup
+  the moment it happens?" to turn it on.
 - **How far ahead people can sign up:** **Settings** tab, "Days ahead".
 - **Changing the 4 standard shift times** requires a small code change. Ask Claude.
 - Don't edit the "(do not edit)" columns. The website uses them to show coverage.

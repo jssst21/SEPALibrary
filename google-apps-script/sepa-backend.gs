@@ -8,7 +8,7 @@
  * Tabs the admin uses:
  *   Signups   - one-time shift signups (delete a row to cancel it)
  *   Recurring - weekly repeating signups (delete a row, or type YES in "Stopped", to end it)
- *   Settings  - admin email, how far ahead people can sign up, minimum hours for custom shifts
+ *   Settings  - report email(s), how far ahead people can sign up, minimum hours for custom shifts
  *   Members   - forum members (only used if logins are turned on). YES in "Blocked" blocks someone.
  *   Topics    - forum discussions. Type YES in "Hidden" to hide one.
  *   Replies   - forum replies. Type YES in "Hidden" to hide one.
@@ -28,6 +28,10 @@ var RECURRING_HEADERS = ['Submitted', 'Every', 'Hours', 'Name', 'Phone', 'Email'
 var FORUM_REQUIRES_LOGIN = false;
 var SESSION_DAYS = 180;
 
+var REPORT_HOUR = 7;   // daily signup report goes out at 7 AM
+var SETTING_EMAIL_LABEL = 'Admin email(s) for the daily 7 AM signup report (separate several with commas; blank = no report)';
+var SETTING_INSTANT_LABEL = 'Also email each signup the moment it happens? (YES or NO)';
+
 /* =========================================================
    ONE-TIME SETUP: run this once from the Apps Script editor
    ========================================================= */
@@ -35,9 +39,10 @@ function setup() {
   makeTab_('Signups', SIGNUP_HEADERS);
   makeTab_('Recurring', RECURRING_HEADERS);
   makeTab_('Settings', ['Setting', 'Value'], [
-    ['Admin email (gets an email for each shift signup; leave blank for none)', ''],
+    [SETTING_EMAIL_LABEL, ''],
     ['Days ahead people can sign up', '60'],
-    ['Minimum hours for a custom shift', '6']
+    ['Minimum hours for a custom shift', '6'],
+    [SETTING_INSTANT_LABEL, 'NO']
   ]);
   makeTab_('Members', ['Name', 'Joined', 'Blocked (type YES)', 'Password check (do not edit)', 'Salt (do not edit)']);
   makeTab_('Topics', ['ID', 'Created', 'Author', 'Title', 'Message', 'Last Activity', 'Replies', 'Hidden (type YES)']);
@@ -138,7 +143,8 @@ function readSettings_() {
   return {
     adminEmail: String(r[1] && r[1][1] || '').trim(),
     daysAhead: parseInt(r[2] && r[2][1], 10) || 60,
-    minHours: parseInt(r[3] && r[3][1], 10) || 6
+    minHours: parseInt(r[3] && r[3][1], 10) || 6,
+    instant: isYes_(r[4] && r[4][1])
   };
 }
 
@@ -194,8 +200,9 @@ function inWindow_(date, s) {
   return /^\d{4}-\d{2}-\d{2}$/.test(date) && date >= today_() && date <= last;
 }
 
+/* Instant email for one signup. Only sent if Settings says YES (the daily report covers it otherwise). */
 function notify_(s, subject, body) {
-  if (s.adminEmail) MailApp.sendEmail(s.adminEmail, subject, body + '\n\nAll signups: ' + ss_().getUrl());
+  if (s.adminEmail && s.instant) MailApp.sendEmail(s.adminEmail, subject, body + '\n\nAll signups: ' + ss_().getUrl());
 }
 
 function shiftSignup_(d) {
@@ -233,6 +240,60 @@ function recurringSignup_(d) {
     'This repeats until it is removed from the Recurring tab.\n\n' +
     'Phone: ' + (phone || '-') + '\nEmail: ' + (email || '-') + '\nNotes: ' + (notes || '-'));
   return { ok: true };
+}
+
+/* =========================================================
+   DAILY SIGNUP REPORT (emailed at 7 AM)
+   ========================================================= */
+
+/* Run this ONCE from the editor to start the daily 7 AM email. Safe to run again. */
+function startDailyReport() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'dailyReport') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('dailyReport').timeBased().everyDays(1).atHour(REPORT_HOUR).inTimezone(tz_()).create();
+  Logger.log('Daily report scheduled for ' + REPORT_HOUR + ':00 (' + tz_() + ')');
+}
+
+/* Emails everything submitted since the last report. Runs automatically each morning. */
+function dailyReport() {
+  var s = readSettings_();
+  if (!s.adminEmail) return;
+  var props = PropertiesService.getScriptProperties();
+  var since = props.getProperty('lastReport') || stamp_(new Date(Date.now() - 86400000));
+  var now = stamp_();
+  var person = function (r) {
+    var bits = [String(r[3]).replace(/^'/, '')];
+    if (r[4]) bits.push(String(r[4]).replace(/^'/, ''));
+    if (r[5]) bits.push(String(r[5]).replace(/^'/, ''));
+    return bits.join(', ') + (r[6] ? '\n      Notes: ' + String(r[6]).replace(/^'/, '') : '');
+  };
+  var nice = function (dateText) {
+    var p = dateText.split('-');
+    return Utilities.formatDate(new Date(+p[0], +p[1] - 1, +p[2]), tz_(), 'EEE, MMM d');
+  };
+
+  var one = rows_('Signups').filter(function (r) { return iso_(r[0]) > since && iso_(r[0]) <= now; });
+  var rec = rows_('Recurring').filter(function (r) { return iso_(r[0]) > since && iso_(r[0]) <= now; });
+  one.sort(function (a, b) { return asDateText_(a[1]) < asDateText_(b[1]) ? -1 : 1; });
+
+  var total = one.length + rec.length;
+  var lines = [];
+  lines.push(total ? total + ' new signup' + (total === 1 ? '' : 's') + ' since the last report:' : 'No new signups since the last report.');
+  if (one.length) {
+    lines.push('', 'ONE-TIME SHIFTS');
+    one.forEach(function (r) { lines.push('  ' + nice(asDateText_(r[1])) + ', ' + r[2] + '\n      ' + person(r)); });
+  }
+  if (rec.length) {
+    lines.push('', 'RECURRING (every week until stopped)');
+    rec.forEach(function (r) { lines.push('  Every ' + r[1] + ', ' + r[2] + ', starting ' + nice(asDateText_(r[7])) + '\n      ' + person(r)); });
+  }
+  lines.push('', 'Full list: ' + ss_().getUrl());
+
+  MailApp.sendEmail(s.adminEmail,
+    'SEPA DAT signups: ' + (total || 'none') + ' new (' + Utilities.formatDate(new Date(), tz_(), 'MMM d') + ')',
+    lines.join('\n'));
+  props.setProperty('lastReport', now);
 }
 
 /* =========================================================
