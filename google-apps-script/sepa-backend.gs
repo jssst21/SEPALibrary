@@ -6,9 +6,9 @@
  * It is NOT part of the website itself. See "Admin Guides" folder, Guide 2.
  *
  * Tabs the admin uses:
- *   Signups   - every shift signup (delete a row to cancel it)
- *   Shifts    - shift names, times, spots, days
- *   Settings  - admin email, how far ahead people can sign up
+ *   Signups   - one-time shift signups (delete a row to cancel it)
+ *   Recurring - weekly repeating signups (delete a row, or type YES in "Stopped", to end it)
+ *   Settings  - admin email, how far ahead people can sign up, minimum hours for custom shifts
  *   Members   - forum members (only used if logins are turned on). YES in "Blocked" blocks someone.
  *   Topics    - forum discussions. Type YES in "Hidden" to hide one.
  *   Replies   - forum replies. Type YES in "Hidden" to hide one.
@@ -20,6 +20,8 @@
 var SHEET_ID = '1Ndx-55A7LBEYv8lrX8lpryu9-iOUL9WXmwiTiM9eF9I';
 
 var DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+var SIGNUP_HEADERS = ['Submitted', 'Shift Date', 'Hours', 'Name', 'Phone', 'Email', 'Notes', 'Start hour (do not edit)', 'Length (do not edit)'];
+var RECURRING_HEADERS = ['Submitted', 'Every', 'Hours', 'Name', 'Phone', 'Email', 'Notes', 'Starting', 'Stopped (type YES)', 'Start hour (do not edit)', 'Length (do not edit)'];
 
 /* Forum logins. false = no sign-up: anyone can read and post by typing their name.
    true  = members must join / log in (name + password). */
@@ -30,14 +32,12 @@ var SESSION_DAYS = 180;
    ONE-TIME SETUP: run this once from the Apps Script editor
    ========================================================= */
 function setup() {
-  makeTab_('Signups', ['Submitted', 'Shift Date', 'Shift', 'Name', 'Phone', 'Email', 'Notes']);
-  makeTab_('Shifts', ['Shift Name', 'Start', 'End', 'Spots', 'Days (All, or e.g. Mon,Wed,Sat)'], [
-    ['Day Shift', '8:00 AM', '8:00 PM', '3', 'All'],
-    ['Night Shift', '8:00 PM', '8:00 AM', '3', 'All']
-  ]);
+  makeTab_('Signups', SIGNUP_HEADERS);
+  makeTab_('Recurring', RECURRING_HEADERS);
   makeTab_('Settings', ['Setting', 'Value'], [
     ['Admin email (gets an email for each shift signup; leave blank for none)', ''],
-    ['Days ahead people can sign up', '60']
+    ['Days ahead people can sign up', '60'],
+    ['Minimum hours for a custom shift', '6']
   ]);
   makeTab_('Members', ['Name', 'Joined', 'Blocked (type YES)', 'Password check (do not edit)', 'Salt (do not edit)']);
   makeTab_('Topics', ['ID', 'Created', 'Author', 'Title', 'Message', 'Last Activity', 'Replies', 'Hidden (type YES)']);
@@ -109,6 +109,7 @@ function doPost(e) {
     var d = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     var actions = {
       shiftSignup: shiftSignup_,
+      recurringSignup: recurringSignup_,
       join: FORUM_REQUIRES_LOGIN ? join_ : null,
       login: FORUM_REQUIRES_LOGIN ? login_ : null,
       logout: logout_,
@@ -129,74 +130,108 @@ function doPost(e) {
 
 /* =========================================================
    SHIFT SIGNUP
+   A shift is a start hour (0-23) and a length in hours (1-24).
+   It may run past midnight into the next day.
    ========================================================= */
-function readShifts_() {
-  return rows_('Shifts').map(function (r) {
-    var days = asText_(r[4] || 'All');
-    return {
-      name: asText_(r[0]), start: asText_(r[1]), end: asText_(r[2]),
-      spots: parseInt(r[3], 10) || 1, days: /^all$/i.test(days) ? 'All' : days
-    };
-  }).filter(function (s) { return s.name; });
-}
-
 function readSettings_() {
   var r = tab_('Settings').getDataRange().getValues();
   return {
     adminEmail: String(r[1] && r[1][1] || '').trim(),
-    daysAhead: parseInt(r[2] && r[2][1], 10) || 60
+    daysAhead: parseInt(r[2] && r[2][1], 10) || 60,
+    minHours: parseInt(r[3] && r[3][1], 10) || 6
   };
 }
 
-function countTaken_() {
-  var today = today_(), taken = {};
-  rows_('Signups').forEach(function (r) {
-    var d = asDateText_(r[1]);
-    if (d < today) return;
-    var key = d + '|' + asText_(r[2]);
-    taken[key] = (taken[key] || 0) + 1;
-  });
-  return taken;
+function hourText_(h) {
+  h = ((h % 24) + 24) % 24;
+  return (h % 12 || 12) + ':00 ' + (h < 12 ? 'AM' : 'PM');
 }
-
-function shiftRunsOn_(shift, dateText) {
-  if (shift.days === 'All') return true;
+function rangeText_(start, hours) {
+  var end = start + hours;
+  return hourText_(start) + ' to ' + hourText_(end) + (end > 24 ? ' (next day)' : '');
+}
+function addDays_(dateText, n) {
   var p = dateText.split('-');
-  var dow = DAY_NAMES[new Date(+p[0], +p[1] - 1, +p[2]).getDay()].toLowerCase();
-  return shift.days.split(',').some(function (d) { return d.trim().slice(0, 3).toLowerCase() === dow; });
+  var d = new Date(+p[0], +p[1] - 1, +p[2] + n);
+  return Utilities.formatDate(d, tz_(), 'yyyy-MM-dd');
+}
+function dow_(dateText) {
+  var p = dateText.split('-');
+  return new Date(+p[0], +p[1] - 1, +p[2]).getDay();
 }
 
+/* Public calendar data: times only, never names. */
 function shiftData_() {
-  return { ok: true, today: today_(), daysAhead: readSettings_().daysAhead, shifts: readShifts_(), taken: countTaken_() };
+  var s = readSettings_(), today = today_(), yesterday = addDays_(today, -1);
+  var one = [];
+  rows_('Signups').forEach(function (r) {
+    var date = asDateText_(r[1]), start = parseInt(r[7], 10), hours = parseInt(r[8], 10);
+    if (date >= yesterday && start >= 0 && hours > 0) one.push({ date: date, start: start, hours: hours });
+  });
+  var rec = [];
+  rows_('Recurring').forEach(function (r) {
+    if (isYes_(r[8])) return;
+    var days = String(r[1]).split(',').map(function (x) { return DAY_NAMES.indexOf(x.trim().slice(0, 3)); })
+      .filter(function (x) { return x >= 0; });
+    var start = parseInt(r[9], 10), hours = parseInt(r[10], 10);
+    if (days.length && start >= 0 && hours > 0) rec.push({ days: days, start: start, hours: hours, from: asDateText_(r[7]) });
+  });
+  return { ok: true, today: today, daysAhead: s.daysAhead, minHours: s.minHours, one: one, rec: rec };
+}
+
+/* Shared checks for name/contact/hours. Returns an error object, or null if all good. */
+function checkPerson_(d, s) {
+  if (!clean_(d.name, 100)) return { ok: false, error: 'Please enter your name.' };
+  if (!clean_(d.phone, 40) && !clean_(d.email, 120)) return { ok: false, error: 'Please enter a phone number or email.' };
+  var start = parseInt(d.start, 10), hours = parseInt(d.hours, 10);
+  if (!(start >= 0 && start <= 23)) return { ok: false, error: 'Please choose a start time.' };
+  if (!(hours >= s.minHours && hours <= 24)) return { ok: false, error: 'Shifts must be at least ' + s.minHours + ' hours (and no more than 24).' };
+  return null;
+}
+
+function inWindow_(date, s) {
+  var last = Utilities.formatDate(new Date(Date.now() + s.daysAhead * 86400000), tz_(), 'yyyy-MM-dd');
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) && date >= today_() && date <= last;
+}
+
+function notify_(s, subject, body) {
+  if (s.adminEmail) MailApp.sendEmail(s.adminEmail, subject, body + '\n\nAll signups: ' + ss_().getUrl());
 }
 
 function shiftSignup_(d) {
   if (d.website) return { ok: true };   // spam trap
-  var date = clean_(d.date, 10), shiftName = clean_(d.shift, 100);
+  var s = readSettings_(), bad = checkPerson_(d, s);
+  if (bad) return bad;
+  var date = clean_(d.date, 10);
+  if (!inWindow_(date, s)) return { ok: false, error: 'That day is not open for signup.' };
+  var start = parseInt(d.start, 10), hours = parseInt(d.hours, 10), when = rangeText_(start, hours);
   var name = clean_(d.name, 100), phone = clean_(d.phone, 40), email = clean_(d.email, 120), notes = clean_(d.notes, 500);
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, error: 'Please pick a day.' };
-  if (!name) return { ok: false, error: 'Please enter your name.' };
-  if (!phone && !email) return { ok: false, error: 'Please enter a phone number or email.' };
+  tab_('Signups').appendRow([stamp_(), date, when, safe_(name), safe_(phone), safe_(email), safe_(notes), String(start), String(hours)]);
+  notify_(s, 'DAT shift signup: ' + name + ', ' + date,
+    name + ' signed up for ' + date + ', ' + when + ' (' + hours + ' hours).\n\n' +
+    'Phone: ' + (phone || '-') + '\nEmail: ' + (email || '-') + '\nNotes: ' + (notes || '-'));
+  return { ok: true };
+}
 
-  var s = readSettings_();
-  var last = Utilities.formatDate(new Date(Date.now() + s.daysAhead * 86400000), tz_(), 'yyyy-MM-dd');
-  if (date < today_() || date > last) return { ok: false, error: 'That day is not open for signup.' };
+function recurringSignup_(d) {
+  if (d.website) return { ok: true };   // spam trap
+  var s = readSettings_(), bad = checkPerson_(d, s);
+  if (bad) return bad;
+  var from = clean_(d.from, 10);
+  if (!inWindow_(from, s)) return { ok: false, error: 'That starting day is not open for signup.' };
+  var days = (Array.isArray(d.days) ? d.days : []).map(function (x) { return parseInt(x, 10); })
+    .filter(function (x, i, a) { return x >= 0 && x <= 6 && a.indexOf(x) === i; }).sort();
+  if (!days.length) return { ok: false, error: 'Please pick at least one day of the week.' };
+  var every = days.map(function (x) { return DAY_NAMES[x]; }).join(', ');
+  var start = parseInt(d.start, 10), hours = parseInt(d.hours, 10), when = rangeText_(start, hours);
+  var name = clean_(d.name, 100), phone = clean_(d.phone, 40), email = clean_(d.email, 120), notes = clean_(d.notes, 500);
 
-  var shift = readShifts_().filter(function (x) { return x.name === shiftName; })[0];
-  if (!shift || !shiftRunsOn_(shift, date)) return { ok: false, error: 'That shift is not available on that day.' };
-  if ((countTaken_()[date + '|' + shift.name] || 0) >= shift.spots) {
-    return { ok: false, error: 'Sorry, that shift just filled up. Please pick another.' };
-  }
-
-  tab_('Signups').appendRow([stamp_(), date, safe_(shift.name), safe_(name), safe_(phone), safe_(email), safe_(notes)]);
-
-  if (s.adminEmail) {
-    MailApp.sendEmail(s.adminEmail, 'DAT shift signup: ' + name + ', ' + date + ' ' + shift.name,
-      name + ' signed up for ' + shift.name + ' (' + shift.start + ' to ' + shift.end + ') on ' + date + '.\n\n' +
-      'Phone: ' + (phone || '-') + '\nEmail: ' + (email || '-') + '\nNotes: ' + (notes || '-') + '\n\n' +
-      'All signups: ' + ss_().getUrl());
-  }
+  tab_('Recurring').appendRow([stamp_(), every, when, safe_(name), safe_(phone), safe_(email), safe_(notes), from, '', String(start), String(hours)]);
+  notify_(s, 'Recurring DAT signup: ' + name + ', every ' + every,
+    name + ' signed up for every ' + every + ', ' + when + ' (' + hours + ' hours), starting ' + from + '.\n' +
+    'This repeats until it is removed from the Recurring tab.\n\n' +
+    'Phone: ' + (phone || '-') + '\nEmail: ' + (email || '-') + '\nNotes: ' + (notes || '-'));
   return { ok: true };
 }
 

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.7">
+<link rel="stylesheet" href="../css/style.css?v=0.8">
 </head>
 <body class="home">
 
@@ -19,7 +19,7 @@
   </header>
 
   <h1 class="page-title">Sign Up for DAT Shifts</h1>
-  <p class="page-intro">Pick a day, choose a shift, and enter your name. That's it.</p>
+  <p class="page-intro">Pick a day, choose your hours, and enter your name. That's it.</p>
 
   <p class="notice" id="notice" hidden></p>
 
@@ -36,14 +36,38 @@
         <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
       </div>
       <div class="cal-grid" id="days"></div>
-      <p class="cal-key"><span class="dot"></span> Shifts open &nbsp; <span class="dot full"></span> Full</p>
+      <p class="cal-key"><span class="count-badge">2</span> = volunteers already signed up that day</p>
     </div>
   </section>
 
-  <!-- STEP 2: shift -->
+  <!-- STEP 2: hours -->
   <section class="step" id="step-shift" hidden>
-    <h2 class="step-title"><span class="step-num">2</span> Choose a shift for <span id="day-label"></span></h2>
+    <h2 class="step-title"><span class="step-num">2</span> Choose your hours for <span id="day-label"></span></h2>
     <div class="shift-list" id="shifts"></div>
+
+    <div class="shift-extra">
+      <button type="button" class="shift-btn shift-btn-alt" id="custom-btn" aria-expanded="false">
+        <strong>Custom</strong><span class="shift-time">Choose your own start and end time</span>
+      </button>
+      <div class="panel" id="custom-panel" hidden>
+        <div class="time-picker" data-for="custom"></div>
+        <button type="button" class="primary-btn" id="custom-go">Continue</button>
+      </div>
+
+      <button type="button" class="shift-btn shift-btn-alt" id="rec-btn" aria-expanded="false">
+        <strong>Recurring</strong><span class="shift-time">Same hours every week</span>
+      </button>
+      <div class="panel" id="rec-panel" hidden>
+        <p class="panel-label">Repeat every week on:</p>
+        <div class="weekdays" id="weekdays"></div>
+        <p class="panel-label">Hours:</p>
+        <div class="rec-choices" id="rec-choices"></div>
+        <div class="time-picker" data-for="rec" hidden></div>
+        <p class="panel-note" id="rec-note"></p>
+        <button type="button" class="primary-btn" id="rec-go">Continue</button>
+        <p class="form-error" id="rec-error" hidden></p>
+      </div>
+    </div>
   </section>
 
   <!-- STEP 3: details -->
@@ -79,7 +103,7 @@
 
 </div>
 
-<script src="../js/config.js?v=0.7"></script>
-<script src="../js/shifts.js?v=0.7"></script>
+<script src="../js/config.js?v=0.8"></script>
+<script src="../js/shifts.js?v=0.8"></script>
 </body>
 </html>

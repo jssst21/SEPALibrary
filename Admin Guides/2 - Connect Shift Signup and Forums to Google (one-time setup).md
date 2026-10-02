@@ -40,14 +40,13 @@ so the Sheet and the script belong to SEPA and can be handed to future admins.
 4. You'll see "Google hasn't verified this app". This is normal for scripts you write yourself.
    Click **Advanced**, then **Go to Untitled project (unsafe)**, then **Allow**.
 5. Go back to the Sheet tab. You should now see these tabs at the bottom:
-   **Signups, Shifts, Settings, Members, Topics, Replies, Sessions**.
+   **Signups, Recurring, Settings, Members, Topics, Replies, Sessions**.
 
-## Part 4: Fill in your shifts and settings
+## Part 4: Check the settings
 
-- **Shifts tab:** one row per shift. Change the names, times and number of spots to match
-  your real shifts. In the Days column, write **All**, or list days like **Mon,Wed,Sat**.
 - **Settings tab:** put an email next to "Admin email" to get an email for each shift
   signup. Leave it blank for no emails. "Days ahead" controls how far out people can sign up.
+  "Minimum hours for a custom shift" is the shortest custom shift allowed (6 to start).
 
 ## Part 5: Turn it on
 

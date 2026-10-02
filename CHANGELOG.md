@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8
+- Shift signup reworked: 4 standard shifts (12-6 AM, 6 AM-12 PM, 12-6 PM, 6 PM-12 AM) with no limit,
+  plus Custom (start/end sliders, 6-hour minimum, overnight allowed) and Recurring
+  (pick weekdays, repeats every week until an admin stops it)
+- Calendar shows how many volunteers are signed up each day; each shift shows how many cover it (no names)
+- Google Sheet: new Recurring tab, Signups tab rebuilt with new columns, old Shifts tab removed,
+  "Minimum hours for a custom shift" added to Settings. Backend redeployed as version 2 (same URL).
+
 ## v0.7
 - Connected to Google: Sheet "SEPA Library Data" in sepalibrary@gmail.com (js/config.js has the link)
 - Shift signup calendar and forums are LIVE (no more preview mode)

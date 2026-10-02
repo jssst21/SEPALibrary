@@ -7,13 +7,18 @@ Requires Guide 2 to be finished first.
 
 ## Shift signups
 
-- **See who signed up:** open the Sheet, **Signups** tab. Newest are at the bottom.
-- **Cancel a signup:** delete that row. The spot opens up again on the website.
-- **Change shift times or number of spots:** edit the **Shifts** tab.
-  In the Days column write **All**, or list days like **Mon,Wed,Sat**.
-  The website updates right away.
-- **Get an email for each signup:** **Settings** tab, put an email next to "Admin email".
+Volunteers pick a day, then choose one of the 4 standard shifts
+(12 AM to 6 AM, 6 AM to 12 PM, 12 PM to 6 PM, 6 PM to 12 AM), **Custom** hours, or **Recurring**.
+
+- **One-time signups:** **Signups** tab. Newest at the bottom.
+  To cancel one, delete that row.
+- **Recurring signups** (same hours every week on chosen weekdays): **Recurring** tab.
+  These repeat until removed. To stop one, type **YES** in "Stopped" (keeps a record) or delete the row.
+- **Minimum hours for Custom shifts:** **Settings** tab, "Minimum hours for a custom shift" (currently 6).
+- **Get an email for each signup:** **Settings** tab, "Admin email" (currently sepalibrary@gmail.com).
 - **How far ahead people can sign up:** **Settings** tab, "Days ahead".
+- **Changing the 4 standard shift times** requires a small code change. Ask Claude.
+- Don't edit the "(do not edit)" columns. The website uses them to show coverage.
 
 ## Forum posts
 

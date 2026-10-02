@@ -1,5 +1,15 @@
 // SEPA Resource Library - DAT shift signup calendar
 // The Google connection is set in js/config.js
+//
+// The 4 standard shifts are listed just below (start hour on a 24-hour clock, 6 hours each).
+var STANDARD_SHIFTS = [
+  { name: 'Overnight', start: 0 },
+  { name: 'Morning', start: 6 },
+  { name: 'Afternoon', start: 12 },
+  { name: 'Evening', start: 18 }
+];
+var STANDARD_HOURS = 6;
+
 var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
 
 (function () {
@@ -9,13 +19,16 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
   var LONG_DOW = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   var preview = !SIGNUP_URL;
 
-  var data = null;          // { today, daysAhead, shifts, taken }
-  var viewYear, viewMonth;  // month being shown
-  var pickedDate = null, pickedShift = null;
+  var data = null;          // { today, daysAhead, minHours, one: [...], rec: [...] }
+  var viewYear, viewMonth;
+  var pickedDate = null;
+  var choice = null;        // { type: 'one' | 'rec', start, hours, days }
+  var pickers = {};         // the two time pickers (custom, recurring)
+  var recBlock = null;      // which standard shift is chosen in the recurring panel (null = custom)
 
   var $ = function (id) { return document.getElementById(id); };
 
-  // ---------- date helpers (dates are "YYYY-MM-DD" text) ----------
+  // ---------- dates ("YYYY-MM-DD" text) ----------
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function toText(y, m, d) { return y + '-' + pad(m + 1) + '-' + pad(d); }
   function parts(t) { var p = t.split('-'); return [+p[0], +p[1] - 1, +p[2]]; }
@@ -25,49 +38,52 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
   }
   function dow(t) { var p = parts(t); return new Date(p[0], p[1], p[2]).getDay(); }
   function niceDate(t) { var p = parts(t); return LONG_DOW[dow(t)] + ', ' + MONTHS[p[1]] + ' ' + p[2]; }
-
   function lastDay() { return addDays(data.today, data.daysAhead); }
 
-  function shiftsOn(t) {
-    return data.shifts.filter(function (s) {
-      if (s.days === 'All') return true;
-      return s.days.split(',').some(function (d) {
-        return d.trim().slice(0, 3).toLowerCase() === DOW[dow(t)].toLowerCase();
-      });
+  // ---------- times ----------
+  function hourText(h) { h = ((h % 24) + 24) % 24; return (h % 12 || 12) + ':00 ' + (h < 12 ? 'AM' : 'PM'); }
+  function rangeText(start, hours) {
+    var end = start + hours;
+    return hourText(start) + ' to ' + hourText(end) + (end > 24 ? ' (next day)' : '');
+  }
+
+  // ---------- who is already covering a day (times only, no names) ----------
+  function recOn(r, t) { return r.from <= t && r.days.indexOf(dow(t)) !== -1; }
+  function intervalsOn(t) {
+    var y = addDays(t, -1), out = [];
+    data.one.forEach(function (s) {
+      if (s.date === t) out.push([s.start, s.start + s.hours]);
+      if (s.date === y && s.start + s.hours > 24) out.push([0, s.start + s.hours - 24]);
     });
+    data.rec.forEach(function (r) {
+      if (recOn(r, t)) out.push([r.start, r.start + r.hours]);
+      if (recOn(r, y) && r.start + r.hours > 24) out.push([0, r.start + r.hours - 24]);
+    });
+    return out;
   }
-  function spotsLeft(t, s) { return Math.max(0, s.spots - (data.taken[t + '|' + s.name] || 0)); }
-  function dayStatus(t) {
-    if (t < data.today || t > lastDay()) return 'closed';
-    var list = shiftsOn(t);
-    if (!list.length) return 'closed';
-    return list.some(function (s) { return spotsLeft(t, s) > 0; }) ? 'open' : 'full';
+  function coverCount(t, start, hours) {
+    return intervalsOn(t).filter(function (iv) { return iv[0] < start + hours && iv[1] > start; }).length;
   }
+  function signupsStarting(t) {
+    return data.one.filter(function (s) { return s.date === t; }).length +
+      data.rec.filter(function (r) { return recOn(r, t); }).length;
+  }
+  function isOpen(t) { return t >= data.today && t <= lastDay(); }
 
   // ---------- load ----------
-  function sampleData() {
-    var n = new Date();
-    return {
-      today: toText(n.getFullYear(), n.getMonth(), n.getDate()),
-      daysAhead: 60,
-      shifts: [
-        { name: 'Day Shift', start: '8:00 AM', end: '8:00 PM', spots: 3, days: 'All' },
-        { name: 'Night Shift', start: '8:00 PM', end: '8:00 AM', spots: 3, days: 'All' }
-      ],
-      taken: {}
-    };
-  }
-
   function notice(msg) { var el = $('notice'); el.textContent = msg; el.hidden = !msg; }
 
   function load(done) {
     if (preview) {
-      data = sampleData();
+      var n = new Date();
+      data = { today: toText(n.getFullYear(), n.getMonth(), n.getDate()), daysAhead: 60, minHours: 6, one: [], rec: [] };
       notice('Preview mode: this calendar is not connected yet, so signups are not saved.');
       return done();
     }
     fetch(SIGNUP_URL).then(function (r) { return r.json(); }).then(function (d) {
-      data = d; done();
+      data = d;
+      data.one = d.one || []; data.rec = d.rec || []; data.minHours = d.minHours || 6;
+      done();
     }).catch(function () {
       notice('The signup calendar could not load. Please refresh the page or try again later.');
     });
@@ -82,15 +98,15 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
     var count = new Date(viewYear, viewMonth + 1, 0).getDate();
     for (var i = 0; i < first; i++) box.appendChild(document.createElement('span'));
     for (var d = 1; d <= count; d++) {
-      var t = toText(viewYear, viewMonth, d);
-      var st = dayStatus(t);
+      var t = toText(viewYear, viewMonth, d), open = isOpen(t), n = open ? signupsStarting(t) : 0;
       var b = document.createElement('button');
       b.type = 'button';
-      b.className = 'cal-day ' + st + (t === pickedDate ? ' picked' : '') + (t === data.today ? ' today' : '');
-      b.textContent = d;
-      b.disabled = st !== 'open';
-      b.setAttribute('aria-label', niceDate(t) + (st === 'open' ? ', shifts open' : st === 'full' ? ', full' : ''));
+      b.className = 'cal-day ' + (open ? 'open' : 'closed') + (t === pickedDate ? ' picked' : '') + (t === data.today ? ' today' : '');
+      b.disabled = !open;
       b.dataset.date = t;
+      b.appendChild(document.createTextNode(d));
+      if (n) { var c = document.createElement('span'); c.className = 'count-badge'; c.textContent = n; b.appendChild(c); }
+      b.setAttribute('aria-label', niceDate(t) + (n ? ', ' + n + ' signed up' : ''));
       b.addEventListener('click', function () { pickDay(this.dataset.date); });
       box.appendChild(b);
     }
@@ -105,35 +121,148 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
     drawMonth();
   }
 
-  // ---------- step 2: shifts ----------
+  // ---------- time picker (two sliders with - / + buttons) ----------
+  function makePicker(box, startHour, hours) {
+    var st = { start: startHour, hours: Math.max(hours, data.minHours) };
+    box.innerHTML =
+      '<div class="tp-row"><span class="tp-label">Start</span>' +
+      '<button type="button" class="tp-step" data-k="start" data-d="-1" aria-label="Earlier start">&minus;</button>' +
+      '<input type="range" class="tp-range" data-k="start" min="0" max="23" step="1" aria-label="Start time">' +
+      '<button type="button" class="tp-step" data-k="start" data-d="1" aria-label="Later start">+</button>' +
+      '<output class="tp-value" data-k="start"></output></div>' +
+      '<div class="tp-row"><span class="tp-label">End</span>' +
+      '<button type="button" class="tp-step" data-k="hours" data-d="-1" aria-label="Earlier end">&minus;</button>' +
+      '<input type="range" class="tp-range" data-k="hours" min="' + data.minHours + '" max="24" step="1" aria-label="End time">' +
+      '<button type="button" class="tp-step" data-k="hours" data-d="1" aria-label="Later end">+</button>' +
+      '<output class="tp-value" data-k="hours"></output></div>' +
+      '<p class="tp-summary"></p>' +
+      '<p class="tp-min">Minimum ' + data.minHours + ' hours. Shifts can run overnight.</p>';
+    function draw() {
+      box.querySelector('input[data-k=start]').value = st.start;
+      box.querySelector('input[data-k=hours]').value = st.hours;
+      box.querySelector('output[data-k=start]').textContent = hourText(st.start);
+      var end = st.start + st.hours;
+      box.querySelector('output[data-k=hours]').textContent = hourText(end) + (end > 24 ? ' (next day)' : '');
+      box.querySelector('.tp-summary').textContent = rangeText(st.start, st.hours) + ' · ' + st.hours + ' hours';
+    }
+    function set(k, v) {
+      if (k === 'start') st.start = Math.min(23, Math.max(0, v));
+      else st.hours = Math.min(24, Math.max(data.minHours, v));
+      draw();
+    }
+    box.querySelectorAll('.tp-range').forEach(function (r) {
+      r.addEventListener('input', function () { set(r.dataset.k, parseInt(r.value, 10)); });
+    });
+    box.querySelectorAll('.tp-step').forEach(function (b) {
+      b.addEventListener('click', function () { set(b.dataset.k, st[b.dataset.k] + parseInt(b.dataset.d, 10)); });
+    });
+    draw();
+    return st;
+  }
+
+  // ---------- step 2: hours ----------
   function pickDay(t) {
-    pickedDate = t; pickedShift = null;
+    pickedDate = t; choice = null;
     drawMonth();
     $('day-label').textContent = niceDate(t);
+
     var box = $('shifts');
     box.innerHTML = '';
-    shiftsOn(t).forEach(function (s) {
-      var left = spotsLeft(t, s);
+    STANDARD_SHIFTS.forEach(function (s) {
+      var n = coverCount(t, s.start, STANDARD_HOURS);
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'shift-btn';
-      b.disabled = left === 0;
       b.innerHTML = '<strong></strong><span class="shift-time"></span><span class="shift-spots"></span>';
       b.querySelector('strong').textContent = s.name;
-      b.querySelector('.shift-time').textContent = s.start + ' to ' + s.end;
-      b.querySelector('.shift-spots').textContent = left === 0 ? 'Full' : left + (left === 1 ? ' spot' : ' spots') + ' open';
-      b.addEventListener('click', function () { pickShift(s); });
+      b.querySelector('.shift-time').textContent = rangeText(s.start, STANDARD_HOURS);
+      b.querySelector('.shift-spots').textContent = n ? n + ' signed up' : 'No one yet';
+      if (!n) b.querySelector('.shift-spots').classList.add('none');
+      b.addEventListener('click', function () { choose({ type: 'one', start: s.start, hours: STANDARD_HOURS }); });
       box.appendChild(b);
     });
+
+    // reset the Custom and Recurring panels
+    togglePanel('custom', false); togglePanel('rec', false);
+    pickers.custom = makePicker(document.querySelector('.time-picker[data-for=custom]'), 9, 8);
+    pickers.rec = makePicker(document.querySelector('.time-picker[data-for=rec]'), 9, 8);
+    drawWeekdays(t);
+    drawRecChoices();
+    $('rec-note').textContent = 'Starts ' + niceDate(t) + ' and repeats every week until the site admin removes it. ' +
+      'To stop or change it later, contact the admin.';
+    $('rec-error').hidden = true;
+
     $('step-shift').hidden = false;
     $('step-info').hidden = true;
     $('step-shift').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  function togglePanel(which, show) {
+    var panel = $(which + '-panel'), btn = $(which + '-btn');
+    if (show === undefined) show = panel.hidden;
+    panel.hidden = !show;
+    btn.setAttribute('aria-expanded', String(show));
+    btn.classList.toggle('active', show);
+  }
+
+  function drawWeekdays(t) {
+    var box = $('weekdays');
+    box.innerHTML = '';
+    DOW.forEach(function (name, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'day-toggle' + (i === dow(t) ? ' on' : '');
+      b.textContent = name;
+      b.dataset.day = i;
+      b.setAttribute('aria-pressed', String(i === dow(t)));
+      b.addEventListener('click', function () {
+        var on = !b.classList.contains('on');
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      box.appendChild(b);
+    });
+  }
+
+  function drawRecChoices() {
+    var box = $('rec-choices');
+    box.innerHTML = '';
+    recBlock = STANDARD_SHIFTS[1];
+    STANDARD_SHIFTS.concat([null]).forEach(function (s) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'rec-choice' + (s === recBlock ? ' on' : '');
+      b.textContent = s ? s.name + ': ' + rangeText(s.start, STANDARD_HOURS) : 'Custom hours';
+      b.addEventListener('click', function () {
+        recBlock = s;
+        box.querySelectorAll('.rec-choice').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        document.querySelector('.time-picker[data-for=rec]').hidden = !!s;
+      });
+      box.appendChild(b);
+    });
+    document.querySelector('.time-picker[data-for=rec]').hidden = true;
+  }
+
+  function goRecurring() {
+    var days = [];
+    document.querySelectorAll('.day-toggle.on').forEach(function (b) { days.push(parseInt(b.dataset.day, 10)); });
+    if (!days.length) { $('rec-error').textContent = 'Please pick at least one day of the week.'; $('rec-error').hidden = false; return; }
+    $('rec-error').hidden = true;
+    var start = recBlock ? recBlock.start : pickers.rec.start, hours = recBlock ? STANDARD_HOURS : pickers.rec.hours;
+    choose({ type: 'rec', start: start, hours: hours, days: days });
+  }
+
   // ---------- step 3: details ----------
-  function pickShift(s) {
-    pickedShift = s;
-    $('picked').textContent = niceDate(pickedDate) + ' - ' + s.name + ' (' + s.start + ' to ' + s.end + ')';
+  function describe(c) {
+    if (c.type === 'one') return niceDate(pickedDate) + ', ' + rangeText(c.start, c.hours) + ' (' + c.hours + ' hours)';
+    return 'Every ' + c.days.map(function (d) { return DOW[d]; }).join(', ') + ', ' + rangeText(c.start, c.hours) +
+      ', starting ' + niceDate(pickedDate);
+  }
+
+  function choose(c) {
+    choice = c;
+    $('picked').textContent = describe(c);
     $('step-info').hidden = false;
     $('form-error').hidden = true;
     $('step-info').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -146,11 +275,12 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
     e.preventDefault();
     var f = e.target.elements;
     var info = {
-      action: 'shiftSignup',
-      date: pickedDate, shift: pickedShift.name,
       name: f.name.value.trim(), phone: f.phone.value.trim(),
-      email: f.email.value.trim(), notes: f.notes.value.trim(), website: f.website.value
+      email: f.email.value.trim(), notes: f.notes.value.trim(), website: f.website.value,
+      start: choice.start, hours: choice.hours
     };
+    if (choice.type === 'one') { info.action = 'shiftSignup'; info.date = pickedDate; }
+    else { info.action = 'recurringSignup'; info.from = pickedDate; info.days = choice.days; }
     if (!info.name) return showError('Please enter your name.');
     if (!info.phone && !info.email) return showError('Please enter a phone number or email so we can reach you.');
 
@@ -160,10 +290,9 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
     var finish = function (res) {
       btn.disabled = false; btn.textContent = 'Sign me up';
       if (!res.ok) return showError(res.error || 'Something went wrong. Please try again.');
-      var key = pickedDate + '|' + pickedShift.name;
-      data.taken[key] = (data.taken[key] || 0) + 1;
-      $('done-text').textContent = info.name + ', you are on the ' + pickedShift.name + ' (' +
-        pickedShift.start + ' to ' + pickedShift.end + ') on ' + niceDate(pickedDate) + '.' +
+      if (choice.type === 'one') data.one.push({ date: pickedDate, start: choice.start, hours: choice.hours });
+      else data.rec.push({ days: choice.days, start: choice.start, hours: choice.hours, from: pickedDate });
+      $('done-text').textContent = info.name + ', you are signed up: ' + describe(choice) + '.' +
         (preview ? ' (Preview mode: nothing was saved.)' : '');
       ['step-day', 'step-shift', 'step-info'].forEach(function (id) { $(id).hidden = true; });
       $('step-done').hidden = false;
@@ -179,7 +308,7 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
   }
 
   function again() {
-    pickedDate = null; pickedShift = null;
+    pickedDate = null; choice = null;
     $('signup-form').reset();
     $('step-done').hidden = true; $('step-shift').hidden = true; $('step-info').hidden = true;
     $('step-day').hidden = false;
@@ -193,6 +322,12 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
     drawMonth();
     $('prev').addEventListener('click', function () { moveMonth(-1); });
     $('next').addEventListener('click', function () { moveMonth(1); });
+    $('custom-btn').addEventListener('click', function () { togglePanel('custom'); togglePanel('rec', false); });
+    $('rec-btn').addEventListener('click', function () { togglePanel('rec'); togglePanel('custom', false); });
+    $('custom-go').addEventListener('click', function () {
+      choose({ type: 'one', start: pickers.custom.start, hours: pickers.custom.hours });
+    });
+    $('rec-go').addEventListener('click', goRecurring);
     $('signup-form').addEventListener('submit', submit);
     $('again').addEventListener('click', again);
   });
