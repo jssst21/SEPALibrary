@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.7
+- Connected to Google: Sheet "SEPA Library Data" in sepalibrary@gmail.com (js/config.js has the link)
+- Shift signup calendar and forums are LIVE (no more preview mode)
+- "Sign Up for DAT Shifts" button now opens the new calendar instead of the weekly Microsoft Form
+- Signup alert emails go to sepalibrary@gmail.com (Settings tab)
+
+## v0.6
+- Discussion Forums page built (pages/forums.html, js/forums.js). For now no sign-up:
+  people type their name to post. Member logins are built in but switched off.
+- Shift calendar and forums now share ONE Google Sheet and one setup (Admin Guides, Guide 2,
+  google-apps-script/sepa-backend.gs). The connection URL lives in js/config.js.
+- Both pages run in preview mode until the Google Sheet is connected.
+- New "Admin Guides" folder with numbered step-by-step guides (start with "README - Start Here").
+
 ## v0.5
 - "DAT & Client Care Libraries" button renamed "FAQs and Common Documents"
 - "Mass Care Libraries" renamed "Mass Care Resources"
@@ -18,7 +32,7 @@
 - "Are You New?" button uses a picture (images/are-you-new.png)
 - Practice button renamed "Practice RC Care and SCIA Here"
 - New DAT shift signup calendar (pages/shifts.html), not yet linked from homepage. Signups go to a Google Sheet.
-  Shifts, spots and admin email are edited in that Sheet. Setup: SHIFT-SIGNUP-SETUP.md
+  Shifts, spots and admin email are edited in that Sheet. Setup: Admin Guides, Guide 2
 - Old weekly Microsoft Form link (for reference): https://forms.cloud.microsoft/pages/responsepage.aspx?id=Ql1b3dPA0kq18WDts68nceEMzpJPqCZKouSpVwwiJZtUNlo3WVYzT1kyOTlRSVZMTUdBRjhVS05QWC4u&route=shorturl
 
 ## v0.3

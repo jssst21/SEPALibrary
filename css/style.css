@@ -273,3 +273,43 @@ footer { text-align: center; padding: 30px; color: var(--ink-soft); }
   .cal-grid { gap: 4px; }
   .cal-day { height: 44px; font-size: 16px; }
 }
+
+/* =========================================================
+   DISCUSSION FORUMS (pages/forums.html)
+   ========================================================= */
+
+.forum-new-btn { margin-top: 24px; }
+.forum-status { margin: 16px 0 0; color: var(--ink-soft); }
+
+.topic-list { margin-top: 16px; display: grid; gap: 10px; }
+.topic-card {
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 14px;
+  padding: 16px 18px;
+  border: 1.5px solid var(--line); border-radius: var(--radius); background: #fff;
+  color: var(--ink); text-decoration: none;
+}
+.topic-card:hover { border-color: var(--red); background: var(--red-tint); }
+.topic-title { font-size: 18px; grid-column: 1; }
+.topic-preview { grid-column: 1; color: var(--ink-soft); font-size: 15px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topic-meta { grid-column: 1; font-size: 13px; color: var(--ink-soft); }
+.topic-count { grid-column: 2; grid-row: 1 / 4; align-self: center;
+  font-size: 14px; font-weight: 600; color: var(--red); white-space: nowrap; }
+
+.post { margin-top: 12px; padding: 16px 18px; border: 1.5px solid var(--line); border-radius: var(--radius); background: #fff; }
+.post-main { margin-top: 8px; border-color: var(--red); }
+.post-title { font-size: 24px; }
+.post-meta { margin: 4px 0 8px; font-size: 14px; color: var(--ink-soft); font-weight: 600; }
+.post-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.replies-head { margin-top: 26px; font-size: 18px; }
+
+.forum-form { margin-top: 28px; padding-top: 4px; }
+.forum-form h2, .forum-form h3 { font-size: 21px; }
+
+.forum-rules { margin-top: 32px; font-size: 14px; color: var(--ink-soft); }
+
+@media (max-width: 640px) {
+  .topic-card { grid-template-columns: 1fr; }
+  .topic-count { grid-column: 1; grid-row: auto; }
+  .topic-preview { white-space: normal; }
+}

@@ -1,8 +1,6 @@
 // SEPA Resource Library - DAT shift signup calendar
-//
-// ONE SETTING TO CHANGE: paste the Google "Web app URL" between the quotes.
-// Until it is filled in, the page runs in preview mode and saves nothing.
-var SIGNUP_URL = '';
+// The Google connection is set in js/config.js
+var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
 
 (function () {
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -148,6 +146,7 @@ var SIGNUP_URL = '';
     e.preventDefault();
     var f = e.target.elements;
     var info = {
+      action: 'shiftSignup',
       date: pickedDate, shift: pickedShift.name,
       name: f.name.value.trim(), phone: f.phone.value.trim(),
       email: f.email.value.trim(), notes: f.notes.value.trim(), website: f.website.value

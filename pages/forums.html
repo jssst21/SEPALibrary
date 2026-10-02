@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.5.1">
+<link rel="stylesheet" href="../css/style.css?v=0.7">
 </head>
 <body class="home">
 
@@ -19,9 +19,68 @@
   </header>
 
   <h1 class="page-title">Discussion Forums</h1>
-  <p class="page-intro">This page is coming soon.</p>
+  <p class="page-intro">Ask questions, share tips, and talk with fellow volunteers.</p>
+
+  <p class="notice" id="notice" hidden></p>
+
+  <!-- LIST OF DISCUSSIONS -->
+  <section id="view-list" hidden>
+    <button type="button" class="primary-btn forum-new-btn" id="start-btn">+ Start a new discussion</button>
+    <p class="forum-status" id="list-status"></p>
+    <div class="topic-list" id="topics"></div>
+  </section>
+
+  <!-- ONE DISCUSSION -->
+  <section id="view-topic" hidden>
+    <p><button type="button" class="link-btn" data-go="list">&larr; All discussions</button></p>
+    <article class="post post-main">
+      <h2 class="post-title" id="t-title"></h2>
+      <p class="post-meta" id="t-meta"></p>
+      <div class="post-body" id="t-body"></div>
+    </article>
+    <h3 class="replies-head" id="replies-head"></h3>
+    <div id="replies"></div>
+
+    <form class="forum-form" id="reply-form" novalidate>
+      <h3>Write a reply</h3>
+      <label class="field">Your name
+        <input name="name" autocomplete="name" maxlength="40">
+      </label>
+      <label class="field">Your reply
+        <textarea name="body" rows="4" maxlength="5000"></textarea>
+      </label>
+      <label class="trap" aria-hidden="true">Leave blank <input name="website" tabindex="-1" autocomplete="off"></label>
+      <p class="form-error" hidden></p>
+      <button class="primary-btn" type="submit">Post reply</button>
+    </form>
+  </section>
+
+  <!-- NEW DISCUSSION -->
+  <section id="view-new" hidden>
+    <p><button type="button" class="link-btn" data-go="list">&larr; All discussions</button></p>
+    <form class="forum-form" id="new-form" novalidate>
+      <h2>Start a new discussion</h2>
+      <label class="field">Your name
+        <input name="name" autocomplete="name" maxlength="40">
+      </label>
+      <label class="field">Title (what is it about?)
+        <input name="title" maxlength="120">
+      </label>
+      <label class="field">Your message
+        <textarea name="body" rows="6" maxlength="5000"></textarea>
+      </label>
+      <label class="trap" aria-hidden="true">Leave blank <input name="website" tabindex="-1" autocomplete="off"></label>
+      <p class="form-error" hidden></p>
+      <button class="primary-btn" type="submit">Post discussion</button>
+    </form>
+  </section>
+
+  <p class="forum-rules">Please be kind and keep it about volunteering. Never post client names,
+    addresses, or other personal details.</p>
 
 </div>
 
+<script src="../js/config.js?v=0.7"></script>
+<script src="../js/forums.js?v=0.7"></script>
 </body>
 </html>
