@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.1
+- Inside pages: "Back to home" link is now "Close this tab" (homepage buttons open new tabs).
+  If the browser won't close the tab (bookmark or shared link), it goes to the homepage instead (js/close-tab.js)
+- Thank You pop-up on the shift page uses the same "Close this tab" link
+- Version number bumped to ?v=0.9.1
+
 ## v0.9
 - Daily 7 AM email report of new shift signups (one-time + recurring) to the Settings admin email(s)
 - Instant per-signup emails now off by default (Settings switch: YES/NO)
