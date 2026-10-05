@@ -7,6 +7,10 @@
   (js/home-calendar.js; shift page reads ?date= from the link)
 - Calendar hides while someone types in the search box
 - Small italic hint under the search box: Site search example (6409)
+- All reds now match the logo red #ae273a (was #651317): buttons, links, calendar, picture-button banners,
+  error messages. tools/make_button.py uses the logo red for future buttons
+- Search bar stands out more: darker outline, soft shadow, magnifying-glass icon
+- Picture-button links carry ?v=0.10.0 so browsers show the recolored pictures
 - Footer now reads v0.10; version number bumped to ?v=0.10.0
 
 ## v0.9.1

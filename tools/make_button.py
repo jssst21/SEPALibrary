@@ -9,6 +9,7 @@ FONT = '/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf'
 S = 2
 W, H = 720 * S, 480 * S
 WHITE = (255, 255, 255)
+LOGO_RED = (174, 39, 58)   # #ae273a, the red in the logo
 
 def _icon(d, kind, cx, cy):
     lw = 7 * S
@@ -26,7 +27,7 @@ def _icon(d, kind, cx, cy):
                 x, y = cx-36*S + c*20*S, cy + r*20*S
                 d.rectangle((x, y-4*S, x+10*S, y+6*S), fill=WHITE)
     bx, by, br = cx+40*S, cy+30*S, 30*S
-    d.ellipse((bx-br-6*S, by-br-6*S, bx+br+6*S, by+br+6*S), fill=(188, 10, 18))
+    d.ellipse((bx-br-6*S, by-br-6*S, bx+br+6*S, by+br+6*S), fill=LOGO_RED)
     d.ellipse((bx-br, by-br, bx+br, by+br), outline=WHITE, width=lw)
     if kind == 'person-question':
         d.text((bx, by+2*S), '?', font=ImageFont.truetype(FONT, 38*S), fill=WHITE, anchor='mm')
@@ -54,7 +55,7 @@ def make_button(photo_path, out_path, lines, icon, photo_shift=0.0):
     grad = Image.new('RGB', (W, H)); gd = ImageDraw.Draw(grad)
     for y in range(y0, y1 + 1):
         t = (y - y0) / (y1 - y0)
-        gd.line([(0, y), (W, y)], fill=tuple(round(a + (b - a) * t) for a, b in zip((206, 18, 28), (170, 6, 10))))
+        gd.line([(0, y), (W, y)], fill=LOGO_RED)
     mask = Image.new('L', (W, H), 0)
     ImageDraw.Draw(mask).rounded_rectangle((x0, y0, x1, y1), r, fill=255)
     canvas.paste(grad, (0, 0), mask)
