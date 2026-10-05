@@ -17,5 +17,7 @@
     });
     labels.forEach(function (l) { l.style.display = q ? 'none' : ''; });
     if (none) none.hidden = shown !== 0;
+    var cal = document.getElementById('home-cal');   // hide the calendar while searching
+    if (cal) cal.style.display = q ? 'none' : '';
   });
 })();

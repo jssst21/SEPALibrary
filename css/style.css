@@ -82,6 +82,10 @@ body.home { background: #fff; }
 }
 .search input:focus { outline: none; border-color: var(--red); }
 .search input::placeholder { color: #8f877f; }
+.search-hint {
+  max-width: 560px; margin: 6px auto 0; padding: 0 20px;
+  font-size: 14px; font-style: italic; color: var(--ink-soft); text-align: center;
+}
 
 .nav-label {
   margin: 26px 0 10px;
@@ -385,3 +389,51 @@ footer { text-align: center; padding: 30px; color: var(--ink-soft); }
 body.no-scroll { overflow: hidden; }
 @keyframes thanks-pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .thanks-box { animation: none; } }
+
+/* =========================================================
+   HOMEPAGE SHIFT CALENDAR (js/home-calendar.js)
+   Phones: sits under Volunteer Actions.
+   Computers: buttons on the left third, calendar on the right two-thirds.
+   ========================================================= */
+
+.home-cal { margin-top: 26px; }
+.home-cal[hidden] { display: none; }
+.home-cal-title { font-size: 22px; color: var(--ink); }
+.home-cal-sub { margin: 2px 0 0; font-size: 15px; color: var(--ink-soft); }
+.home-cal-status { margin: 12px 0 0; font-size: 15px; color: var(--ink-soft); }
+.home-cal .cal { margin-top: 10px; }
+.home-cal .cal[hidden] { display: none; }
+
+.home-cal .cal-day {
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 8px; line-height: 1; text-decoration: none;
+}
+
+/* upcoming days with no one signed up */
+.cal-day.open.empty { background: #fdf3df; border-color: #ecd3a2; }
+.cal-day.open.empty:hover { border-color: var(--red); background: var(--red-tint); }
+
+.home-cal .cal-key { display: flex; flex-wrap: wrap; gap: 6px 20px; }
+.key-item { display: inline-flex; align-items: center; gap: 6px; }
+.key-empty {
+  display: inline-block; width: 18px; height: 18px; border-radius: 5px;
+  background: #fdf3df; border: 1.5px solid #ecd3a2;
+}
+
+@media (min-width: 900px) {
+  .home-layout { max-width: 1200px; }
+  .home-logo img { height: 110px; }
+  .home-nav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-rows: repeat(7, auto) 1fr;
+    column-gap: 36px;
+    align-items: start;
+  }
+  .home-nav > * { grid-column: 1; }
+  .home-nav > .home-cal { grid-column: 2; grid-row: 1 / span 8; margin-top: 0; }
+  .home-nav .search { max-width: none; width: 100%; margin: 0; }
+  .home-nav .search-hint { max-width: none; margin: 6px 0 0; padding: 0 4px; text-align: left; }
+  .home-nav > .nav-label:first-of-type { margin-top: 20px; }
+  .home-cal .cal-day { height: 58px; }
+}

@@ -331,6 +331,15 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
     $('rec-go').addEventListener('click', goRecurring);
     $('signup-form').addEventListener('submit', submit);
     $('again').addEventListener('click', again);
-    pickDay(data.today, true);   // show today's shifts right away
+    // If the homepage calendar sent a day (shifts.html?date=2026-10-12), start on that day.
+    // Otherwise start on today.
+    var asked = new URLSearchParams(window.location.search).get('date');
+    if (asked && /^\d{4}-\d{2}-\d{2}$/.test(asked) && isOpen(asked) && asked !== data.today) {
+      var ap = parts(asked);
+      viewYear = ap[0]; viewMonth = ap[1];
+      pickDay(asked);              // shows that day's shifts and scrolls to Step Two
+    } else {
+      pickDay(data.today, true);   // show today's shifts right away
+    }
   });
 })();

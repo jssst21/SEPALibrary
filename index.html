@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=0.9.1">
+<link rel="stylesheet" href="css/style.css?v=0.10.0">
 </head>
 <body class="home">
 
@@ -25,6 +25,7 @@
       <span class="visually-hidden">Search</span>
       <input id="search" type="search" placeholder="What are you looking for?" autocomplete="off">
     </label>
+    <p class="search-hint">Site search: Example, search &ldquo;6409&rdquo; and it will pull the form up for you.</p>
 
     <p class="nav-label">Volunteer Actions</p>
     <nav class="nav-list" aria-label="Volunteer Actions">
@@ -34,6 +35,28 @@
       <a class="nav-btn" target="_blank" rel="noopener" href="pages/forums.html">Discussion Forums</a>
       <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/new.html"><img src="images/are-you-new.jpg" alt=""><span class="visually-hidden">Are You New?</span></a>
     </nav>
+
+    <!-- DAT shift calendar (js/home-calendar.js fills it in) -->
+    <section class="home-cal" id="home-cal" aria-labelledby="home-cal-title">
+      <h2 class="home-cal-title" id="home-cal-title">DAT Shift Calendar</h2>
+      <p class="home-cal-sub">Click a day to sign up.</p>
+      <p class="home-cal-status" id="home-cal-status" hidden></p>
+      <div class="cal" id="home-cal-body" hidden>
+        <div class="cal-head">
+          <button type="button" class="cal-nav" id="home-cal-prev" aria-label="Previous month">&larr;</button>
+          <h3 class="cal-month" id="home-cal-month"></h3>
+          <button type="button" class="cal-nav" id="home-cal-next" aria-label="Next month">&rarr;</button>
+        </div>
+        <div class="cal-grid cal-dow" aria-hidden="true">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div class="cal-grid" id="home-cal-days"></div>
+        <p class="cal-key">
+          <span class="key-item"><span class="count-badge">2</span> volunteers signed up</span>
+          <span class="key-item"><span class="key-empty"></span> no one yet</span>
+        </p>
+      </div>
+    </section>
 
     <p class="nav-label">Resources</p>
     <nav class="nav-list" aria-label="Resources">
@@ -47,10 +70,12 @@
 
   </main>
 
-  <footer class="home-footer">SEPA Resource Library v0.8</footer>
+  <footer class="home-footer">SEPA Resource Library v0.10</footer>
 
 </div>
 
-<script src="js/script.js?v=0.9.1"></script>
+<script src="js/script.js?v=0.10.0"></script>
+<script src="js/config.js?v=0.10.0"></script>
+<script src="js/home-calendar.js?v=0.10.0"></script>
 </body>
 </html>

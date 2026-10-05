@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.10
+- Homepage shows the DAT shift calendar: buttons on the left third, calendar on the right two-thirds
+  (on phones the calendar sits under Volunteer Actions). Green number = volunteers signed up that day;
+  upcoming days with no one signed up are light amber. Clicking a day opens the shift page on that day
+  (js/home-calendar.js; shift page reads ?date= from the link)
+- Calendar hides while someone types in the search box
+- Small italic hint under the search box: Site search example (6409)
+- Footer now reads v0.10; version number bumped to ?v=0.10.0
+
 ## v0.9.1
 - Inside pages: "Back to home" link is now "Close this tab" (homepage buttons open new tabs).
   If the browser won't close the tab (bookmark or shared link), it goes to the homepage instead (js/close-tab.js)
