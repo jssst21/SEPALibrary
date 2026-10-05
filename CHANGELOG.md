@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.11
+- Homepage left side now has 4 buttons with placeholder icons (photos removed for now):
+  Sign Up for Classes and Events, Discussion Forums, Browse the Library, RED Talks
+- "Sign Up for DAT Shifts" button removed: the homepage calendar is the way in
+- "Volunteer Actions" / "Resources" headings removed
+- New "Browse the Library" page (pages/library.html) links to Are You New?, FAQs and Common Documents,
+  Mass Care Resources, Training Center, and Practice RC Care and SCIA
+- Picture-button images stay in the images folder for later use
+
 ## v0.10.2
 - Search bar and hint run across the full width; buttons and calendar sit below it
 
