@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.10.2
+- Search bar and hint run across the full width; buttons and calendar sit below it
+
+## v0.10.1
+- Homepage calendar heading larger, logo red, and centered; "Click a day to sign up" larger and centered
+
 ## v0.10
 - Homepage shows the DAT shift calendar: buttons on the left third, calendar on the right two-thirds
   (on phones the calendar sits under Volunteer Actions). Green number = volunteers signed up that day;
