@@ -403,9 +403,9 @@ body.no-scroll { overflow: hidden; }
 
 .home-cal { margin-top: 26px; }
 .home-cal[hidden] { display: none; }
-.home-cal-title { font-size: 30px; color: var(--red); text-align: center; line-height: 1.2; }
-.home-cal-sub { margin: 4px 0 0; font-size: 18px; font-weight: 600; color: var(--ink); text-align: center; }
-.home-cal-status { margin: 12px 0 0; font-size: 15px; color: var(--ink-soft); text-align: center; }
+.home-cal-title { font-size: 22px; color: var(--ink); }
+.home-cal-sub { margin: 2px 0 0; font-size: 15px; color: var(--ink-soft); }
+.home-cal-status { margin: 12px 0 0; font-size: 15px; color: var(--ink-soft); }
 .home-cal .cal { margin-top: 10px; }
 .home-cal .cal[hidden] { display: none; }
 
@@ -428,8 +428,6 @@ body.no-scroll { overflow: hidden; }
 @media (min-width: 900px) {
   .home-layout { max-width: 1200px; }
   .home-logo img { height: 110px; }
-  /* Row 1-2: search bar and hint across the full width.
-     Below: buttons on the left third, calendar on the right two-thirds. */
   .home-nav {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
@@ -438,8 +436,9 @@ body.no-scroll { overflow: hidden; }
     align-items: start;
   }
   .home-nav > * { grid-column: 1; }
-  .home-nav > .search { grid-column: 1 / -1; grid-row: 1; max-width: none; width: 100%; margin: 0; }
-  .home-nav > .search-hint { grid-column: 1 / -1; grid-row: 2; max-width: none; margin: 6px 0 0; }
-  .home-nav > .home-cal { grid-column: 2; grid-row: 3 / span 6; margin-top: 22px; }
+  .home-nav > .home-cal { grid-column: 2; grid-row: 1 / span 8; margin-top: 0; }
+  .home-nav .search { max-width: none; width: 100%; margin: 0; }
+  .home-nav .search-hint { max-width: none; margin: 6px 0 0; padding: 0 4px; text-align: left; }
+  .home-nav > .nav-label:first-of-type { margin-top: 20px; }
   .home-cal .cal-day { height: 58px; }
 }
