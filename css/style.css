@@ -403,10 +403,22 @@ body.no-scroll { overflow: hidden; }
 
 .home-cal { margin-top: 26px; }
 .home-cal[hidden] { display: none; }
-.home-cal-title { font-size: 22px; color: var(--ink); }
-.home-cal-sub { margin: 2px 0 0; font-size: 15px; color: var(--ink-soft); }
-.home-cal-status { margin: 12px 0 0; font-size: 15px; color: var(--ink-soft); }
-.home-cal .cal { margin-top: 10px; }
+/* Heading sits centered over the calendar: red title with a short line on each side,
+   then "Click a day to sign up." in a soft amber pill (same amber as the open days). */
+.home-cal-title {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  font-size: 26px; line-height: 1.2; color: var(--red); text-align: center; white-space: nowrap;
+}
+.home-cal-title::before, .home-cal-title::after {
+  content: ""; flex: 1 1 0; max-width: 64px; height: 2px; border-radius: 2px; background: #e3c9a0;
+}
+.home-cal-sub {
+  width: fit-content; margin: 8px auto 0; padding: 5px 18px;
+  background: #fdf3df; border: 1.5px solid #ecd3a2; border-radius: 999px;
+  font-size: 16px; font-weight: 700; color: var(--ink); text-align: center;
+}
+.home-cal-status { margin: 12px 0 0; font-size: 15px; color: var(--ink-soft); text-align: center; }
+.home-cal .cal { margin-top: 12px; }
 .home-cal .cal[hidden] { display: none; }
 
 .home-cal .cal-day {
@@ -440,15 +452,25 @@ body.no-scroll { overflow: hidden; }
   .home-nav > * { grid-column: 1; }
   .home-nav > .search { grid-column: 1 / -1; grid-row: 1; max-width: none; width: 100%; margin: 0; }
   .home-nav > .search-hint { grid-column: 1 / -1; grid-row: 2; max-width: none; margin: 6px 0 0; }
-  .home-nav > .home-cal { grid-column: 2; grid-row: 3 / span 6; margin-top: 22px; }
+  /* The calendar section's parts (title, hint line, status, calendar box) are placed straight into
+     this grid, so the six buttons (row 6, left) start level with the top of the calendar box (row 6, right)
+     and the heading sits above the calendar only. */
+  .home-nav > .home-cal:not([hidden]) { display: contents; }
+  .home-cal-title { grid-column: 2; grid-row: 3; margin-top: 10px; font-size: 30px; }
+  .home-cal-sub { grid-column: 2; grid-row: 4; }
+  .home-cal-status { grid-column: 2; grid-row: 5; }
+  .home-cal .cal { grid-column: 2; grid-row: 6 / span 3; margin-top: 10px; }
+  .home-nav > .nav-main { grid-row: 6; margin-top: 10px; }
+  .home-nav > .no-results { grid-column: 1 / -1; grid-row: 3; }
   .home-cal .cal-day { height: 58px; }
 }
 
 /* ---------- Quick launch bar (homepage, above the search bar) ----------
-   Soft blue-gray so it reads as "tools that take you somewhere else", apart from the red library buttons.
+   Navy bar with white buttons so it reads as "tools that take you somewhere else", apart from the red
+   library buttons. To change the color, edit --q-bg below.
    Phones: two buttons per row. Tablets: four per row. Computers: all eight in one row. */
 .quick-bar {
-  --q-bg: #eaf0f5; --q-line: #c9d6e2; --q-btn-line: #b9c9d8; --q-ink: #2f4a63; --q-label: #50687f;
+  --q-bg: #1f3556; --q-line: #1f3556; --q-btn-line: #ffffff; --q-ink: #1f3556; --q-label: #c9d6e8;
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
   margin-top: 18px; padding: 10px;
   background: var(--q-bg); border: 1px solid var(--q-line); border-radius: 14px;
@@ -463,10 +485,11 @@ body.no-scroll { overflow: hidden; }
   background: #fff; border: 1.5px solid var(--q-btn-line); border-radius: 999px;
   color: var(--q-ink); font-size: 15px; font-weight: 600; line-height: 1.2; text-decoration: none;
 }
-.quick-btn:hover { border-color: var(--q-ink); background: #f6f9fc; }
+.quick-btn:hover { background: #dfe8f3; border-color: #dfe8f3; }
 @media (min-width: 560px) { .quick-bar { grid-template-columns: repeat(4, 1fr); } }
 @media (min-width: 1100px) {
-  .quick-bar { display: flex; align-items: center; padding: 9px 12px; border-radius: 999px; }
+  .quick-bar { display: flex; align-items: center; margin-top: 14px; padding: 9px 12px; border-radius: 999px; }
+  .quick-bar + .home-nav { margin-top: 16px; }
   .quick-label { padding: 0 8px 0 10px; white-space: nowrap; }
   .quick-btn { flex: 1 1 auto; white-space: nowrap; min-height: 40px; padding: 6px 14px; }
 }

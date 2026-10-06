@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.13.1
+- Quick launch bar reordered: Calendar, RC Care, Noggin, SCIA, Volunteer Connect, Practice Sandboxes,
+  Contacts, RC Reserve (links are still placeholders)
+- Quick launch bar is now navy (#1f3556) with white buttons (was soft blue-gray)
+- On computers the six picture buttons now start level with the top of the calendar box, not with the
+  "DAT Shift Calendar" heading. This leaves an open space above the buttons, left of the heading
+- "DAT Shift Calendar" heading is centered over the calendar: larger, logo red, a short line on each
+  side, and "Click a day to sign up." in a soft amber pill
+- Slightly less space above the search bar on computers so the whole calendar still fits on screen
+- Version number bumped to ?v=0.13.1 (footer still reads v0.13)
+
 ## v0.13
 - New Quick launch bar above the search bar (soft blue-gray): RC Care, Noggin, SCIA, Volunteer Connect,
   Practice Sandboxes, RC Reserve, Calendar, Contacts. THE EIGHT LINKS ARE PLACEHOLDERS (href="#") until
