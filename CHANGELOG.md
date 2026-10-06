@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.12
+- Homepage search bar and its hint now run across the full width, above both the buttons and the
+  DAT shift calendar (computers only; phones are unchanged)
+- Footer now reads v0.12; version number bumped to ?v=0.12.0
+- Note on numbering: v0.10.1, v0.10.2 and v0.11 (the four-button homepage and the Browse the Library
+  page, saved in GitHub as "v 0.10.2" and "Version 12") were rolled back on Oct 6, 2026 and are not live.
+  They remain in the GitHub history. Changes are now being re-applied one step at a time from v0.10
+
 ## v0.10
 - Homepage shows the DAT shift calendar: buttons on the left third, calendar on the right two-thirds
   (on phones the calendar sits under Volunteer Actions). Green number = volunteers signed up that day;
