@@ -1,7 +1,9 @@
 """Builds a homepage button picture: photo on top, red rounded banner with icon + words.
 Used by Claude to keep all picture buttons matching. Not part of the website itself.
 Usage (python3): make_button(photo_path, out_path, lines, icon, photo_shift=0.0)
-  lines: list of 1 or 2 text lines.  icon: 'calendar-check', 'calendar-clock', 'person-question'
+  lines: list of 1 or 2 text lines.
+  icon: 'calendar-check', 'calendar-clock', 'person-question', 'person-check',
+        'chat' (speech bubble), 'book' (open book), 'home' (house with a cross), 'play' (video)
   photo_shift: 0.0 = keep top of photo, 0.5 = center, 1.0 = keep bottom
 """
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -13,7 +15,30 @@ LOGO_RED = (174, 39, 58)   # #ae273a, the red in the logo
 
 def _icon(d, kind, cx, cy):
     lw = 7 * S
-    if kind == 'person-question':
+    # Icons with no small round badge (added v0.13)
+    if kind == 'chat':
+        d.rounded_rectangle((cx-52*S, cy-42*S, cx+52*S, cy+26*S), 16*S, outline=WHITE, width=lw)
+        d.polygon([(cx-30*S, cy+22*S), (cx-38*S, cy+54*S), (cx-2*S, cy+22*S)], fill=WHITE)
+        for x in (-24, 0, 24):
+            d.ellipse((cx+x*S-6*S, cy-14*S, cx+x*S+6*S, cy-2*S), fill=WHITE)
+        return
+    if kind == 'book':
+        for sx in (-1, 1):
+            d.line([(cx+sx*56*S, cy-36*S), (cx, cy-22*S), (cx, cy+46*S), (cx+sx*56*S, cy+32*S),
+                    (cx+sx*56*S, cy-36*S)], fill=WHITE, width=lw, joint='curve')
+        return
+    if kind == 'home':
+        d.line([(cx-56*S, cy-2*S), (cx, cy-48*S), (cx+56*S, cy-2*S)], fill=WHITE, width=lw, joint='curve')
+        d.line([(cx-40*S, cy-12*S), (cx-40*S, cy+46*S), (cx+40*S, cy+46*S), (cx+40*S, cy-12*S)],
+               fill=WHITE, width=lw, joint='curve')
+        d.rectangle((cx-7*S, cy-4*S, cx+7*S, cy+32*S), fill=WHITE)
+        d.rectangle((cx-18*S, cy+7*S, cx+18*S, cy+21*S), fill=WHITE)
+        return
+    if kind == 'play':
+        d.rounded_rectangle((cx-54*S, cy-38*S, cx+54*S, cy+40*S), 16*S, outline=WHITE, width=lw)
+        d.polygon([(cx-14*S, cy-20*S), (cx-14*S, cy+22*S), (cx+24*S, cy+1*S)], fill=WHITE)
+        return
+    if kind in ('person-question', 'person-check'):
         d.ellipse((cx-22*S, cy-48*S, cx+22*S, cy-4*S), outline=WHITE, width=lw)
         d.arc((cx-46*S, cy+6*S, cx+46*S, cy+98*S), 180, 360, fill=WHITE, width=lw)
         d.line((cx-46*S+lw//2, cy+52*S, cx+46*S-lw//2, cy+52*S), fill=WHITE, width=lw)
@@ -31,7 +56,7 @@ def _icon(d, kind, cx, cy):
     d.ellipse((bx-br, by-br, bx+br, by+br), outline=WHITE, width=lw)
     if kind == 'person-question':
         d.text((bx, by+2*S), '?', font=ImageFont.truetype(FONT, 38*S), fill=WHITE, anchor='mm')
-    elif kind == 'calendar-check':
+    elif kind in ('calendar-check', 'person-check'):
         d.line((bx-14*S, by, bx-4*S, by+11*S, bx+15*S, by-11*S), fill=WHITE, width=lw, joint='curve')
     else:  # clock
         d.line((bx, by-16*S, bx, by+2*S), fill=WHITE, width=lw)

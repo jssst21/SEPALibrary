@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.13
+- New Quick launch bar above the search bar (soft blue-gray): RC Care, Noggin, SCIA, Volunteer Connect,
+  Practice Sandboxes, RC Reserve, Calendar, Contacts. THE EIGHT LINKS ARE PLACEHOLDERS (href="#") until
+  Sean supplies the addresses; see the note above the bar in index.html
+- Homepage buttons are now six picture buttons, two across: Onboarding, Register for Classes and Events,
+  Discussion Forums, Browse Library, Mass Care, RED Talks. Design rule: keep buttons small and two across
+  so the calendar stays the main thing on the page
+- The six pictures are PLACEHOLDERS made from the three photos already on the site
+  (images/onboarding.jpg, register-classes-events.jpg, discussion-forums.jpg, browse-library.jpg,
+  mass-care.jpg, red-talks.jpg). Final photos still to be chosen
+- "Volunteer Actions" and "Resources" headings removed
+- Buttons removed from the homepage: Sign Up for DAT Shifts (the calendar does the same job),
+  Practice RC Care and SCIA Here (now Practice Sandboxes in the Quick launch bar),
+  FAQs and Common Documents and Training Center (both now inside Browse Library)
+- Browse Library page is back (pages/library.html) with FAQs and Common Documents and Training Center
+- "Are You New?" is now "Onboarding". It still opens pages/new.html, a "coming soon" page, until the
+  real Onboarding page is built
+- If the homepage calendar cannot load, its message now links to the shift sign-up page
+  (it used to point to the removed Sign Up for DAT Shifts button) (js/home-calendar.js)
+- tools/make_button.py has five new icons: person-check, chat, book, home, play
+- Old picture-button images (are-you-new, classes-events-calendar, sign-up-shifts) stay in the images
+  folder, unused
+- Still to do: phone layout review (Quick launch bar is tall on phones); on phones the green signup count
+  overlaps the day number in the calendar
+- Footer now reads v0.13; version number bumped to ?v=0.13.0
+
 ## v0.12
 - Homepage search bar and its hint now run across the full width, above both the buttons and the
   DAT shift calendar (computers only; phones are unchanged)

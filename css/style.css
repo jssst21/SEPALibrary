@@ -443,3 +443,36 @@ body.no-scroll { overflow: hidden; }
   .home-nav > .home-cal { grid-column: 2; grid-row: 3 / span 6; margin-top: 22px; }
   .home-cal .cal-day { height: 58px; }
 }
+
+/* ---------- Quick launch bar (homepage, above the search bar) ----------
+   Soft blue-gray so it reads as "tools that take you somewhere else", apart from the red library buttons.
+   Phones: two buttons per row. Tablets: four per row. Computers: all eight in one row. */
+.quick-bar {
+  --q-bg: #eaf0f5; --q-line: #c9d6e2; --q-btn-line: #b9c9d8; --q-ink: #2f4a63; --q-label: #50687f;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-top: 18px; padding: 10px;
+  background: var(--q-bg); border: 1px solid var(--q-line); border-radius: 14px;
+}
+.quick-label {
+  grid-column: 1 / -1; padding: 0 4px;
+  font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--q-label);
+}
+.quick-btn {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 44px; padding: 8px 12px;
+  background: #fff; border: 1.5px solid var(--q-btn-line); border-radius: 999px;
+  color: var(--q-ink); font-size: 15px; font-weight: 600; line-height: 1.2; text-decoration: none;
+}
+.quick-btn:hover { border-color: var(--q-ink); background: #f6f9fc; }
+@media (min-width: 560px) { .quick-bar { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1100px) {
+  .quick-bar { display: flex; align-items: center; padding: 9px 12px; border-radius: 999px; }
+  .quick-label { padding: 0 8px 0 10px; white-space: nowrap; }
+  .quick-btn { flex: 1 1 auto; white-space: nowrap; min-height: 40px; padding: 6px 14px; }
+}
+
+/* ---------- Homepage main buttons: six picture buttons, always two across ---------- */
+.nav-main { grid-template-columns: 1fr 1fr; margin-top: 22px; }
+
+/* ---------- Browse Library page (pages/library.html) ---------- */
+.library-list { margin-top: 24px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=0.12.0">
+<link rel="stylesheet" href="css/style.css?v=0.13.0">
 </head>
 <body class="home">
 
@@ -19,6 +19,21 @@
     </a>
   </header>
 
+  <!-- Quick launch bar: straight to the main platforms.
+       LINKS NOT SET YET: each href="#" below is a placeholder. Replace # with the real web address,
+       and add target="_blank" rel="noopener" so it opens in a new tab like the other buttons. -->
+  <nav class="quick-bar" aria-label="Quick launch">
+    <span class="quick-label">Quick launch</span>
+    <a class="quick-btn" href="#">RC Care</a>
+    <a class="quick-btn" href="#">Noggin</a>
+    <a class="quick-btn" href="#">SCIA</a>
+    <a class="quick-btn" href="#">Volunteer Connect</a>
+    <a class="quick-btn" href="#">Practice Sandboxes</a>
+    <a class="quick-btn" href="#">RC Reserve</a>
+    <a class="quick-btn" href="#">Calendar</a>
+    <a class="quick-btn" href="#">Contacts</a>
+  </nav>
+
   <main class="home-nav">
 
     <label class="search" for="search">
@@ -27,13 +42,15 @@
     </label>
     <p class="search-hint">Site search: Example, search &ldquo;6409&rdquo; and it will pull the form up for you.</p>
 
-    <p class="nav-label">Volunteer Actions</p>
-    <nav class="nav-list" aria-label="Volunteer Actions">
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/shifts.html"><img src="images/sign-up-shifts.jpg?v=0.12.0" alt=""><span class="visually-hidden">Sign Up for DAT Shifts</span></a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="https://www.redcross.org/sso/vc.html?resume=%2Fidp%2F8dKrrmyECH%2FresumeSAML20%2Fidp%2FSSO.ping&amp;spentity=http%3A%2F%2Fpingone.com%2Fd5b109be-ce0e-4a23-b2ea-171a180ac2a5"><img src="images/classes-events-calendar.jpg?v=0.12.0" alt=""><span class="visually-hidden">Classes and Events Calendar</span></a>
-      <a class="nav-btn" target="_blank" rel="noopener" href="pages/practice.html">Practice RC Care and SCIA Here</a>
-      <a class="nav-btn" target="_blank" rel="noopener" href="pages/forums.html">Discussion Forums</a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/new.html"><img src="images/are-you-new.jpg?v=0.12.0" alt=""><span class="visually-hidden">Are You New?</span></a>
+    <!-- Six main buttons, two across. The pictures are placeholders until final photos are chosen
+         (made with tools/make_button.py). -->
+    <nav class="nav-list nav-main" aria-label="Main">
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/new.html"><img src="images/onboarding.jpg?v=0.13.0" alt=""><span class="visually-hidden">Onboarding</span></a>
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="https://www.redcross.org/sso/vc.html?resume=%2Fidp%2F8dKrrmyECH%2FresumeSAML20%2Fidp%2FSSO.ping&amp;spentity=http%3A%2F%2Fpingone.com%2Fd5b109be-ce0e-4a23-b2ea-171a180ac2a5"><img src="images/register-classes-events.jpg?v=0.13.0" alt=""><span class="visually-hidden">Register for Classes and Events</span></a>
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/forums.html"><img src="images/discussion-forums.jpg?v=0.13.0" alt=""><span class="visually-hidden">Discussion Forums</span></a>
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/library.html"><img src="images/browse-library.jpg?v=0.13.0" alt=""><span class="visually-hidden">Browse Library</span></a>
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/masscare.html"><img src="images/mass-care.jpg?v=0.13.0" alt=""><span class="visually-hidden">Mass Care</span></a>
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/redtalks.html"><img src="images/red-talks.jpg?v=0.13.0" alt=""><span class="visually-hidden">RED Talks</span></a>
     </nav>
 
     <!-- DAT shift calendar (js/home-calendar.js fills it in) -->
@@ -58,24 +75,16 @@
       </div>
     </section>
 
-    <p class="nav-label">Resources</p>
-    <nav class="nav-list" aria-label="Resources">
-      <a class="nav-btn" target="_blank" rel="noopener" href="pages/dat-library.html">FAQs and Common Documents</a>
-      <a class="nav-btn" target="_blank" rel="noopener" href="pages/masscare.html">Mass Care Resources</a>
-      <a class="nav-btn" target="_blank" rel="noopener" href="pages/training.html">Training Center</a>
-      <a class="nav-btn" target="_blank" rel="noopener" href="pages/redtalks.html">RED Talks</a>
-    </nav>
-
     <p class="no-results" hidden>No matches. Try a different word.</p>
 
   </main>
 
-  <footer class="home-footer">SEPA Resource Library v0.12</footer>
+  <footer class="home-footer">SEPA Resource Library v0.13</footer>
 
 </div>
 
-<script src="js/script.js?v=0.12.0"></script>
-<script src="js/config.js?v=0.12.0"></script>
-<script src="js/home-calendar.js?v=0.12.0"></script>
+<script src="js/script.js?v=0.13.0"></script>
+<script src="js/config.js?v=0.13.0"></script>
+<script src="js/home-calendar.js?v=0.13.0"></script>
 </body>
 </html>

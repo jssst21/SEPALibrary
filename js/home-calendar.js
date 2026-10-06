@@ -80,6 +80,10 @@
     $('home-cal-prev').addEventListener('click', function () { move(-1); });
     $('home-cal-next').addEventListener('click', function () { move(1); });
   }).catch(function () {
-    status('The calendar could not load right now. Use the "Sign Up for DAT Shifts" button instead.');
+    // The "Sign Up for DAT Shifts" button left the homepage in v0.13, so link to the shift page here.
+    var el = $('home-cal-status');
+    el.innerHTML = 'The calendar could not load right now. ' +
+      '<a href="pages/shifts.html" target="_blank" rel="noopener">Open the shift sign-up page</a> instead.';
+    el.hidden = false;
   });
 })();
