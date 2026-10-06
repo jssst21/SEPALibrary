@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.13.2
+- Quick launch bar now has real links, all opening in a new tab. Eight buttons: Calendar, RC Care,
+  Noggin, SCIA, Volunteer Connect, Practice RC Care, Practice SCIA, Contacts.
+  "Practice Sandboxes" was split into Practice RC Care and Practice SCIA. RC Reserve was removed
+- Link notes: Calendar and Volunteer Connect both go to the plain Volunteer Connection address
+  (https://volunteerconnection.redcross.org/) as a best guess. SCIA and Practice SCIA use sign-in
+  addresses that contain a one-time-looking code and may stop working; if so, replace them with the
+  address shown in the browser after signing in. See the note above the bar in index.html
+- Idea behind the bar: everything in Quick launch needs a Red Cross login; everything else on this site
+  opens with no login
+- New Contacts page (pages/contacts.html), a "coming soon" page until it is built
+- New navy "Explore the Site" bar above the six picture buttons. On computers its top is level with the
+  top of the calendar box, and the gaps between the button rows flex so the last row ends level with the
+  bottom of the calendar (wider gaps in months that need six rows of days)
+- "DAT Shift Calendar" heading is back to its plain style (no red, lines, or amber pill), now centered
+  over the calendar
+- The navy color is now one setting, --navy, at the top of css/style.css
+- Version number bumped to ?v=0.13.2 (footer still reads v0.13)
+
 ## v0.13.1
 - Quick launch bar reordered: Calendar, RC Care, Noggin, SCIA, Volunteer Connect, Practice Sandboxes,
   Contacts, RC Reserve (links are still placeholders)
