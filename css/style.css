@@ -401,13 +401,13 @@ body.no-scroll { overflow: hidden; }
 
 /* =========================================================
    HOMEPAGE SHIFT CALENDAR (js/home-calendar.js)
-   Phones: sits under Volunteer Actions.
-   Computers: buttons on the left third, calendar on the right two-thirds.
+   Phones: sits under the six picture buttons, heading above the calendar.
+   Computers: buttons on the left third, calendar on the right two-thirds, heading under the calendar.
    ========================================================= */
 
 .home-cal { margin-top: 26px; }
 .home-cal[hidden] { display: none; }
-/* Heading above the calendar: plain style, centered */
+/* Calendar heading: plain style, centered (above the calendar on phones, under it on computers) */
 .home-cal-title { font-size: 22px; color: var(--ink); text-align: center; }
 .home-cal-sub { margin: 2px 0 0; font-size: 15px; color: var(--ink-soft); text-align: center; }
 .home-cal-status { margin: 12px 0 0; font-size: 15px; color: var(--ink-soft); text-align: center; }
@@ -438,7 +438,7 @@ body.no-scroll { overflow: hidden; }
   .home-nav {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    grid-template-rows: repeat(7, auto) 1fr;
+    grid-template-rows: repeat(5, auto) 1fr auto auto;
     column-gap: 36px;
     align-items: start;
   }
@@ -446,16 +446,18 @@ body.no-scroll { overflow: hidden; }
   .home-nav > .search { grid-column: 1 / -1; grid-row: 1; max-width: none; width: 100%; margin: 0; }
   .home-nav > .search-hint { grid-column: 1 / -1; grid-row: 2; max-width: none; margin: 6px 0 0; }
   /* The calendar section's parts (title, hint line, status, calendar box) are placed straight into
-     this grid. Left column: the navy "Explore the Site" bar (row 6) starts level with the top of the
-     calendar box (row 6, right), and the six buttons sit under it (rows 7-8). The calendar heading
-     sits above the calendar only. */
+     this grid. The calendar box (right) and the navy "Explore the Site" bar (left) both start in row 4,
+     right under the search bar, so their tops line up. The six buttons sit under the bar (rows 5-6).
+     The "DAT Shift Calendar" heading and "Click a day to sign up." go UNDER the calendar (rows 7-8)
+     on computers. On phones and tablets they stay above it, because there the calendar comes after
+     the buttons and needs its heading first. Row 3 holds the "Loading the calendar..." message. */
   .home-nav > .home-cal:not([hidden]) { display: contents; }
-  .home-cal-title { grid-column: 2; grid-row: 3; margin-top: 14px; }
-  .home-cal-sub { grid-column: 2; grid-row: 4; }
-  .home-cal-status { grid-column: 2; grid-row: 5; }
-  .home-cal .cal { grid-column: 2; grid-row: 6 / span 3; margin-top: 10px; }
-  .home-nav > .nav-head { grid-row: 6; margin-top: 10px; }
-  .home-nav > .nav-main { grid-row: 7 / span 2; margin-top: 12px; }
+  .home-cal-status { grid-column: 2; grid-row: 3; }
+  .home-cal .cal { grid-column: 2; grid-row: 4 / span 3; margin-top: 18px; }
+  .home-nav > .nav-head { grid-row: 4; margin-top: 18px; }
+  .home-nav > .nav-main { grid-row: 5 / span 2; margin-top: 12px; }
+  .home-cal-title { grid-column: 2; grid-row: 7; margin-top: 12px; }
+  .home-cal-sub { grid-column: 2; grid-row: 8; }
   .home-nav > .no-results { grid-column: 1 / -1; grid-row: 3; }
   .home-cal .cal-day { height: 58px; }
 }
@@ -477,7 +479,7 @@ body.no-scroll { overflow: hidden; }
 }
 .quick-btn {
   display: flex; align-items: center;
-  min-height: 38px; padding: 0 13px;
+  min-height: 42px; padding: 0 13px;
   color: #fff; font-size: 14px; font-weight: 600; line-height: 1.2;
   text-decoration: none; white-space: nowrap;
 }
@@ -486,7 +488,7 @@ body.no-scroll { overflow: hidden; }
 @media (max-width: 640px) {
   .quick-inner { padding: 4px 6px; }
   .quick-label { flex-basis: 100%; padding: 4px 0 0; text-align: center; }
-  .quick-btn { min-height: 36px; padding: 0 10px; }
+  .quick-btn { min-height: 40px; padding: 0 10px; }
 }
 
 /* ---------- Homepage main buttons: navy "Explore the Site" bar, then six picture buttons, two across ---------- */

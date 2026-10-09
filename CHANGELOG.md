@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.14.1
+- Quick launch strip is about 10 percent thicker: 42 pixels tall on computers (was 38). On phones each
+  line of words is 40 pixels tall (was 36). Text size is unchanged
+- On computers the "DAT Shift Calendar" heading and "Click a day to sign up." moved from above the
+  calendar to under it. The calendar box and the navy "Explore the Site" bar now start right under the
+  search bar, with their tops still level. On phones and tablets the heading stays above the calendar,
+  because there the calendar comes after the buttons
+- Version number bumped to ?v=0.14.1 on every page (footer still reads v0.14)
+
 ## v0.14
 - Quick launch bar is now a thin, solid navy strip with plain white words, like the navigation strip at
   the top of most websites. It runs edge to edge across the very top of the page, above the logo.
