@@ -401,14 +401,15 @@ body.no-scroll { overflow: hidden; }
 
 /* =========================================================
    HOMEPAGE SHIFT CALENDAR (js/home-calendar.js)
-   Phones: sits under the six picture buttons, heading above the calendar.
-   Computers: buttons on the left third, calendar on the right two-thirds, heading under the calendar.
+   Phones: sits under the six picture buttons.
+   Computers: buttons on the left third, calendar on the right two-thirds.
+   The heading and its second line sit under the calendar on every screen size.
    ========================================================= */
 
 .home-cal { margin-top: 26px; }
 .home-cal[hidden] { display: none; }
-/* Calendar heading: plain style, centered (above the calendar on phones, under it on computers) */
-.home-cal-title { font-size: 22px; color: var(--ink); text-align: center; }
+/* Calendar heading: plain style, centered, under the calendar */
+.home-cal-title { margin-top: 12px; font-size: 22px; color: var(--ink); text-align: center; }
 .home-cal-sub { margin: 2px 0 0; font-size: 15px; color: var(--ink-soft); text-align: center; }
 .home-cal-status { margin: 12px 0 0; font-size: 15px; color: var(--ink-soft); text-align: center; }
 .home-cal .cal { margin-top: 12px; }
@@ -431,7 +432,8 @@ body.no-scroll { overflow: hidden; }
 }
 
 @media (min-width: 900px) {
-  .home-layout { max-width: 1200px; }
+  /* Page width cap on computers. v0.14.1 and earlier used 1200px. */
+  .home-layout { max-width: 1400px; }
   .home-logo img { height: 110px; }
   /* Rows 1-2: search bar and its hint run across the full width.
      Below them: buttons on the left third, calendar on the right two-thirds. */
@@ -448,9 +450,8 @@ body.no-scroll { overflow: hidden; }
   /* The calendar section's parts (title, hint line, status, calendar box) are placed straight into
      this grid. The calendar box (right) and the navy "Explore the Site" bar (left) both start in row 4,
      right under the search bar, so their tops line up. The six buttons sit under the bar (rows 5-6).
-     The "DAT Shift Calendar" heading and "Click a day to sign up." go UNDER the calendar (rows 7-8)
-     on computers. On phones and tablets they stay above it, because there the calendar comes after
-     the buttons and needs its heading first. Row 3 holds the "Loading the calendar..." message. */
+     The heading ("Sign up for Shifts Using the Above Calendar") and its second line go UNDER the
+     calendar (rows 7-8). Row 3 holds the "Loading the calendar..." message. */
   .home-nav > .home-cal:not([hidden]) { display: contents; }
   .home-cal-status { grid-column: 2; grid-row: 3; }
   .home-cal .cal { grid-column: 2; grid-row: 4 / span 3; margin-top: 18px; }
@@ -459,7 +460,9 @@ body.no-scroll { overflow: hidden; }
   .home-cal-title { grid-column: 2; grid-row: 7; margin-top: 12px; }
   .home-cal-sub { grid-column: 2; grid-row: 8; }
   .home-nav > .no-results { grid-column: 1 / -1; grid-row: 3; }
-  .home-cal .cal-day { height: 58px; }
+  /* Day boxes grow with the screen (58px up to 70px) so the calendar's bottom stays level with the
+     last row of picture buttons, which get bigger as the page gets wider. v0.14.1 and earlier: 58px. */
+  .home-cal .cal-day { height: clamp(58px, 4.9vw, 70px); }
 }
 
 /* ---------- Quick launch bar (homepage, very top of the page, above the logo) ----------
@@ -470,7 +473,7 @@ body.no-scroll { overflow: hidden; }
 .quick-bar { background: var(--navy); }
 .quick-inner {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-  max-width: 1200px; margin: 0 auto; padding: 0 12px;
+  max-width: 1400px; margin: 0 auto; padding: 0 12px;
 }
 .quick-label {
   padding: 0 14px 0 8px;

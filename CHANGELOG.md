@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.14.2
+- LAST KNOWN GOOD POINT before this change: v0.14.1 (commit 3201e43, Oct 9, 2026). Sean asked for that
+  to be noted. To go back: GitHub Desktop, History tab, right-click the v0.14.2 commit, Revert Changes
+  in Commit, then Push
+- The homepage is wider on computers: the page width cap went from 1,200 to 1,400 pixels, so the side
+  margins are much smaller (about 45 pixels a side on a 1,440-wide screen, was about 145). The picture
+  buttons, calendar and search bar all get wider with it
+- Calendar day boxes on the homepage grow with the screen, from 58 up to 70 pixels tall, so the bottom
+  of the calendar stays level with the last row of picture buttons
+- The page is about 60 pixels taller on a wide screen. Screens narrower than about 1,200 pixels,
+  including phones and tablets, look the same as before
+- The heading under the homepage calendar now reads "Sign up for Shifts Using the Above Calendar"
+  (was "DAT Shift Calendar"), and the line under it reads "Pick any day or time and we will do the rest"
+  (was "Click a day to sign up."). Wording is Sean's
+- Because the heading says "above calendar", it now sits under the calendar on phones and tablets too
+  (in v0.14.1 it was under the calendar on computers only)
+- Version number bumped to ?v=0.14.2 on every page (footer still reads v0.14)
+
 ## v0.14.1
 - Quick launch strip is about 10 percent thicker: 42 pixels tall on computers (was 38). On phones each
   line of words is 40 pixels tall (was 36). Text size is unchanged
