@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.14
+- Quick launch bar is now a thin, solid navy strip with plain white words, like the navigation strip at
+  the top of most websites. It runs edge to edge across the very top of the page, above the logo.
+  It used to be a rounded navy block with white pill buttons sitting between the logo and the search bar
+- Same eight links in the same order, still opening in new tabs. The small "Quick launch" label stays
+- The search bar now sits directly below the logo
+- The strip is about a third shorter than the old bar on computers (38 vs 60 pixels tall) and about half
+  as tall on phones, where the words wrap onto three short lines
+- Behind the scenes: the strip moved outside the centered page box in index.html so it can reach the
+  screen edges (.quick-bar and .quick-inner in css/style.css). The page still fits the screen height the
+  same way as before
+- Version number bumped to ?v=0.14 on every page; footer reads v0.14
+
 ## v0.13.2
 - Quick launch bar now has real links, all opening in a new tab. Eight buttons: Calendar, RC Care,
   Noggin, SCIA, Volunteer Connect, Practice RC Care, Practice SCIA, Contacts.

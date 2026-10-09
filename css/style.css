@@ -1,5 +1,5 @@
 /* =========================================================
-   SEPA Resource Library - main stylesheet (v0.4)
+   SEPA Resource Library - main stylesheet
    Brand red: #ae273a (matches the red in the logo). Use var(--red) for any red.
    ========================================================= */
 
@@ -53,13 +53,16 @@ a { color: var(--red); }
    HOMEPAGE: centered logo on white, search, button cards
    ========================================================= */
 
-body.home { background: #fff; }
+/* The page is a column: quick launch strip on top, then everything else. The column is at least as
+   tall as the screen so the footer sits at the bottom without adding a scroll bar. */
+body.home { background: #fff; min-height: 100vh; display: flex; flex-direction: column; }
 
 .home-layout {
+  width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 28px 24px 16px;
-  min-height: 100vh;
+  padding: 22px 24px 16px;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
@@ -457,33 +460,33 @@ body.no-scroll { overflow: hidden; }
   .home-cal .cal-day { height: 58px; }
 }
 
-/* ---------- Quick launch bar (homepage, above the search bar) ----------
-   Navy bar with white buttons so it reads as "tools that take you somewhere else", apart from the red
-   library buttons. To change the color, edit --navy at the top of this file.
-   Phones: two buttons per row. Tablets: four per row. Computers: all eight in one row. */
-.quick-bar {
-  --q-bg: var(--navy); --q-line: var(--navy); --q-btn-line: #ffffff; --q-ink: var(--navy); --q-label: #c9d6e8;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-  margin-top: 18px; padding: 10px;
-  background: var(--q-bg); border: 1px solid var(--q-line); border-radius: 14px;
+/* ---------- Quick launch bar (homepage, very top of the page, above the logo) ----------
+   A thin, solid navy strip with plain white words, like the navigation strip at the top of most
+   websites. It runs edge to edge across the screen. It reads as "tools that take you somewhere else",
+   apart from the library buttons below. To change the color, edit --navy at the top of this file.
+   Computers: everything on one line. Narrow screens: the words wrap onto extra lines. */
+.quick-bar { background: var(--navy); }
+.quick-inner {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  max-width: 1200px; margin: 0 auto; padding: 0 12px;
 }
 .quick-label {
-  grid-column: 1 / -1; padding: 0 4px;
-  font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--q-label);
+  padding: 0 14px 0 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #c9d6e8; white-space: nowrap;
 }
 .quick-btn {
-  display: flex; align-items: center; justify-content: center; text-align: center;
-  min-height: 44px; padding: 8px 12px;
-  background: #fff; border: 1.5px solid var(--q-btn-line); border-radius: 999px;
-  color: var(--q-ink); font-size: 15px; font-weight: 600; line-height: 1.2; text-decoration: none;
+  display: flex; align-items: center;
+  min-height: 38px; padding: 0 13px;
+  color: #fff; font-size: 14px; font-weight: 600; line-height: 1.2;
+  text-decoration: none; white-space: nowrap;
 }
-.quick-btn:hover { background: #dfe8f3; border-color: #dfe8f3; }
-@media (min-width: 560px) { .quick-bar { grid-template-columns: repeat(4, 1fr); } }
-@media (min-width: 1100px) {
-  .quick-bar { display: flex; align-items: center; margin-top: 14px; padding: 9px 12px; border-radius: 999px; }
-  .quick-bar + .home-nav { margin-top: 16px; }
-  .quick-label { padding: 0 8px 0 10px; white-space: nowrap; }
-  .quick-btn { flex: 1 1 auto; white-space: nowrap; min-height: 40px; padding: 6px 14px; }
+.quick-btn:hover { background: rgba(255, 255, 255, .16); }
+.quick-btn:focus-visible { outline-color: #fff; outline-offset: -3px; }
+@media (max-width: 640px) {
+  .quick-inner { padding: 4px 6px; }
+  .quick-label { flex-basis: 100%; padding: 4px 0 0; text-align: center; }
+  .quick-btn { min-height: 36px; padding: 0 10px; }
 }
 
 /* ---------- Homepage main buttons: navy "Explore the Site" bar, then six picture buttons, two across ---------- */
