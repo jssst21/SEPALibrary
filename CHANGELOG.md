@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.14.5
+- The key under the homepage calendar is back in the bottom left corner of the calendar box, at its
+  original size and without the colored chips from v0.14.4. The one thing kept from v0.14.4 is the
+  bolding: the key's text is bold and dark (it was regular weight and gray before v0.14.4)
+- The calendar box is back to its v0.14.3 height
+- The two navy bars around the homepage calendar are now one bar above it, reading "Sign up for DAT
+  Shifts - Pick any day or time and we'll do the rest" (on the page the dash is an en dash). The bar
+  under the calendar is gone. On phones the two parts stack on separate lines with no dash
+- Version number bumped to ?v=0.14.5 on every page (footer still reads v0.14)
+
 ## v0.14.4
 - The key under the homepage calendar is easier to notice. It is now two labeled chips, centered under
   the dates: "volunteers signed up" in light green with the green number badge, and "no one yet" in the

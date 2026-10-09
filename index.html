@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=0.14.4">
+<link rel="stylesheet" href="css/style.css?v=0.14.5">
 </head>
 <body class="home">
 
@@ -55,18 +55,19 @@
          while someone is typing, the same way it hides the buttons that do not match. -->
     <p class="nav-label nav-head">Explore the Site</p>
     <nav class="nav-list nav-main" aria-label="Explore the Site">
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/new.html"><img src="images/onboarding.jpg?v=0.14.4" alt=""><span class="visually-hidden">Onboarding</span></a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="https://www.redcross.org/sso/vc.html?resume=%2Fidp%2F8dKrrmyECH%2FresumeSAML20%2Fidp%2FSSO.ping&amp;spentity=http%3A%2F%2Fpingone.com%2Fd5b109be-ce0e-4a23-b2ea-171a180ac2a5"><img src="images/register-classes-events.jpg?v=0.14.4" alt=""><span class="visually-hidden">Register for Classes and Events</span></a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/forums.html"><img src="images/discussion-forums.jpg?v=0.14.4" alt=""><span class="visually-hidden">Discussion Forums</span></a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/library.html"><img src="images/browse-library.jpg?v=0.14.4" alt=""><span class="visually-hidden">Browse Library</span></a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/masscare.html"><img src="images/mass-care.jpg?v=0.14.4" alt=""><span class="visually-hidden">Mass Care</span></a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/redtalks.html"><img src="images/red-talks.jpg?v=0.14.4" alt=""><span class="visually-hidden">RED Talks</span></a>
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/new.html"><img src="images/onboarding.jpg?v=0.14.5" alt=""><span class="visually-hidden">Onboarding</span></a>
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="https://www.redcross.org/sso/vc.html?resume=%2Fidp%2F8dKrrmyECH%2FresumeSAML20%2Fidp%2FSSO.ping&amp;spentity=http%3A%2F%2Fpingone.com%2Fd5b109be-ce0e-4a23-b2ea-171a180ac2a5"><img src="images/register-classes-events.jpg?v=0.14.5" alt=""><span class="visually-hidden">Register for Classes and Events</span></a>
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/forums.html"><img src="images/discussion-forums.jpg?v=0.14.5" alt=""><span class="visually-hidden">Discussion Forums</span></a>
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/library.html"><img src="images/browse-library.jpg?v=0.14.5" alt=""><span class="visually-hidden">Browse Library</span></a>
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/masscare.html"><img src="images/mass-care.jpg?v=0.14.5" alt=""><span class="visually-hidden">Mass Care</span></a>
+      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/redtalks.html"><img src="images/red-talks.jpg?v=0.14.5" alt=""><span class="visually-hidden">RED Talks</span></a>
     </nav>
 
     <!-- DAT shift calendar (js/home-calendar.js fills it in) -->
     <section class="home-cal" id="home-cal" aria-labelledby="home-cal-title">
-      <!-- Navy bar above the calendar. On computers it sits level with the "Explore the Site" bar. -->
-      <h2 class="home-cal-title" id="home-cal-title">Sign up for DAT Shifts</h2>
+      <!-- Navy bar above the calendar. On computers it sits level with the "Explore the Site" bar.
+           It has two parts joined by a dash. On phones the dash is hidden and the parts stack. -->
+      <h2 class="home-cal-title" id="home-cal-title"><span>Sign up for DAT Shifts</span> <span class="home-cal-dash">&ndash;</span> <span>Pick any day or time and we'll do the rest</span></h2>
       <p class="home-cal-status" id="home-cal-status" hidden></p>
       <div class="cal" id="home-cal-body" hidden>
         <div class="cal-head">
@@ -83,8 +84,6 @@
           <span class="key-item"><span class="key-empty"></span> no one yet</span>
         </p>
       </div>
-      <!-- Navy bar under the calendar, the mirror of the "Sign up for DAT Shifts" bar above it. -->
-      <p class="home-cal-sub">Pick any day or time and we'll do the rest</p>
     </section>
 
     <p class="no-results" hidden>No matches. Try a different word.</p>
@@ -95,8 +94,8 @@
 
 </div>
 
-<script src="js/script.js?v=0.14.4"></script>
-<script src="js/config.js?v=0.14.4"></script>
-<script src="js/home-calendar.js?v=0.14.4"></script>
+<script src="js/script.js?v=0.14.5"></script>
+<script src="js/config.js?v=0.14.5"></script>
+<script src="js/home-calendar.js?v=0.14.5"></script>
 </body>
 </html>
