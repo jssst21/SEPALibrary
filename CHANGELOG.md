@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.14.4
+- The key under the homepage calendar is easier to notice. It is now two labeled chips, centered under
+  the dates: "volunteers signed up" in light green with the green number badge, and "no one yet" in the
+  same amber as the empty days. Text is larger, dark and bold (was small gray text in the bottom left
+  corner). The wording did not change
+- The calendar box is about 19 pixels taller to fit the chips. On phones the two chips stack
+- Version number bumped to ?v=0.14.4 on every page (footer still reads v0.14)
+
 ## v0.14.3
 - Two matching navy bars now frame the homepage calendar. Above it: "Sign up for DAT Shifts". Under it:
   "Pick any day or time and we'll do the rest". Both wordings are Sean's. They replace the plain heading

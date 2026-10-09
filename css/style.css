@@ -433,11 +433,22 @@ body.no-scroll { overflow: hidden; }
 .cal-day.open.empty { background: #fdf3df; border-color: #ecd3a2; }
 .cal-day.open.empty:hover { border-color: var(--red); background: var(--red-tint); }
 
-.home-cal .cal-key { display: flex; flex-wrap: wrap; gap: 6px 20px; }
-.key-item { display: inline-flex; align-items: center; gap: 6px; }
+/* The key under the homepage calendar: two labeled chips, centered, in the same colors as the day
+   boxes they explain (green = people signed up, amber = no one yet). */
+.home-cal .cal-key {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px;
+  margin-top: 14px; font-size: 16px; font-weight: 600; color: var(--ink);
+}
+.key-item {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 36px; padding: 5px 16px 5px 10px; border-radius: 999px;
+  background: #e8f3ec; border: 1.5px solid #b5d6c2;
+}
+.key-item:has(.key-empty) { background: #fdf3df; border-color: #ecd3a2; }
+.home-cal .cal-key .count-badge { min-width: 22px; height: 22px; border-radius: 11px; font-size: 13px; margin-right: 0; vertical-align: 0; }
 .key-empty {
-  display: inline-block; width: 18px; height: 18px; border-radius: 5px;
-  background: #fdf3df; border: 1.5px solid #ecd3a2;
+  display: inline-block; width: 22px; height: 22px; border-radius: 6px;
+  background: #fff; border: 1.5px solid #d9b56a;
 }
 
 @media (min-width: 900px) {
