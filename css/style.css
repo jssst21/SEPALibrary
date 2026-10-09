@@ -408,9 +408,18 @@ body.no-scroll { overflow: hidden; }
 
 .home-cal { margin-top: 26px; }
 .home-cal[hidden] { display: none; }
-/* Calendar heading: plain style, centered, under the calendar */
-.home-cal-title { margin-top: 12px; font-size: 22px; color: var(--ink); text-align: center; }
-.home-cal-sub { margin: 2px 0 0; font-size: 15px; color: var(--ink-soft); text-align: center; }
+/* Two matching navy bars, one above the calendar ("Sign up for DAT Shifts") and one under it
+   ("Pick any day or time and we'll do the rest"). Same color, shape and lettering as the
+   "Explore the Site" bar (see .nav-head). */
+.home-cal-title, .home-cal-sub {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 42px; margin: 0; padding: 6px 20px;
+  background: var(--navy); border-radius: 999px;
+  color: #fff; font-family: 'Public Sans', Arial, sans-serif;
+  font-size: 14px; font-weight: 700; letter-spacing: .08em; line-height: 1.35;
+  text-transform: uppercase; text-align: center;
+}
+.home-cal-sub { margin-top: 12px; }
 .home-cal-status { margin: 12px 0 0; font-size: 15px; color: var(--ink-soft); text-align: center; }
 .home-cal .cal { margin-top: 12px; }
 .home-cal .cal[hidden] { display: none; }
@@ -440,28 +449,29 @@ body.no-scroll { overflow: hidden; }
   .home-nav {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    grid-template-rows: repeat(5, auto) 1fr auto auto;
+    grid-template-rows: repeat(6, auto);
     column-gap: 36px;
     align-items: start;
   }
   .home-nav > * { grid-column: 1; }
   .home-nav > .search { grid-column: 1 / -1; grid-row: 1; max-width: none; width: 100%; margin: 0; }
   .home-nav > .search-hint { grid-column: 1 / -1; grid-row: 2; max-width: none; margin: 6px 0 0; }
-  /* The calendar section's parts (title, hint line, status, calendar box) are placed straight into
-     this grid. The calendar box (right) and the navy "Explore the Site" bar (left) both start in row 4,
-     right under the search bar, so their tops line up. The six buttons sit under the bar (rows 5-6).
-     The heading ("Sign up for Shifts Using the Above Calendar") and its second line go UNDER the
-     calendar (rows 7-8). Row 3 holds the "Loading the calendar..." message. */
+  /* The calendar section's parts (top bar, status, calendar box, bottom bar) are placed straight into
+     this grid. Row 4: the two navy bars, "Explore the Site" (left) and "Sign up for DAT Shifts" (right),
+     level with each other right under the search bar. Row 5: the six buttons (left) and the calendar
+     box (right), tops level. Row 6: the navy bar under the calendar. The "Loading the calendar..."
+     message shares the calendar's spot (only one of the two is ever showing). */
   .home-nav > .home-cal:not([hidden]) { display: contents; }
-  .home-cal-status { grid-column: 2; grid-row: 3; }
-  .home-cal .cal { grid-column: 2; grid-row: 4 / span 3; margin-top: 18px; }
   .home-nav > .nav-head { grid-row: 4; margin-top: 18px; }
-  .home-nav > .nav-main { grid-row: 5 / span 2; margin-top: 12px; }
-  .home-cal-title { grid-column: 2; grid-row: 7; margin-top: 12px; }
-  .home-cal-sub { grid-column: 2; grid-row: 8; }
+  .home-cal-title { grid-column: 2; grid-row: 4; margin-top: 18px; }
+  .home-nav > .nav-main { grid-row: 5; margin-top: 12px; }
+  .home-cal-status { grid-column: 2; grid-row: 5; }
+  .home-cal .cal { grid-column: 2; grid-row: 5; margin-top: 12px; }
+  .home-cal-sub { grid-column: 2; grid-row: 6; }
   .home-nav > .no-results { grid-column: 1 / -1; grid-row: 3; }
-  /* Day boxes grow with the screen (58px up to 70px) so the calendar's bottom stays level with the
-     last row of picture buttons, which get bigger as the page gets wider. v0.14.1 and earlier: 58px. */
+  /* Day boxes grow with the screen (58px up to 70px). Sean does not want the calendar any smaller.
+     The calendar is taller than the six picture buttons beside it, so the gaps between the button rows
+     stretch to keep the last row level with the bottom of the calendar (see .nav-main below). */
   .home-cal .cal-day { height: clamp(58px, 4.9vw, 70px); }
 }
 
@@ -497,7 +507,7 @@ body.no-scroll { overflow: hidden; }
 /* ---------- Homepage main buttons: navy "Explore the Site" bar, then six picture buttons, two across ---------- */
 .nav-head {
   display: flex; align-items: center; justify-content: center;
-  min-height: 44px; margin: 22px 0 0; padding: 6px 16px;
+  min-height: 42px; margin: 22px 0 0; padding: 6px 16px;
   background: var(--navy); border-radius: 999px;
   color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
 }

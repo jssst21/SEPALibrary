@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.14.3
+- Two matching navy bars now frame the homepage calendar. Above it: "Sign up for DAT Shifts". Under it:
+  "Pick any day or time and we'll do the rest". Both wordings are Sean's. They replace the plain heading
+  "Sign up for Shifts Using the Above Calendar" and its second line, which sat under the calendar
+- On computers the bar above the calendar is level with "Explore the Site", and the calendar box starts
+  level with the first row of picture buttons
+- All three navy bars are 42 pixels tall, the same as the quick launch strip (they were 44)
+- The calendar is the same size as in v0.14.2. Sean does not want it smaller. Because it is now taller
+  than the six buttons beside it, the gaps between the button rows are wider (about 43 pixels on a wide
+  screen, was 12) so the last row still ends level with the bottom of the calendar. Sean accepted this
+  for now because the buttons are likely to change
+- Version number bumped to ?v=0.14.3 on every page (footer still reads v0.14)
+
 ## v0.14.2
 - LAST KNOWN GOOD POINT before this change: v0.14.1 (commit 3201e43, Oct 9, 2026). Sean asked for that
   to be noted. To go back: GitHub Desktop, History tab, right-click the v0.14.2 commit, Revert Changes
