@@ -642,3 +642,29 @@ body.no-scroll { overflow: hidden; }
 .person-email { display: inline-block; margin-top: 4px; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
 @media (min-width: 640px) { .people { grid-template-columns: 1fr 1fr; } }
 @media (min-width: 1000px) { .people { grid-template-columns: repeat(3, 1fr); } }
+
+/* ---------- Red page (Contacts, v0.16.4) ----------
+   Add class="home page-red" to a page's body tag to give it the red background. On a red page the
+   logo sits on a white card, centered and larger, the "Close this tab" link is top right, and the
+   words that sit straight on the red (title, intro line, section headings) are white. The people
+   cards stay white. */
+body.page-red { background: var(--red); }
+.page-red .page-top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; }
+.page-red .page-logo-card {
+  grid-column: 2; display: block; padding: 14px 28px; border-radius: 12px; background: #fff;
+  box-shadow: 0 3px 10px rgba(60, 8, 16, .4);
+}
+.page-red .page-logo { height: 140px; }
+.page-red .back-link { grid-column: 3; justify-self: end; color: #fff; }
+.page-red .page-title, .page-red .people-head { color: #fff; }
+.page-red .page-intro { color: #fff; opacity: .92; }
+.page-red .people-head { border-bottom-color: rgba(255, 255, 255, .55); }
+.page-red .person { border-color: transparent; box-shadow: 0 2px 5px rgba(60, 8, 16, .35); }
+.page-red .back-link:focus-visible, .page-red .page-logo-card:focus-visible { outline-color: #fff; }
+@media (max-width: 640px) {
+  /* Phones: the link goes on its own line above the logo so the two never collide. */
+  .page-red .page-top { grid-template-columns: 1fr; row-gap: 10px; }
+  .page-red .back-link { grid-column: 1; grid-row: 1; }
+  .page-red .page-logo-card { grid-column: 1; grid-row: 2; justify-self: center; padding: 12px 22px; }
+  .page-red .page-logo { height: 110px; }
+}

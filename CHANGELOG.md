@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.16.4
+- Contacts page: red background (the logo red). The logo is centered at the top on a white card and
+  larger (140 pixels tall on computers, 110 on phones; it was 72 and 56, top left). The page title, the
+  intro line and the three section headings are white. The people cards stay white, now with a soft
+  shadow. "Close this tab" is white, top right
+- The red background is switched on by the words "page-red" in the body tag of pages/contacts.html.
+  Any other inside page can be made red the same way (see "Red page" at the end of css/style.css)
+- Sean said look-and-feel changes are done for now after this one
+- Version number bumped to ?v=0.16.4 on every page (footer still reads v0.16)
+
 ## v0.16.3
 - The red accent line above the quick launch strip is twice as thick: 12 pixels, was 6
 - Version number bumped to ?v=0.16.3 on every page (footer still reads v0.16)
