@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.16.12
+- Quick launch strip: the link words are no longer bold. They are back to the weight they had before
+  v0.16.8 (600, a medium-heavy weight; v0.16.8 had made them 700). Sean asked for the bolding dropped
+- Nothing else changed. The "Quick launch" label keeps its brighter color
+- Version number bumped to ?v=0.16.12 on every page (footer still reads v0.16)
+
 ## v0.16.11
 - Quick launch bar: back to the traditional strip, navy from edge to edge across the top of the page.
   Sean found the centered bar (v0.16.10) and the arrow end (v0.16.9) too busy. The arrow point, the

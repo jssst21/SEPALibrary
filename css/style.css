@@ -655,7 +655,7 @@ body.no-scroll { overflow: hidden; }
    and again when the mouse moves onto it. It is also a link now (see index.html).
    The quick launch strip is navigation people use over and over, so it only got bolder words, a
    brighter label, a soft sheen and a shadow under it. Sean had the sheen and shadow taken off again
-   in v0.16.11 (flat navy, as "too busy"); the bolder words and brighter label remain.
+   in v0.16.11 (flat navy, as "too busy") and the bolder words in v0.16.12; the brighter label remains.
    The gleam does not repeat on its own, and it is switched off for people whose computer is set to
    reduce motion.
    The blues below are lighter and darker shades of --navy. If --navy is ever changed, change them too.
@@ -695,9 +695,9 @@ body.no-scroll { overflow: hidden; }
   .home-cal-link { flex-direction: column; padding: 9px 18px; }
 }
 
-/* Quick launch strip: flat navy again since v0.16.11 (no sheen, no shadow). Only the bolder words
-   and the brighter label are left from v0.16.8. */
-.quick-btn { font-weight: 700; }
+/* Quick launch strip: flat navy again since v0.16.11 (no sheen, no shadow), and since v0.16.12 the
+   link words are back to their earlier weight (600, set further up; v0.16.8 had made them 700).
+   Only the brighter, slightly larger "Quick launch" label is left from v0.16.8. */
 .quick-label { color: #eef3fb; }
 @media (min-width: 1100px) { .quick-label { font-size: 13px; } .home-cal-title { font-size: 16px; } }
 /* ---------- end of SHINE ON THE TWO NAVY BARS ---------- */
