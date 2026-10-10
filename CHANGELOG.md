@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.16.8
+- The two navy bars on the homepage are more eye-catching (Sean asked; he approved a mockup first)
+- "Sign up for DAT Shifts" bar: glossy raised finish (lighter navy at the top, darker at the bottom, a
+  thin highlight along the top edge, a soft shadow under it). The words are larger on computers (16
+  pixels, was 14) with a faint shadow behind them. A band of light sweeps across the bar once, just
+  under a second after the page loads, and again when the mouse moves onto it. It does not repeat on
+  its own and is off for people whose computer is set to reduce motion
+- The sign-up bar is now a link: clicking anywhere on it opens the shift sign-up page in a new tab.
+  It was only a heading before, though it was shaped like a button. It brightens and lifts slightly
+  on hover. Clicking a day in the calendar still works as before
+- Quick launch strip: bolder link words, a slightly larger and brighter "Quick launch" label, a soft
+  top-to-bottom sheen and a shadow under the strip. Nothing on it moves; this is deliberately the
+  quieter of the two
+- Neither bar is taller than before on computers and tablets, so nothing else moves. On phones the
+  sign-up bar is 2 pixels taller
+- All of it is one section of css/style.css, "SHINE ON THE TWO NAVY BARS". Deleting that section
+  brings back the flat bars (the bar stays a link)
+- Version number bumped to ?v=0.16.8 on every page (footer still reads v0.16)
+
 ## v0.16.7
 - Homepage on computers: the whole page now enlarges to fit the screen, like enlarging a photo. On a
   window wider than 1,540 pixels everything (quick launch strip, buttons, search bar, calendar, text)
