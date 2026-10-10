@@ -65,8 +65,15 @@ For managing signups and forum posts day to day, see
 
 ## If the script code is ever changed
 
-Paste the new code, click Save, then **Deploy > Manage deployments >** pencil icon
-**> Version: New version > Deploy**. This keeps the same Web app URL, so the website needs no change.
+1. In Finder, open the **google-apps-script** folder inside SEPALibrary. Right-click
+   **sepa-backend.gs**, choose **Open With > TextEdit**, press **Cmd + A**, then **Cmd + C**.
+2. Go to **script.google.com**, logged in as the SEPA admin account, and click
+   **SEPA Library Backend**. (Do not use the Sheet's Extensions > Apps Script menu: that makes a new
+   empty "Untitled project" instead of opening this one.)
+3. Click in the code, press **Cmd + A**, then **Cmd + V**. Click the **Save** icon.
+4. Click **Deploy > Manage deployments >** pencil icon **> Version: New version > Deploy**.
+   Do not pick "New deployment": that makes a new Web app URL and the website would keep using the
+   old code. Done this way the URL stays the same, so the website needs no change.
 
 ## Escalation Form (proof of concept, added with website v0.17)
 
