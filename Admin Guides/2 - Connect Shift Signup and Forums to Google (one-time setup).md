@@ -68,6 +68,36 @@ For managing signups and forum posts day to day, see
 Paste the new code, click Save, then **Deploy > Manage deployments >** pencil icon
 **> Version: New version > Deploy**. This keeps the same Web app URL, so the website needs no change.
 
+## Escalation Form (proof of concept, added with website v0.17)
+
+The Escalation Form page saves each worksheet to a tab called **Escalations** in the same Sheet, one
+row per worksheet. The tab appears by itself the first time someone uses the form after the script
+has been updated as described just above. Do not edit the last two columns.
+
+### Setting the HQ user name and password
+
+Filling in a worksheet needs no login. Reading one (the live view and the list of recent worksheets)
+needs the HQ user name and password. They are not in the website files, because those are public.
+You set them in the Sheet:
+
+1. Update the script as described above, then open the Escalation Form page on the website once.
+2. Open the Sheet and go to the **Settings** tab. Two new rows are at the bottom. Their labels start
+   with "Escalation Form live view".
+3. Type the user name in the box to the right of the first one, and the password to the right of the
+   second one. That is all. It works straight away.
+
+While either box is empty, nobody can open the live view. To change the password, type a new one in
+the same box: everyone who was logged in has to log in again. Capital letters matter in the password
+but not in the user name. Everyone at HQ shares the one user name and password, and a login lasts 30
+days on each device.
+
+### Clearing a worksheet at the end of an event
+
+In the live view, click **Clear this worksheet (end of event)**, then **Yes, clear it**. The worksheet
+leaves the live view and the list, and the responder's page starts a new blank one within about 20
+seconds. Nothing is destroyed: the row moves to a tab called **Escalations cleared**, with the time
+it was cleared. To delete a worksheet for good, delete its row in that tab.
+
 ## Adding other admins
 
 Don't share the Gmail password. Instead, in the Sheet click **Share** and add the other

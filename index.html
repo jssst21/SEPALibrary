@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=0.16.14">
+<link rel="stylesheet" href="css/style.css?v=0.17">
 </head>
 <!-- "home-red" in the line below is the switch for the all-red homepage (v0.16.13): the logo red behind
      the whole page, with the buttons, search bar and calendar floating on it as white cards.
@@ -25,12 +25,14 @@
      - SCIA and Practice SCIA use sign-in addresses that contain a one-time-looking code. If either stops
        working, replace it with the address shown in the browser once you are signed in to that system.
      Notes (Oct 10, 2026, v0.16.9):
-     - RC Reserve was added as the ninth link. ITS ADDRESS IS NOT FILLED IN YET: Sean has not given it.
-       Until then the button is there but does nothing when clicked. To finish it, replace
-       href="#quick-launch" on the RC Reserve line with the real address, and add
-       target="_blank" rel="noopener" the way the other lines have it, so it opens in a new tab.
+     - RC Reserve was added as the ninth link. Since v0.16.15 it has its address: the "Bookmark Link"
+       printed on the RC Reserve Cheat Sheet (Desktop/Library assets). It opens in a new tab like the
+       others and leads to the Red Cross sign-in for RC Reserve.
      - v0.16.9 and v0.16.10 tried a shortened strip with an arrow point, then a centered bar. Sean found
-       them too busy. Since v0.16.11 it is the plain strip across the full width again. -->
+       them too busy. Since v0.16.11 it is the plain strip across the full width again.
+     Notes (Oct 10, 2026, v0.17):
+     - "Escalation Form" was added as a tenth link, "for now" (Sean). Unlike the others it needs no Red
+       Cross login: it opens pages/escalation.html on this site, a proof of concept. -->
 <nav class="quick-bar" id="quick-launch" aria-label="Quick launch">
   <div class="quick-inner">
     <span class="quick-label">Quick launch</span>
@@ -39,9 +41,10 @@
     <a class="quick-btn" target="_blank" rel="noopener" href="https://ops-rcview-redcross.nogginapp.io/signin">Noggin</a>
     <a class="quick-btn" target="_blank" rel="noopener" href="https://www.redcross.org/sso/defaultsso.html?arcPartnerId=defaultsso&amp;resume=/as/Am5ZyAKmpj/resume/as/authorization.ping&amp;spentity=null">SCIA</a>
     <a class="quick-btn" target="_blank" rel="noopener" href="https://volunteerconnection.redcross.org/">Volunteer Connect</a>
-    <a class="quick-btn" href="#quick-launch">RC Reserve</a>
+    <a class="quick-btn" target="_blank" rel="noopener" href="https://auth.agilquest.com/eas-saml/saml/web/auth/americanredcross">RC Reserve</a>
     <a class="quick-btn" target="_blank" rel="noopener" href="https://rccare--training3.sandbox.my.site.com/RCCare/login?ec=302&amp;startURL=%2FRCCare%2Fs%2F">Practice RC Care</a>
     <a class="quick-btn" target="_blank" rel="noopener" href="https://www.redcross.org/sso/defaultsso.html?arcPartnerId=defaultsso&amp;resume=/as/kBLOmwiPjy/resume/as/authorization.ping&amp;spentity=null">Practice SCIA</a>
+    <a class="quick-btn" target="_blank" rel="noopener" href="pages/escalation.html">Escalation Form</a>
     <a class="quick-btn" target="_blank" rel="noopener" href="pages/contacts.html">Contacts</a>
   </div>
 </nav>
@@ -81,9 +84,9 @@
            stand-ins cropped from the old button pictures. To swap one, replace the file in the
            images/gallery folder with a new photo of the same name (wide photos work best). -->
       <div class="side-gallery" aria-hidden="true">
-        <img src="images/gallery/photo-1.jpg?v=0.16.14" alt="">
-        <img src="images/gallery/photo-2.jpg?v=0.16.14" alt="">
-        <img src="images/gallery/photo-3.jpg?v=0.16.14" alt="">
+        <img src="images/gallery/photo-1.jpg?v=0.17" alt="">
+        <img src="images/gallery/photo-2.jpg?v=0.17" alt="">
+        <img src="images/gallery/photo-3.jpg?v=0.17" alt="">
       </div>
     </div>
 
@@ -119,12 +122,12 @@
 
   </div>
 
-  <footer class="home-footer">SEPA Resource Library v0.16</footer>
+  <footer class="home-footer">SEPA Resource Library v0.17</footer>
 
 </div>
 
-<script src="js/script.js?v=0.16.14"></script>
-<script src="js/config.js?v=0.16.14"></script>
-<script src="js/home-calendar.js?v=0.16.14"></script>
+<script src="js/script.js?v=0.17"></script>
+<script src="js/config.js?v=0.17"></script>
+<script src="js/home-calendar.js?v=0.17"></script>
 </body>
 </html>

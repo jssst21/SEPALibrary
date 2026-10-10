@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escalation Form - SEPA Resource Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css?v=0.17">
+</head>
+<body class="home">
+
+<!-- ESCALATION FORM (proof of concept, v0.17)
+     The DAT Response Lead Incident Reporting Worksheet (edition 2026.2.8) as a page that can be filled
+     in on a phone or a laptop. js/escalation.js draws the boxes and does the saving and sharing.
+     Three ways this one page is used:
+       escalation.html              fill-in mode (what the Quick launch link opens)
+       escalation.html?view=CODE    live view of one worksheet, read only, updates by itself
+       escalation.html?view=list    the most recent worksheets
+     Filling in needs no login. The live view and the list need the HQ user name and password, which
+     are set in the Google Sheet (Settings tab), never in these website files. -->
+
+<div class="page-wrap">
+
+  <header class="page-top">
+    <a href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
+    <a class="back-link" href="../index.html">&times; Close this tab</a>
+  </header>
+
+  <h1 class="page-title" id="esc-title">Escalation Form</h1>
+  <p class="page-intro"><strong>DAT Response Lead Incident Reporting Worksheet</strong><br>For Multi-Family Event/ Reception Ctr</p>
+  <p class="esc-save-for">Save for ARC staff turnover and SEPA Leadership briefings</p>
+
+  <!-- Shown while filling in -->
+  <section class="esc-tools" id="esc-edit-tools" hidden>
+    <p class="esc-status esc-warn esc-cleared-note" id="esc-cleared-note" role="status" hidden></p>
+    <p class="esc-how">Tap a box and type. There is no Save button: everything saves by itself.</p>
+    <p class="esc-status" id="esc-status" role="status">Saved on this device.</p>
+    <div class="esc-buttons">
+      <button type="button" class="primary-btn esc-share" data-esc="share">Share the live view</button>
+      <button type="button" class="esc-btn" id="esc-copy">Copy the link</button>
+      <a class="esc-btn" id="esc-open-view" href="#" target="_blank" rel="noopener">Open the live view</a>
+    </div>
+    <p class="esc-note" id="esc-share-note" hidden></p>
+    <label class="esc-link-box" id="esc-link-box" hidden>Live view link
+      <input id="esc-link" readonly>
+    </label>
+  </section>
+
+  <!-- Shown in the live view -->
+  <section class="esc-tools" id="esc-view-tools" hidden>
+    <p class="esc-how"><strong>Read only.</strong> This page shows the worksheet as it is being filled in and updates by itself every few seconds. Boxes that just changed flash yellow.</p>
+    <p class="esc-status" id="esc-view-status" role="status">Connecting...</p>
+    <!-- End of the event: HQ clears the worksheet. It asks first. -->
+    <p class="esc-clear-line" id="esc-clear-line" hidden>
+      <button type="button" class="esc-btn esc-danger" id="esc-clear">Clear this worksheet (end of event)</button>
+      <span class="esc-clear-ask" id="esc-clear-ask" hidden>Clear this worksheet? It disappears from the live view, and the responder's page starts a new blank one. A copy is kept in the Google Sheet.
+        <span class="esc-clear-buttons">
+          <button type="button" class="esc-btn esc-danger" id="esc-clear-yes">Yes, clear it</button>
+          <button type="button" class="esc-btn" id="esc-clear-no">Cancel</button>
+        </span>
+      </span>
+      <span class="form-error" id="esc-clear-error" hidden></span>
+    </p>
+  </section>
+
+  <!-- The HQ login. Shown in the live view and the list until someone logs in. -->
+  <section class="esc-tools esc-login" id="esc-login" hidden>
+    <form id="esc-login-form" novalidate>
+      <h2 class="esc-login-title">HQ log in</h2>
+      <p class="esc-how">The live view is for Red Cross leadership. Log in to see it.</p>
+      <label class="field">User name
+        <input id="esc-user" name="username" autocomplete="username" autocapitalize="none" spellcheck="false">
+      </label>
+      <label class="field">Password
+        <input id="esc-pass" name="password" type="password" autocomplete="current-password">
+      </label>
+      <p class="form-error" id="esc-login-error" hidden></p>
+      <button class="primary-btn" id="esc-login-btn" type="submit">Log in</button>
+    </form>
+  </section>
+  <p class="esc-logout-line"><button type="button" class="link-btn" id="esc-logout" hidden>Log out of the live view</button></p>
+
+  <!-- Shown in the list of recent worksheets -->
+  <section class="esc-tools" id="esc-list-tools" hidden>
+    <p class="esc-status" id="esc-list-status" role="status">Loading...</p>
+    <div class="esc-list" id="esc-list"></div>
+  </section>
+
+  <!-- The worksheet itself (js/escalation.js fills this in) -->
+  <form class="esc-form" id="esc-form" novalidate onsubmit="return false"></form>
+
+  <section class="esc-bottom" id="esc-bottom" hidden>
+    <button type="button" class="primary-btn esc-share" data-esc="share">Share the live view</button>
+    <p class="esc-bottom-links">
+      <button type="button" class="link-btn" id="esc-new">Start a new blank worksheet</button>
+      <span class="esc-new-ask" id="esc-new-ask" hidden>Start a new blank worksheet? This one stays saved and shared.
+        <button type="button" class="link-btn" id="esc-new-yes">Yes, start new</button>
+        <button type="button" class="link-btn" id="esc-new-no">Cancel</button>
+      </span>
+    </p>
+    <p class="esc-bottom-links"><a href="escalation.html?view=list" target="_blank" rel="noopener">See recent worksheets</a> &nbsp;|&nbsp;
+      <a href="../documents/DAT-Response-Lead-Incident-Reporting-Worksheet-fillable-2026.2.8.pdf" target="_blank" rel="noopener">Printable PDF of this worksheet</a></p>
+  </section>
+
+  <p class="esc-foot" id="esc-foot">2026.2.8 DAT Response Lead Incident Reporting</p>
+
+</div>
+
+<script src="../js/config.js?v=0.17"></script>
+<script src="../js/escalation.js?v=0.17"></script>
+<script src="../js/close-tab.js?v=0.17"></script>
+</body>
+</html>

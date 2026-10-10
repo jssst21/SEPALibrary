@@ -1,5 +1,59 @@
 # Changelog
 
+## v0.17
+- NEW, PROOF OF CONCEPT: the Escalation Form (pages/escalation.html). It is the "DAT Response Lead
+  Incident Reporting Worksheet" (edition 2026.2.8, from Volunteer Leadership Tools) as a page that can
+  be filled in on a phone or a laptop. 102 boxes, the original wording and order, one column, large
+  boxes. Sean wants it to show leadership what is possible; he said to ignore security questions for now
+- No Save button: everything typed is kept on the device at once and sent to the Google Sheet a
+  moment later (new tab "Escalations", one row per worksheet)
+- Live view: "Share the live view" sends a link (through the phone's own share sheet, so to anyone
+  in the person's contacts; on a laptop it copies the link). Whoever opens the link and logs in sees
+  the worksheet read only, refreshing every 6 seconds, and a box flashes yellow when it changes. In
+  testing a new entry showed up in the live view 4 to 7 seconds after it was typed
+- escalation.html?view=list shows the 25 most recent worksheets (after logging in)
+- HQ LOGIN (Sean asked for the HQ side to be gated). Filling in a worksheet needs no login. Reading
+  one does: the live view, the shared link and the recent list all show a "HQ log in" box first and
+  nothing from the worksheet until the user name and password are right. One shared user name and
+  password for everyone at HQ. A login lasts 30 days on a device; "Log out of the live view" ends it.
+  Eight wrong tries locks the login for 15 minutes (for everyone)
+- The user name and password are NOT in any website file (this folder is public on GitHub). They
+  live in the Google Sheet, Settings tab, in two rows whose labels start "Escalation Form live view".
+  The rows appear by themselves the first time the form is opened after the script update; Sean
+  types the two values in. While either is blank the live view is locked to everyone. Changing the
+  password there logs everyone out
+- CLEAR AT THE END OF AN EVENT (Sean asked for a reset HQ can use). The live view has a button,
+  "Clear this worksheet (end of event)". It asks first. Clearing moves the worksheet's row from the
+  "Escalations" tab to a new tab, "Escalations cleared", with the time it was cleared, so there is
+  still a record. The worksheet leaves the live view and the recent list, the responder's page
+  notices within about 20 seconds, wipes what was typed, starts a new blank worksheet and says why,
+  and anything sent late for the cleared worksheet is not saved. Needs the HQ login
+- THE LIVE PART NEEDS ONE STEP FROM SEAN: paste the updated google-apps-script/sepa-backend.gs into
+  the Google script "SEPA Library Backend" and deploy a new version (Admin Guide 2, "If the script
+  code is ever changed"). Until then the form still works and keeps everything on the device, says
+  plainly that live sharing is not switched on, and Share sends the worksheet as text instead
+- That same script update also carries the earlier change that the shift sign-up no longer requires
+  a phone number or email. The current sign-up page keeps working with it
+- LIMITS OF THE PROTECTION: it is one shared password, and the fill-in page is open to anyone who
+  finds it (they can add a worksheet, not read one). The incident details sit in the sepalibrary
+  Gmail account's Sheet. Still test data only until leadership decides
+- Quick launch: "Escalation Form" added as a tenth link, before Contacts ("for now", Sean). To fit
+  ten links the space around each link is a little smaller, and on computers 1,100 to 1,279 pixels
+  wide the words are slightly smaller and the "Quick launch" label is left off
+- The fillable PDF of the same worksheet is in documents/ and linked from the bottom of the form
+- New files: pages/escalation.html, js/escalation.js, documents/DAT-Response-Lead-Incident-
+  Reporting-Worksheet-fillable-2026.2.8.pdf. Styles: the "ESCALATION FORM" section at the end of
+  css/style.css
+- Version number is now ?v=0.17 on every page, and the homepage footer reads v0.17
+
+## v0.16.15
+- Quick launch: the RC Reserve link now works. It opens https://auth.agilquest.com/eas-saml/saml/web/auth/americanredcross
+  in a new tab. The address is the "Bookmark Link" printed on the RC Reserve Cheat Sheet in Library
+  assets; Sean approved using it. Since v0.16.9 the button had been there but did nothing
+- Not tested past the click: the address leads to a Red Cross sign-in, so Sean should click it once
+  after the push to confirm it lands on RC Reserve
+- Version number bumped to ?v=0.16.15 on every page (footer still reads v0.16)
+
 ## v0.16.14
 - Homepage calendar key ("volunteers signed up" / "no one yet"): moved back to the bottom of the
   calendar, under the days, and centered. It had been under the month line since v0.15

@@ -1,6 +1,6 @@
 /**
  * SEPA Resource Library - Google Sheet backend
- * Powers: DAT shift signup calendar + Discussion Forums
+ * Powers: DAT shift signup calendar + Discussion Forums + Escalation Form (proof of concept)
  *
  * This code lives inside ONE Google Sheet (Extensions > Apps Script).
  * It is NOT part of the website itself. See "Admin Guides" folder, Guide 2.
@@ -13,6 +13,11 @@
  *   Topics    - forum discussions. Type YES in "Hidden" to hide one.
  *   Replies   - forum replies. Type YES in "Hidden" to hide one.
  *   Sessions  - logins, only if turned on (leave alone; delete all rows to log everyone out)
+ *   Escalations - one row per Escalation Form worksheet (proof of concept, website v0.17). The tab
+ *               appears by itself the first time someone uses the form.
+ *   Escalations cleared - worksheets HQ cleared at the end of an event. Kept as a record; delete rows
+ *               here to remove them for good.
+ *   Settings also holds the HQ user name and password for the Escalation Form live view.
  */
 
 /* The Google Sheet this script saves to (the long code in the Sheet's web address,
@@ -48,6 +53,8 @@ function setup() {
   makeTab_('Topics', ['ID', 'Created', 'Author', 'Title', 'Message', 'Last Activity', 'Replies', 'Hidden (type YES)']);
   makeTab_('Replies', ['ID', 'Topic ID', 'Created', 'Author', 'Message', 'Hidden (type YES)']);
   makeTab_('Sessions', ['Token', 'Name', 'Created']);
+  makeTab_('Escalations', ESC_HEADERS);
+  makeTab_('Escalations cleared', ESC_HEADERS.concat(['Cleared']));
 
   var ss = ss_();
   ss.getSheetByName('Settings').setColumnWidth(1, 460);
@@ -121,7 +128,13 @@ function doPost(e) {
       topics: listTopics_,
       topic: getTopic_,
       newTopic: newTopic_,
-      reply: reply_
+      reply: reply_,
+      escPing: escPing_,
+      escSave: escSave_,
+      escLogin: escLogin_,
+      escGet: escGet_,
+      escList: escList_,
+      escClear: escClear_
     };
     var fn = actions[d.action || 'shiftSignup'];
     if (!fn) return json_({ ok: false, error: 'Unknown request.' });
@@ -453,4 +466,163 @@ function reply_(d) {
     }
   }
   return { ok: false, error: 'That discussion could not be found. It may have been removed.' };
+}
+
+/* =========================================================
+   ESCALATION FORM (pages/escalation.html) - PROOF OF CONCEPT, added for website v0.17
+   The website page sends the whole worksheet here a moment after anything is typed, and the
+   "live view" page reads it back every few seconds.
+   One row per worksheet in the tab "Escalations" (the tab is made automatically the first time).
+   The last column holds the worksheet itself in a coded form: leave it alone.
+   WHO CAN DO WHAT:
+     - Filling in a worksheet needs no login (the responder on scene must not be slowed down).
+     - READING a worksheet (the live view, and the list of recent worksheets) needs the HQ user name
+       and password. Those two are NOT in this code, because this code is also kept in the website
+       folder, which is public. They live in the Sheet's "Settings" tab, in the two rows whose labels
+       start "Escalation Form live view". Type them there. To change the password, change it there:
+       everyone who was logged in is logged out. While either row is blank, nobody can read.
+     - One shared user name and password for everyone at HQ (Sean's choice for the proof of concept).
+     - CLEARING a worksheet at the end of an event (the button in the live view) also needs the HQ
+       login. Nothing is destroyed: the row moves to the tab "Escalations cleared", so there is still a
+       record. The responder's page notices within about 20 seconds and starts a new blank worksheet.
+       To really delete a worksheet, delete its row in "Escalations cleared" (or in "Escalations").
+   ========================================================= */
+var ESC_HEADERS = ['ID', 'Started', 'Last update', 'Incident address', 'Date/ Time (as typed)', 'Updated ms (do not edit)', 'Worksheet (do not edit)'];
+var ESC_MAX_CHARS = 45000;   // a single spreadsheet cell holds 50,000 characters
+
+var ESC_USER_LABEL = 'Escalation Form live view: user name (while blank, the live view is locked to everyone)';
+var ESC_PASS_LABEL = 'Escalation Form live view: password';
+var ESC_SESSION_DAYS = 30;   // how long an HQ login lasts on one device
+
+function escTab_() { makeTab_('Escalations', ESC_HEADERS); return tab_('Escalations'); }
+function escClearedTab_() { makeTab_('Escalations cleared', ESC_HEADERS.concat(['Cleared'])); return tab_('Escalations cleared'); }
+function escIsCleared_(id) { return escFindRow_(escClearedTab_(), id) > 0; }
+
+/* The HQ user name and password, read from the Settings tab. The two rows are added (blank) the first
+   time this runs, so the admin only has to type the values in. */
+function escLoginSettings_() {
+  var sh = tab_('Settings'), data = sh.getDataRange().getValues(), out = { user: '', pass: '' }, seenUser = false, seenPass = false;
+  for (var i = 0; i < data.length; i++) {
+    if (String(data[i][0]).trim() === ESC_USER_LABEL) { seenUser = true; out.user = escText_(data[i][1]).trim(); }
+    if (String(data[i][0]).trim() === ESC_PASS_LABEL) { seenPass = true; out.pass = escText_(data[i][1]); }
+  }
+  if (!seenUser) sh.appendRow([ESC_USER_LABEL, '']);
+  if (!seenPass) sh.appendRow([ESC_PASS_LABEL, '']);
+  return out;
+}
+/* A short code that changes whenever the user name or password changes. It is stored with each login,
+   so changing the password logs everyone out. */
+function escMark_(s) { return 'HQ ' + hash_('esc-live-view', s.user.toLowerCase() + '|' + s.pass).slice(0, 20); }
+
+// Does nothing but answer. The fill-in page uses it to learn that live sharing is switched on.
+// If it is told which worksheet is asking, it also says whether HQ has cleared that worksheet.
+function escPing_(d) {
+  escTab_(); escLoginSettings_();
+  var id = escId_(d && d.id);
+  return { ok: true, cleared: id ? escIsCleared_(id) : false };
+}
+
+function escLogin_(d) {
+  var s = escLoginSettings_();
+  if (!s.user || !s.pass) return { ok: false, login: true, locked: true, error: 'The live view has not been given a user name and password yet. The site admin sets them in the Google Sheet.' };
+  var user = clean_(d.user, 60), pw = String(d.password || '');
+  if (tooManyTries_('esc-hq')) return { ok: false, login: true, error: 'Too many tries. Please wait 15 minutes and try again.' };
+  if (user.toLowerCase() !== s.user.toLowerCase() || pw !== s.pass) {
+    noteFail_('esc-hq');
+    return { ok: false, login: true, error: 'That user name and password do not match.' };
+  }
+  return { ok: true, token: newSession_(escMark_(s)) };
+}
+
+/* Is this a current HQ login? Returns null when it is, or the "please log in" answer when it is not. */
+function escDenied_(d) {
+  var s = escLoginSettings_();
+  if (!s.user || !s.pass) return { ok: false, login: true, locked: true, error: 'The live view has not been given a user name and password yet. The site admin sets them in the Google Sheet.' };
+  var token = String(d.token || ''), mark = escMark_(s);
+  if (token.length >= 40) {
+    var data = rows_('Sessions'), oldest = stamp_(new Date(Date.now() - ESC_SESSION_DAYS * 86400000));
+    for (var i = data.length - 1; i >= 0; i--) {
+      if (data[i][0] === token) {
+        if (escText_(data[i][1]) === mark && iso_(data[i][2]) >= oldest) return null;
+        break;
+      }
+    }
+  }
+  return { ok: false, login: true, error: 'Please log in.' };
+}
+function escId_(v) { v = String(v || ''); return /^[A-Za-z0-9]{8,24}$/.test(v) ? v : ''; }
+function escText_(v) { return String(v == null ? '' : v).replace(/^'/, ''); }
+
+function escFindRow_(sh, id) {
+  var last = sh.getLastRow();
+  if (last < 2) return 0;
+  var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) if (String(ids[i][0]) === id) return i + 2;
+  return 0;
+}
+
+// Save (or update) one worksheet. d.data is { boxName: "what was typed", ... }
+function escSave_(d) {
+  var id = escId_(d.id);
+  if (!id) return { ok: false, error: 'This worksheet link is not valid.' };
+  if (escIsCleared_(id)) return { ok: true, cleared: true };      // HQ ended this one: do not bring it back
+  var data = (d.data && typeof d.data === 'object') ? d.data : {};
+  var kept = {};
+  Object.keys(data).forEach(function (k) {
+    if (!/^[a-z0-9_]{1,60}$/.test(k)) return;
+    var v = clean_(data[k], 4000);
+    if (v) kept[k] = v;
+  });
+  var text = JSON.stringify(kept);
+  if (text.length > ESC_MAX_CHARS) return { ok: false, error: 'This worksheet is too long to save. Please shorten the notes.' };
+  var sh = escTab_(), now = new Date(), nowText = stamp_(now), row = escFindRow_(sh, id);
+  var tail = [nowText, safe_(clean_(kept.incident_addresses, 200)), safe_(clean_(kept.date_time, 80)), String(now.getTime()), text];
+  if (row) sh.getRange(row, 3, 1, 5).setValues([tail]);
+  else sh.appendRow([id, nowText].concat(tail));
+  return { ok: true, updated: nowText, ms: now.getTime(), now: now.getTime() };
+}
+
+// Read one worksheet back (the live view calls this every few seconds). HQ login needed.
+function escGet_(d) {
+  var denied = escDenied_(d);
+  if (denied) return denied;
+  var id = escId_(d.id);
+  if (!id) return { ok: false, error: 'This worksheet link is not valid.' };
+  var sh = escTab_(), row = escFindRow_(sh, id), now = new Date().getTime();
+  if (!row) return { ok: true, found: false, cleared: escIsCleared_(id), now: now };
+  var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0], data = {};
+  try { data = JSON.parse(escText_(r[6])) || {}; } catch (err) { data = {}; }
+  return { ok: true, found: true, id: id, started: iso_(r[1]), updated: iso_(r[2]), ms: Number(escText_(r[5])) || 0, now: now, data: data };
+}
+
+// The most recent worksheets, newest first. HQ login needed.
+function escList_(d) {
+  var denied = escDenied_(d);
+  if (denied) return denied;
+  var sh = escTab_(), last = sh.getLastRow(), now = new Date().getTime(), items = [];
+  if (last >= 2) {
+    sh.getRange(2, 1, last - 1, 6).getValues().forEach(function (r, i) {
+      if (!r[0]) return;
+      items.push({ id: String(r[0]), started: iso_(r[1]), updated: iso_(r[2]), address: escText_(r[3]), when: escText_(r[4]), ms: Number(escText_(r[5])) || 0, row: i });
+    });
+  }
+  // Newest first. Two saved in the very same instant: the one lower down the tab counts as newer.
+  items.sort(function (a, b) { return (b.ms - a.ms) || (b.row - a.row); });
+  items = items.slice(0, 25);
+  items.forEach(function (it) { delete it.row; });
+  return { ok: true, now: now, items: items };
+}
+
+// End of the event: HQ clears a worksheet. HQ login needed. The row is moved, not destroyed.
+function escClear_(d) {
+  var denied = escDenied_(d);
+  if (denied) return denied;
+  var id = escId_(d.id);
+  if (!id) return { ok: false, error: 'This worksheet link is not valid.' };
+  var sh = escTab_(), row = escFindRow_(sh, id);
+  if (!row) return { ok: true, cleared: escIsCleared_(id) };
+  var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0].map(function (v) { return v instanceof Date ? stamp_(v) : safe_(escText_(v)); });
+  escClearedTab_().appendRow(r.concat([stamp_()]));
+  sh.deleteRow(row);
+  return { ok: true, cleared: true };
 }

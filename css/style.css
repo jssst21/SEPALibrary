@@ -721,7 +721,7 @@ body.no-scroll { overflow: hidden; }
    The words do NOT spread across the whole strip any more. On computers 1,280 pixels wide and up the
    label and the nine links sit together as one group in the middle of the strip, with empty navy at
    both ends. Sean asked for this because "Contacts" sat nearly at the right edge of the screen.
-     The "padding: 0 20px" and "padding: 0 12px" below are the space on each side of every link. A
+     The "padding: 0 15px" and "padding: 0 10px" below are the space on each side of every link. A
      smaller number pulls the words closer together, a bigger one spreads them out.
    History, so nobody repeats it: v0.16.9 stopped the strip short of the right edge with an arrow
    point; v0.16.10 made it a centered bar with a rounded left end and the red panel running up behind
@@ -732,17 +732,22 @@ body.no-scroll { overflow: hidden; }
    nine stay on one line, and they run nearly the full width of the strip.
    To make the strip 50 pixels tall again, change the 45px below to 50px. */
 @media (min-width: 1100px) { .quick-btn { min-height: 45px; } }
+/* v0.17: a tenth link (Escalation Form) was added. Ten links only fit on one line from 1,100 to 1,279
+   pixels wide if the words are a little smaller (15px) and the "Quick launch" label is left off there.
+   Wider screens keep the label; the space around each link came down a little (it was 12px and 20px)
+   so the group still sits clear of both edges. If a link is ever removed, these can go back up. */
 @media (min-width: 1100px) and (max-width: 1279px) {
-  .quick-btn { padding: 0 9px; }
-  .quick-btn:last-child { margin-right: -9px; }
+  .quick-label { display: none; }
+  .quick-btn { padding: 0 9px; font-size: 15px; }
+  .quick-btn:last-child { margin-right: 0; }
 }
 @media (min-width: 1280px) {
   .quick-inner { justify-content: center; }
   .quick-label { margin-right: 14px; }
-  .quick-btn { padding: 0 12px; }
+  .quick-btn { padding: 0 10px; }
   .quick-btn:last-child { margin-right: 0; }
 }
-@media (min-width: 1440px) { .quick-btn { padding: 0 20px; } }
+@media (min-width: 1440px) { .quick-btn { padding: 0 15px; } }
 /* ---------- end of QUICK LAUNCH: NINE LINKS, THINNER STRIP ---------- */
 
 /* ---------- STRONGER SEARCH BAR (homepage, v0.16.9) ----------
@@ -853,3 +858,121 @@ body.page-red { background: var(--red); }
   .page-red .page-logo-card { grid-column: 1; grid-row: 2; justify-self: center; padding: 12px 22px; }
   .page-red .page-logo { height: 110px; }
 }
+
+/* =========================================================
+   ESCALATION FORM (pages/escalation.html, v0.17, proof of concept)
+   The DAT Response Lead Incident Reporting Worksheet as a fill-in page. js/escalation.js draws the
+   boxes. Built for a phone first: one column, large boxes that are easy to tap, 16px typing (smaller
+   typing makes an iPhone zoom in every time a box is tapped).
+   The pale blue boxes are where people type. In the live view (?view=...) the same page is shown
+   read only, and a box flashes yellow when its contents change.
+   ========================================================= */
+.esc-save-for { margin: 10px 0 0; font-size: 14px; color: var(--ink-soft); }
+.esc-tools {
+  margin-top: 16px; padding: 14px 16px; border-radius: 10px;
+  background: #f4f7fc; border: 1px solid #c9d6e8;
+}
+.esc-how { margin: 0; font-size: 15px; }
+.esc-status { margin: 10px 0 0; padding: 8px 12px; border-radius: 8px; background: #fff; border: 1px solid var(--line); font-size: 15px; font-weight: 600; }
+.esc-status.esc-ok { background: #e9f5ee; border-color: #b9dcc6; color: #1f5c38; }
+.esc-status.esc-warn { background: #fbf3e4; border-color: #ecd9b4; color: #6b4a12; }
+.esc-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.esc-buttons .primary-btn { margin-top: 0; width: auto; flex: 1 1 100%; background: var(--navy); }
+.esc-buttons .primary-btn:hover { background: #162844; }
+.esc-btn {
+  flex: 1 1 0; min-width: 130px; padding: 11px 12px; border-radius: 999px; text-align: center;
+  background: #fff; border: 1.5px solid var(--navy); color: var(--navy);
+  font: inherit; font-size: 16px; font-weight: 600; text-decoration: none; cursor: pointer;
+}
+.esc-btn:hover { background: #eef3fb; }
+.esc-note { margin: 10px 0 0; font-size: 15px; font-weight: 600; color: #1f5c38; }
+.esc-link-box { display: block; margin-top: 10px; font-size: 14px; font-weight: 600; }
+.esc-link-box[hidden] { display: none; }
+.esc-link-box input { display: block; width: 100%; margin-top: 4px; padding: 10px 12px; font: inherit; font-size: 15px; font-weight: 400; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; }
+
+.esc-form { margin-top: 8px; }
+.esc-q { margin-top: 18px; }
+.esc-sub { margin-left: 12px; }
+.esc-label { display: block; font-size: 16px; line-height: 1.35; }
+.esc-bold { font-weight: 700; }
+.esc-hint { display: block; font-size: 14px; color: var(--ink-soft); }
+.esc-in {
+  display: block; width: 100%; min-height: 46px; margin-top: 6px; padding: 10px 12px;
+  font: inherit; font-size: 16px; line-height: 1.35; color: var(--ink);
+  background: #eef3fb; border: 1.5px solid #8fa3c2; border-radius: 8px;
+}
+textarea.esc-in { resize: vertical; }
+.esc-in:focus { outline: none; background: #fff; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(31, 53, 86, .18); }
+.esc-in::placeholder { color: #7b8698; opacity: 1; }
+
+/* The grey band and the headings under it */
+.esc-band { margin: 30px 0 0; padding: 9px 12px; background: #d9d9d9; border-radius: 6px; font-family: inherit; font-size: 16px; font-weight: 700; text-align: center; }
+.esc-h { margin: 24px 0 0; font-family: inherit; font-size: 16px; font-weight: 700; line-height: 1.35; }
+.esc-h + .esc-q { margin-top: 10px; }
+
+/* "Stakeholders on Scene": a name box and a phone box for each person */
+.esc-people { margin-top: 22px; border: 1px solid #b9bfc9; border-radius: 8px; overflow: hidden; }
+.esc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; padding: 10px; border-top: 1px solid #d5d9e0; }
+.esc-row .esc-cell-label { grid-column: 1 / -1; font-size: 15px; }
+.esc-row .esc-in { margin-top: 0; }
+.esc-row-head { background: #d9d9d9; border-top: none; font-weight: 700; }
+.esc-row-head .esc-colhead { display: none; }
+@media (min-width: 620px) {
+  .esc-row { grid-template-columns: 30% 1fr 34%; align-items: center; }
+  .esc-row .esc-cell-label { grid-column: auto; }
+  .esc-row-head .esc-colhead { display: block; font-size: 15px; }
+}
+
+/* The two count tables: a label and three boxes across */
+.esc-grid { margin-top: 22px; border: 1px solid #b9bfc9; border-radius: 8px; overflow: hidden; }
+.esc-grow { display: grid; grid-template-columns: minmax(0, 1.65fr) repeat(3, minmax(0, 1fr)); gap: 6px; align-items: center; padding: 8px; border-top: 1px solid #d5d9e0; }
+.esc-grow-head { background: #d9d9d9; border-top: none; align-items: end; }
+.esc-grow .esc-cell-label { font-size: 14px; line-height: 1.25; overflow-wrap: break-word; }
+.esc-gcell .esc-in { margin-top: 0; padding: 9px 6px; text-align: center; }
+.esc-gcell .esc-in + .esc-cap { margin-top: 6px; }
+.esc-cap { display: block; margin-bottom: 3px; font-size: 12.5px; color: var(--ink-soft); text-align: center; }
+.esc-grow-head .esc-cap { color: var(--ink); }
+
+/* Breakfast / Lunch / Dinner / Snacks */
+.esc-meals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin-top: 12px; }
+.esc-meal { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+.esc-meal .esc-in { width: 76px; flex: none; margin-top: 0; text-align: center; }
+@media (min-width: 620px) { .esc-meals { grid-template-columns: repeat(4, 1fr); } }
+
+.esc-bottom { margin-top: 28px; }
+.esc-bottom .primary-btn { margin-top: 0; background: var(--navy); }
+.esc-bottom .primary-btn:hover { background: #162844; }
+.esc-bottom-links { margin: 14px 0 0; font-size: 15px; text-align: center; }
+.esc-foot { margin: 26px 0 0; font-size: 13px; color: var(--ink-soft); text-align: center; }
+
+/* Live view: read-only boxes, and the yellow flash when one changes */
+.esc-viewing .esc-in { background: #fff; border-color: #c5ccd8; }
+.esc-viewing .esc-in:focus { box-shadow: none; border-color: #c5ccd8; }
+@keyframes esc-flash { 0% { background: #ffe37a; border-color: #c9a100; } 100% { background: #fff; border-color: #c5ccd8; } }
+.esc-flash { animation: esc-flash 4s ease-out 1; }
+@media (prefers-reduced-motion: reduce) { .esc-flash { animation-duration: .01s; } }
+
+/* "Clear this worksheet" in the live view */
+.esc-clear-line { margin: 12px 0 0; font-size: 15px; }
+.esc-clear-ask { display: block; }
+.esc-clear-ask[hidden] { display: none; }
+.esc-clear-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.esc-clear-buttons .esc-btn { flex: 0 1 180px; }
+.esc-btn.esc-danger { border-color: var(--red); color: var(--red); }
+.esc-btn.esc-danger:hover { background: var(--red-tint); }
+.esc-cleared-note { margin: 0 0 10px; }
+
+/* The HQ log in box (live view and list) */
+.esc-login-title { font-family: inherit; font-size: 20px; }
+.esc-login .primary-btn { background: var(--navy); }
+.esc-login .primary-btn:hover { background: #162844; }
+.esc-login .field input { background: #fff; }
+.esc-logout-line { margin: 10px 0 0; text-align: right; font-size: 15px; }
+.esc-logout-line:empty { display: none; }
+
+/* The list of recent worksheets */
+.esc-list { display: grid; gap: 10px; margin-top: 12px; }
+.esc-item { display: block; padding: 12px 14px; border-radius: 8px; background: #fff; border: 1.5px solid var(--line); color: var(--ink); text-decoration: none; }
+.esc-item:hover { border-color: var(--navy); }
+.esc-item strong { display: block; font-size: 17px; }
+.esc-item span { display: block; margin-top: 2px; font-size: 14px; color: var(--ink-soft); white-space: pre-wrap; }
