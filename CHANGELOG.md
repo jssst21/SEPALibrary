@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.16.9
+- Sean found the quick launch strip drowned out the search bar after v0.16.8. He approved a mockup of
+  two changes together: a shorter, stylized strip and a stronger search bar
+- Quick launch: RC Reserve added as a ninth link, between Volunteer Connect and Practice RC Care (live
+  systems first, then the two practice ones, then Contacts; the position is Claude's choice).
+  ITS ADDRESS IS NOT FILLED IN YET. Sean has not given it, so the button shows but does nothing when
+  clicked. See the note above the strip in index.html for how to fill it in
+- Quick launch on computers 1,280 pixels wide and up: the navy strip stops short of the right edge
+  (about 110 pixels short on screens 1,440 wide and up, about 36 on narrower ones) and ends in an arrow
+  point. The red line above it still runs the full width. The links are closer together: about 28
+  pixels apart on Sean's MacBook Air, where they were about 70
+- Quick launch on narrower computers, tablets and phones: still the plain full-width strip, now with
+  nine links. From 1,100 to 1,279 wide the links have slightly less padding so all nine fit on one line
+- Search bar: thicker navy border (3 pixels, was a 2 pixel grey-brown one), darker and heavier
+  magnifying glass, larger and darker words, and a glossy navy "Search" button at the right end that
+  matches the sign-up bar. The search still works as you type; the button is a visual cue and clicking
+  it puts the cursor in the box. No "Search" button on phones, where it would cover the words
+- The search bar is the same height as before (1 pixel shorter at some sizes) and the calendar has
+  not moved
+- Each change is its own labeled section of css/style.css ("QUICK LAUNCH: NINE LINKS AND THE ARROW
+  END" and "STRONGER SEARCH BAR") and can be removed separately
+- Version number bumped to ?v=0.16.9 on every page (footer still reads v0.16)
+
 ## v0.16.8
 - The two navy bars on the homepage are more eye-catching (Sean asked; he approved a mockup first)
 - "Sign up for DAT Shifts" bar: glossy raised finish (lighter navy at the top, darker at the bottom, a

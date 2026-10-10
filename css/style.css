@@ -506,7 +506,9 @@ body.no-scroll { overflow: hidden; }
    It runs edge to edge across the screen. It reads as "tools that take you somewhere else", apart
    from the library buttons below. To change the color, edit --navy at the top of this file.
    Wide computers (1100px and up): 50px tall, 16px words, spread evenly from the left edge of the search
-   bar to its right edge. Narrower screens: smaller words, centered, wrapping onto extra lines. */
+   bar to its right edge. Narrower screens: smaller words, centered, wrapping onto extra lines.
+   Since v0.16.9 there are nine links, and on computers 1280px and up the strip ends in an arrow point
+   short of the right edge: see QUICK LAUNCH: NINE LINKS AND THE ARROW END further down. */
 /* The red line along the top edge is an accent to help people notice the strip. It was 6px in
    v0.16.2 and Sean doubled it in v0.16.3. To make it thicker or thinner, change the 12px. */
 .quick-bar { background: var(--navy); border-top: 12px solid var(--red); }
@@ -702,6 +704,71 @@ body.no-scroll { overflow: hidden; }
 .quick-label { color: #eef3fb; }
 @media (min-width: 1100px) { .quick-label { font-size: 13px; } .home-cal-title { font-size: 16px; } }
 /* ---------- end of SHINE ON THE TWO NAVY BARS ---------- */
+
+/* ---------- QUICK LAUNCH: NINE LINKS AND THE ARROW END (homepage, v0.16.9) ----------
+   RC Reserve was added, making nine links. Sean also felt the strip drowned out the search bar, and
+   asked for the links closer together and the strip a little shorter, with a stylized right end.
+   Computers 1,280 pixels wide and up: the navy stops short of the right edge of the screen and ends
+   in an arrow point. The red line above it still runs the full width. The links sit closer together
+   because they now share a shorter strip.
+     --ql-gap is how far short of the page's right edge the arrow tip stops.
+     The 26px in the "clip-path" line is how long the arrow point is (0 would be a square end).
+   Computers narrower than that, tablets and phones keep the plain full-width strip: nine links leave
+   no room to shorten it. From 1,100 to 1,279 wide the links get slightly less padding so all nine
+   stay on one line.
+   To go back to the full-width strip everywhere: delete this section down to the line of dashes, but
+   keep the first rule (the one for 1100px to 1279px) or the nine links will not fit on one line. */
+@media (min-width: 1100px) and (max-width: 1279px) {
+  .quick-btn { padding: 0 9px; }
+  .quick-btn:last-child { margin-right: -9px; }
+}
+@media (min-width: 1280px) {
+  .quick-bar { background: none; box-shadow: none; filter: drop-shadow(0 3px 4px rgba(0,0,0,.30)); }
+  .quick-inner { position: relative; --ql-gap: 36px; padding-right: calc(24px + var(--ql-gap) + 40px); }
+  .quick-inner::before {
+    content: ""; position: absolute; z-index: 0; top: 0; bottom: 0; left: -100vw; right: calc(24px + var(--ql-gap));
+    background: linear-gradient(180deg, #2c4775 0%, #1f3556 58%, #192d4a 100%);
+    clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 50%, calc(100% - 26px) 100%, 0 100%);
+  }
+  .quick-label, .quick-btn { position: relative; z-index: 1; }
+  .quick-btn { padding: 0 10px; }
+  .quick-btn:last-child { margin-right: 0; }
+}
+@media (min-width: 1440px) {
+  .quick-inner { --ql-gap: 110px; }
+  .quick-btn { padding: 0 13px; }
+}
+/* ---------- end of QUICK LAUNCH: NINE LINKS AND THE ARROW END ---------- */
+
+/* ---------- STRONGER SEARCH BAR (homepage, v0.16.9) ----------
+   So the search bar holds its own under the quick launch strip: a thicker navy border, a darker and
+   heavier magnifying glass, larger and darker words, and a glossy navy "Search" button at the right
+   end that matches the sign-up bar.
+   The search already works as you type. The "Search" button is a visual cue: clicking it simply puts
+   the cursor in the box. It is left off on phones, where it would cover the words in the box.
+   The bar is the same height as before, so nothing under it moves.
+   To go back to the plain search bar: delete this section (down to the line of dashes). */
+.search { position: relative; }
+.search input {
+  font-size: 18px; font-weight: 500; padding: 10px 150px 10px 54px;
+  border: 3px solid var(--navy);
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f3556' stroke-width='2.8' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat 20px center / 22px 22px;
+  box-shadow: 0 3px 10px rgba(31, 53, 86, .28);
+}
+.search input::placeholder { color: #4a4540; opacity: 1; }
+.search::after {
+  content: "Search"; position: absolute; top: 6px; bottom: 6px; right: 6px;
+  display: flex; align-items: center; padding: 0 26px; border-radius: 999px;
+  background: linear-gradient(180deg, #33548a 0%, #223b62 52%, #182b48 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.38), inset 0 -2px 3px rgba(0,0,0,.28);
+  color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0,0,0,.45); pointer-events: none;
+}
+@media (max-width: 640px) {
+  .search input { padding-right: 20px; }
+  .search::after { display: none; }
+}
+/* ---------- end of STRONGER SEARCH BAR ---------- */
 
 
 /* =========================================================
