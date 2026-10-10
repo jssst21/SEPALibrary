@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.16.3
+- The red accent line above the quick launch strip is twice as thick: 12 pixels, was 6
+- Version number bumped to ?v=0.16.3 on every page (footer still reads v0.16)
+
 ## v0.16.2
 - A thin red line (6 pixels, the logo red) now runs along the top edge of the navy quick launch strip,
   as an accent to help people notice it. On phones the strip sits right under the red panel, so the

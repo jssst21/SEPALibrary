@@ -497,9 +497,9 @@ body.no-scroll { overflow: hidden; }
    from the library buttons below. To change the color, edit --navy at the top of this file.
    Wide computers (1100px and up): 50px tall, 16px words, spread evenly from the left edge of the search
    bar to its right edge. Narrower screens: smaller words, centered, wrapping onto extra lines. */
-/* The thin red line along the top edge is an accent to help people notice the strip (v0.16.2).
-   To make it thicker or thinner, change the 6px. */
-.quick-bar { background: var(--navy); border-top: 6px solid var(--red); }
+/* The red line along the top edge is an accent to help people notice the strip. It was 6px in
+   v0.16.2 and Sean doubled it in v0.16.3. To make it thicker or thinner, change the 12px. */
+.quick-bar { background: var(--navy); border-top: 12px solid var(--red); }
 .quick-inner {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
   max-width: 1400px; margin: 0 auto; padding: 0 12px;
