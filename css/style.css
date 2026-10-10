@@ -16,6 +16,10 @@
   --focus: #3e5c76;
   --navy: #1f3556;   /* Quick launch strip and the bar above the calendar */
   --radius: 10px;
+  /* How wide the homepage may get on a computer. Screens up to this width are filled edge to edge;
+     wider screens get equal empty margins (red on the left, white on the right). 1920px is the most
+     common computer screen. It was 1400px through v0.16.5: to go back, change 1920px to 1400px. */
+  --page-w: 1920px;
 }
 
 * { box-sizing: border-box; }
@@ -451,8 +455,9 @@ body.no-scroll { overflow: hidden; }
 }
 
 @media (min-width: 900px) {
-  /* Page width cap on computers. v0.14.1 and earlier used 1200px. */
-  .home-layout { max-width: 1400px; }
+  /* Page width cap on computers (--page-w, set at the top of this file). v0.14.1 and earlier
+     used 1200px, v0.14.2 to v0.16.5 used 1400px. */
+  .home-layout { max-width: var(--page-w); }
   /* Rows 1-2: search bar and its hint run across the full width.
      Below them: buttons on the left third, calendar on the right two-thirds. */
   .home-nav {
@@ -502,7 +507,7 @@ body.no-scroll { overflow: hidden; }
 .quick-bar { background: var(--navy); border-top: 12px solid var(--red); }
 .quick-inner {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-  max-width: 1400px; margin: 0 auto; padding: 0 12px;
+  max-width: var(--page-w); margin: 0 auto; padding: 0 12px;
 }
 .quick-label {
   padding: 0 14px 0 8px;

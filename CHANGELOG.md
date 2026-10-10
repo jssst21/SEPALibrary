@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.16.6
+- Homepage on computers: the page may now be up to 1,920 pixels wide (it was capped at 1,400). Sean
+  saw about 160 pixels of empty red to the left of the buttons on his MacBook Air, whose window is about
+  1,670 pixels wide. The page was centered with spare room on both sides, and on the left that spare
+  room is red because the red panel runs to the screen edge. Now the red left of the buttons is 24
+  pixels on any screen up to 1,920 wide, and the quick launch strip, search bar and calendar spread to
+  fill the window. The calendar gets wider, not taller, so the page is the same height as before
+- Why 1,920: Sean asked that the page be designed for the most common screen, not his. 1920x1080 is the
+  most common computer screen by a wide margin (about 27% of US computers, StatCounter, Sept 2026); on
+  it the old page showed about 276 pixels of empty red. Screens wider than 1,920 still get margins
+- The width is now one number, --page-w, at the top of css/style.css. To go back to the old look,
+  change 1920px to 1400px there
+- Phones, tablets and the inside pages are unchanged
+- ROLLBACK POINT: v0.16.5 is the version to return to if Sean does not like the wider page (see WHERE
+  WE LEFT OFF.md)
+- Version number bumped to ?v=0.16.6 on every page (footer still reads v0.16)
+
+## v0.16.5
+- Contacts page: Irvin Diaz's title now reads "PhilaBucks Chapter Lead" (it said "PhilaBucks Chapter
+  Volunteer Lead"). Sean's correction, Oct 10, 2026
+- Version number bumped to ?v=0.16.5 on every page (footer still reads v0.16)
+
 ## v0.16.4
 - Contacts page: red background (the logo red). The logo is centered at the top on a white card and
   larger (140 pixels tall on computers, 110 on phones; it was 72 and 56, top left). The page title, the
