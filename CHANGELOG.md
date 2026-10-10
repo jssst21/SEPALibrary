@@ -1,5 +1,39 @@
 # Changelog
 
+## v0.16
+- The Contacts page (pages/contacts.html) is built. It was a "coming soon" page. The Contacts link in
+  the quick launch strip already points to it
+- 35 people in three sections: Leadership (8), Department Leaders (17), Team Leaders (10). Each person
+  shows a round photo or initials, name, title and a clickable email address
+- Built from Sean's directions document and three screenshots of the old SharePoint page: names turned
+  around to first-then-last, "Disaster Action Team" shortened to DAT, the listed title changes made,
+  Irvin Diaz moved to Leadership in place of Isaiah Gammache, Kristen Carmean replaced by Roy Landes,
+  Larrye Loss moved to Department Leaders, Sean moved to Team Leaders, Rahel Pachter listed once (as
+  Pet Liaison), everyone else under Team Leaders titled Volunteer Leader
+- Emails follow the rule firstname.lastname@redcross.org. They were NOT checked against a directory.
+  Two are guesses the rule does not settle: maureen.smithstreeter@ and ellen.oneill@
+- Photos (26, in images/people) are cropped from the screenshots, so they are small. The nine people
+  with no photo show a navy circle with their initials. Sean decided to publish the photos
+- The page is public, like the rest of the site: names, titles, emails and photos are visible to anyone
+- How to edit the page is explained in a note near the top of pages/contacts.html
+- Homepage: the logo is gone, to get more of the page on screen without scrolling. The search bar now
+  sits directly under the quick launch strip, and everything below moved up about 135 pixels. On a
+  1,440-wide screen the whole calendar now fits in a window 750 pixels tall (it needed about 890)
+- Quick launch strip on wide computers (1,100 pixels and up): 50 pixels tall (was 42), 16-pixel words
+  (was 14), and the links are spread evenly from the left edge of the search bar to its right edge.
+  Narrower computers and tablets: 15-pixel words, centered. Phones: unchanged
+- With the logo gone, the homepage no longer shows the site's name anywhere except the small footer
+  line. The inside pages still show the logo. To bring the homepage logo back, see the v0.15 version
+  of index.html and css/style.css in the GitHub history
+- Version number bumped to ?v=0.16 on every page; footer reads v0.16
+
+## v0.15.1
+- Bug fix: the inside pages (shift sign-up, forums, Browse Library and the "coming soon" pages) had been
+  coming out narrower than intended on computers since v0.14, because of a change made for the homepage.
+  The shift sign-up page was 524 pixels wide when it should be 760. They are back to full width and
+  match v0.13.2 exactly. Phones were not affected. One line in css/style.css (.page-wrap)
+- Version number bumped to ?v=0.15.1 on every page (footer still reads v0.15)
+
 ## v0.15
 - LAST KNOWN GOOD POINT before this change: v0.14.5 (commit c54130c, Oct 9, 2026). To go back: GitHub
   Desktop, History tab, right-click the v0.15 commit, Revert Changes in Commit, then Push

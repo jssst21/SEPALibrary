@@ -50,7 +50,7 @@ a { color: var(--red); }
 }
 
 /* =========================================================
-   HOMEPAGE: centered logo on white, search, button cards
+   HOMEPAGE: quick launch strip, search bar, red side panel, calendar (no logo since v0.16)
    ========================================================= */
 
 /* The page is a column: quick launch strip on top, then everything else. The column is at least as
@@ -61,17 +61,15 @@ body.home { background: #fff; min-height: 100vh; display: flex; flex-direction: 
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 22px 24px 16px;
+  --top-pad: 16px;   /* gap between the quick launch strip and the search bar */
+  padding: var(--top-pad) 24px 16px;
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
 
-.home-header { text-align: center; }
-.home-logo { display: inline-block; }
-.home-logo img { display: block; height: 130px; width: auto; }
-
-.home-nav { margin-top: 20px; }
+/* The homepage logo was removed in v0.16 to get more of the page on screen without scrolling.
+   The inside pages still show the logo (.page-logo). */
 
 .search { display: block; max-width: 560px; margin: 0 auto; }
 .search input {
@@ -156,8 +154,7 @@ body.home { background: #fff; min-height: 100vh; display: flex; flex-direction: 
 
 /* ---------- Phones ---------- */
 @media (max-width: 640px) {
-  .home-layout { padding: 20px 16px 12px; }
-  .home-logo img { height: 104px; }
+  .home-layout { --top-pad: 16px; padding: var(--top-pad) 16px 12px; }
   .nav-list { grid-template-columns: 1fr 1fr; gap: 10px; }
   .nav-btn { min-height: 64px; font-size: 16px; }
 }
@@ -186,7 +183,9 @@ footer { text-align: center; padding: 30px; color: var(--ink-soft); }
    SHIFT SIGNUP PAGE (pages/shifts.html)
    ========================================================= */
 
-.page-wrap { max-width: 760px; margin: 0 auto; padding: 20px 20px 48px; }
+/* width: 100% matters: the page body is a flex column (since v0.14), and without it this box shrinks
+   to fit its contents and the inside pages come out narrower than 760px. */
+.page-wrap { width: 100%; max-width: 760px; margin: 0 auto; padding: 20px 20px 48px; }
 
 .page-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .page-logo { display: block; height: 72px; width: auto; }
@@ -448,7 +447,6 @@ body.no-scroll { overflow: hidden; }
 @media (min-width: 900px) {
   /* Page width cap on computers. v0.14.1 and earlier used 1200px. */
   .home-layout { max-width: 1400px; }
-  .home-logo img { height: 110px; }
   /* Rows 1-2: search bar and its hint run across the full width.
      Below them: buttons on the left third, calendar on the right two-thirds. */
   .home-nav {
@@ -478,11 +476,12 @@ body.no-scroll { overflow: hidden; }
   .home-cal .cal-day { height: clamp(58px, 4.9vw, 70px); }
 }
 
-/* ---------- Quick launch bar (homepage, very top of the page, above the logo) ----------
-   A thin, solid navy strip with plain white words, like the navigation strip at the top of most
-   websites. It runs edge to edge across the screen. It reads as "tools that take you somewhere else",
-   apart from the library buttons below. To change the color, edit --navy at the top of this file.
-   Computers: everything on one line. Narrow screens: the words wrap onto extra lines. */
+/* ---------- Quick launch bar (homepage, very top of the page) ----------
+   A solid navy strip with plain white words, like the navigation strip at the top of most websites.
+   It runs edge to edge across the screen. It reads as "tools that take you somewhere else", apart
+   from the library buttons below. To change the color, edit --navy at the top of this file.
+   Wide computers (1100px and up): 50px tall, 16px words, spread evenly from the left edge of the search
+   bar to its right edge. Narrower screens: smaller words, centered, wrapping onto extra lines. */
 .quick-bar { background: var(--navy); }
 .quick-inner {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
@@ -495,8 +494,8 @@ body.no-scroll { overflow: hidden; }
 }
 .quick-btn {
   display: flex; align-items: center;
-  min-height: 42px; padding: 0 13px;
-  color: #fff; font-size: 14px; font-weight: 600; line-height: 1.2;
+  min-height: 44px; padding: 0 13px;
+  color: #fff; font-size: 15px; font-weight: 600; line-height: 1.2;
   text-decoration: none; white-space: nowrap;
 }
 .quick-btn:hover { background: rgba(255, 255, 255, .16); }
@@ -504,7 +503,13 @@ body.no-scroll { overflow: hidden; }
 @media (max-width: 640px) {
   .quick-inner { padding: 4px 6px; }
   .quick-label { flex-basis: 100%; padding: 4px 0 0; text-align: center; }
-  .quick-btn { min-height: 40px; padding: 0 10px; }
+  .quick-btn { min-height: 40px; padding: 0 10px; font-size: 14px; }
+}
+@media (min-width: 1100px) {
+  .quick-inner { flex-wrap: nowrap; justify-content: space-between; padding: 0 24px; }
+  .quick-label { padding: 0; font-size: 12px; }
+  .quick-btn { min-height: 50px; font-size: 16px; }
+  .quick-btn:last-child { margin-right: -13px; }   /* so "Contacts" ends level with the search bar */
 }
 
 /* ---------- Browse Library page (pages/library.html) ---------- */
@@ -577,14 +582,37 @@ body.no-scroll { overflow: hidden; }
      box) down to the bottom of the stage, and out to the left edge of the screen. */
   .home-stage::before {
     content: ""; position: absolute; z-index: 0;
-    top: -22px; bottom: 0; left: calc(50% - 50vw);
+    top: calc(-1 * var(--top-pad)); bottom: 0; left: calc(50% - 50vw);
     width: calc(50vw - 50% + var(--side-w) + 18px);
     background: var(--red);
   }
-  .home-header, .home-nav { position: relative; z-index: 1; }
-  /* Center the logo over the white area (the calendar column), not over the whole page. */
-  .home-header { padding-left: calc(var(--side-w) + 36px); }
+  .home-nav { position: relative; z-index: 1; }
   .home-nav { padding-bottom: 20px; }
   .home-nav > .side { grid-column: 1; grid-row: 4 / span 2; align-self: stretch; margin-top: 18px; }
   .home-footer { padding-top: 14px; }
 }
+
+
+/* =========================================================
+   CONTACTS PAGE (pages/contacts.html)
+   Three lists of people (Leadership, Department Leaders, Team Leaders). Each person is a small card:
+   round photo (or initials), name, title, email. Phones: one per row. Tablets: two. Computers: three.
+   ========================================================= */
+.page-wide { max-width: 1120px; }
+.people-head { margin-top: 30px; padding-bottom: 6px; font-size: 24px; color: var(--ink); border-bottom: 2px solid var(--line); }
+.people { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px; }
+.person {
+  display: flex; align-items: center; gap: 14px; min-width: 0;
+  padding: 12px 14px; border: 1.5px solid var(--line); border-radius: var(--radius); background: #fff;
+}
+.person-photo { flex: none; width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: #f1eeeb; }
+.person-initials {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--navy); color: #fff; font-weight: 700; font-size: 21px; letter-spacing: .03em;
+}
+.person-text { min-width: 0; }
+.person-name { margin: 0; font-weight: 700; font-size: 18px; line-height: 1.25; }
+.person-title { margin: 2px 0 0; font-size: 15px; line-height: 1.3; color: var(--ink-soft); }
+.person-email { display: inline-block; margin-top: 4px; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+@media (min-width: 640px) { .people { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1000px) { .people { grid-template-columns: repeat(3, 1fr); } }
