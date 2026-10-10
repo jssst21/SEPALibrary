@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.16.10
+- Quick launch bar, at Sean's request: 10% thinner (45 pixels tall on computers, was 50), and on
+  computers 1,280 pixels wide and up it is now centered on the page instead of pinned to the left
+  edge. It is only as wide as its nine links need, so there is free space at both ends (about 145
+  pixels each side on his MacBook Air). The left end is rounded (Sean chose that over an arrowhead
+  shape there); the right end keeps the arrow point
+- The red side panel now runs up behind the bar to meet the red line at the top, so the red column
+  is one unbroken shape and the navy bar floats across it (Sean picked this over white behind the bar)
+- The links sit a little closer together than in v0.16.9
+- Everything under the bar moved up 5 pixels on computers. The calendar is 5 pixels closer to fitting
+  on 1536x864 laptops (about 7 pixels cut off, was 12)
+- Computers narrower than 1,280, tablets and phones keep the plain full-width strip. Computers from
+  1,100 to 1,279 wide get the thinner height only. Tablets and phones are unchanged
+- RC Reserve still has no address and still does nothing when clicked
+- Version number bumped to ?v=0.16.10 on every page (footer still reads v0.16)
+
 ## v0.16.9
 - Sean found the quick launch strip drowned out the search bar after v0.16.8. He approved a mockup of
   two changes together: a shorter, stylized strip and a stronger search bar
