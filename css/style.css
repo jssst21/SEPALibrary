@@ -507,9 +507,8 @@ body.no-scroll { overflow: hidden; }
    from the library buttons below. To change the color, edit --navy at the top of this file.
    Wide computers (1100px and up): 50px tall, 16px words, spread evenly from the left edge of the search
    bar to its right edge. Narrower screens: smaller words, centered, wrapping onto extra lines.
-   Since v0.16.9 there are nine links. Since v0.16.10 the bar is 45px tall on computers, and on
-   computers 1280px and up it is a centered bar with a rounded left end and an arrow point on the right:
-   see QUICK LAUNCH: NINE LINKS, CENTERED BAR WITH AN ARROW END further down. */
+   Since v0.16.9 there are nine links, and since v0.16.10 the strip is 45px tall on computers:
+   see QUICK LAUNCH: NINE LINKS, THINNER STRIP further down. */
 /* The red line along the top edge is an accent to help people notice the strip. It was 6px in
    v0.16.2 and Sean doubled it in v0.16.3. To make it thicker or thinner, change the 12px. */
 .quick-bar { background: var(--navy); border-top: 12px solid var(--red); }
@@ -654,8 +653,9 @@ body.no-scroll { overflow: hidden; }
    The sign-up bar is the one call to action, so it gets the most: a glossy raised finish, larger
    words on computers, and a band of light (a "gleam") that sweeps across it once when the page loads
    and again when the mouse moves onto it. It is also a link now (see index.html).
-   The quick launch strip is navigation people use over and over, so it only gets bolder words, a
-   brighter label, a soft sheen and a shadow under it. Nothing on it moves.
+   The quick launch strip is navigation people use over and over, so it only got bolder words, a
+   brighter label, a soft sheen and a shadow under it. Sean had the sheen and shadow taken off again
+   in v0.16.11 (flat navy, as "too busy"); the bolder words and brighter label remain.
    The gleam does not repeat on its own, and it is switched off for people whose computer is set to
    reduce motion.
    The blues below are lighter and darker shades of --navy. If --navy is ever changed, change them too.
@@ -695,61 +695,41 @@ body.no-scroll { overflow: hidden; }
   .home-cal-link { flex-direction: column; padding: 9px 18px; }
 }
 
-/* Quick launch strip */
-.quick-bar {
-  position: relative; z-index: 2;
-  background: linear-gradient(180deg, #2c4775 0%, #1f3556 58%, #192d4a 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.20), 0 3px 8px rgba(0,0,0,.30);
-}
-.quick-btn { font-weight: 700; text-shadow: 0 1px 1px rgba(0,0,0,.35); }
+/* Quick launch strip: flat navy again since v0.16.11 (no sheen, no shadow). Only the bolder words
+   and the brighter label are left from v0.16.8. */
+.quick-btn { font-weight: 700; }
 .quick-label { color: #eef3fb; }
 @media (min-width: 1100px) { .quick-label { font-size: 13px; } .home-cal-title { font-size: 16px; } }
 /* ---------- end of SHINE ON THE TWO NAVY BARS ---------- */
 
-/* ---------- QUICK LAUNCH: NINE LINKS, CENTERED BAR WITH AN ARROW END (homepage, v0.16.10) ----------
-   History: v0.16.9 added RC Reserve (nine links) and, because Sean felt the strip drowned out the
-   search bar, stopped the navy short of the right edge with an arrow point. v0.16.10: Sean asked for
-   the bar 10% thinner, centered on the page (no longer pinned to the left edge), with a rounded left
-   end instead of an arrowhead shape there.
-   All computers 1,100 pixels wide and up: the bar is 45 pixels tall (it was 50).
-   Computers 1,280 wide and up: the navy bar is only as wide as its nine links need and sits in the
-   middle of the page. Left end rounded, right end an arrow point. The red line above still runs the
-   full width, and the red side panel runs up behind the bar to meet that line.
-     The 23px and 24px in the two lines after "left: 0" are the length of the arrow point.
-     The "padding: 0 17px" near the end is the space around each link; a bigger number spreads the
-     links out and makes the bar longer.
-     If the bar's height (45px) is ever changed, change the 45px in the last line of the big block
-     too, or the red panel will not meet the red line.
-   Computers narrower than 1,280, tablets and phones keep the plain full-width strip: nine links leave
-   no room for the centered shape. From 1,100 to 1,279 wide the links get slightly less padding so
-   all nine stay on one line.
-   To go back to the full-width strip everywhere: delete this section down to the line of dashes, but
-   keep the rule for 1100px to 1279px or the nine links will not fit on one line. */
+/* ---------- QUICK LAUNCH: NINE LINKS, THINNER STRIP (homepage, v0.16.11) ----------
+   The quick launch bar is the traditional strip again: navy, edge to edge across the top of the page.
+   The words do NOT spread across the whole strip any more. On computers 1,280 pixels wide and up the
+   label and the nine links sit together as one group in the middle of the strip, with empty navy at
+   both ends. Sean asked for this because "Contacts" sat nearly at the right edge of the screen.
+     The "padding: 0 20px" and "padding: 0 12px" below are the space on each side of every link. A
+     smaller number pulls the words closer together, a bigger one spreads them out.
+   History, so nobody repeats it: v0.16.9 stopped the strip short of the right edge with an arrow
+   point; v0.16.10 made it a centered bar with a rounded left end and the red panel running up behind
+   it. Sean found both too busy and asked for the traditional strip back (Oct 10, 2026).
+   What is kept from those versions: the ninth link (RC Reserve) and the thinner height Sean asked for
+   (45 pixels on computers, was 50).
+   From 1,100 to 1,279 pixels wide there is no spare room: the links get slightly less padding so all
+   nine stay on one line, and they run nearly the full width of the strip.
+   To make the strip 50 pixels tall again, change the 45px below to 50px. */
 @media (min-width: 1100px) { .quick-btn { min-height: 45px; } }
 @media (min-width: 1100px) and (max-width: 1279px) {
   .quick-btn { padding: 0 9px; }
   .quick-btn:last-child { margin-right: -9px; }
 }
 @media (min-width: 1280px) {
-  .quick-bar { background: none; box-shadow: none; filter: drop-shadow(0 3px 4px rgba(0,0,0,.30)); }
-  .quick-inner {
-    position: relative; width: fit-content; max-width: none; margin: 0 auto;
-    padding: 0 46px 0 32px; justify-content: center;
-  }
-  .quick-inner::before, .quick-inner::after {
-    content: ""; position: absolute; z-index: 0; top: 0; bottom: 0;
-    background: linear-gradient(180deg, #2c4775 0%, #1f3556 58%, #192d4a 100%);
-  }
-  .quick-inner::before { left: 0; right: 23px; border-radius: 999px 0 0 999px; }
-  .quick-inner::after { right: 0; width: 24px; clip-path: polygon(0 0, 1px 0, 100% 50%, 1px 100%, 0 100%); }
-  .quick-label, .quick-btn { position: relative; z-index: 1; }
+  .quick-inner { justify-content: center; }
   .quick-label { margin-right: 14px; }
-  .quick-btn { padding: 0 10px; }
+  .quick-btn { padding: 0 12px; }
   .quick-btn:last-child { margin-right: 0; }
-  .home-stage::before { top: calc(-1 * var(--top-pad) - 45px); }
 }
-@media (min-width: 1440px) { .quick-btn { padding: 0 17px; } }
-/* ---------- end of QUICK LAUNCH: NINE LINKS, CENTERED BAR WITH AN ARROW END ---------- */
+@media (min-width: 1440px) { .quick-btn { padding: 0 20px; } }
+/* ---------- end of QUICK LAUNCH: NINE LINKS, THINNER STRIP ---------- */
 
 /* ---------- STRONGER SEARCH BAR (homepage, v0.16.9) ----------
    So the search bar holds its own under the quick launch strip: a thicker navy border, a darker and

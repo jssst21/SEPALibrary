@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.16.11
+- Quick launch bar: back to the traditional strip, navy from edge to edge across the top of the page.
+  Sean found the centered bar (v0.16.10) and the arrow end (v0.16.9) too busy. The arrow point, the
+  rounded left end and the centering are gone, and the red side panel starts under the strip again
+- The strip is flat navy again: Sean had the soft sheen and the shadow under it (both from v0.16.8)
+  taken off. The sign-up bar keeps its glossy finish and gleam
+- The words are pulled in: on computers 1,280 pixels wide and up, the label and the nine links sit
+  together as one group in the middle of the strip instead of spreading from edge to edge. Sean asked
+  for this because "Contacts" sat nearly at the right edge of the screen (26 pixels from it on his
+  MacBook Air; now about 180). From 1,100 to 1,279 wide there is no spare room and the links still run
+  nearly the full width
+- Kept: the nine links including RC Reserve; the thinner height Sean
+  asked for in v0.16.10 (45 pixels on computers, was 50); the bolder link words and brighter "Quick
+  launch" label from v0.16.8 (Claude's assumption that "flat navy" meant the background, told to Sean)
+- The stronger search bar from v0.16.9 is unchanged
+- Tablets and phones are unchanged
+- RC Reserve still has no address and still does nothing when clicked
+- Version number bumped to ?v=0.16.11 on every page (footer still reads v0.16)
+
 ## v0.16.10
 - Quick launch bar, at Sean's request: 10% thinner (45 pixels tall on computers, was 50), and on
   computers 1,280 pixels wide and up it is now centered on the page instead of pinned to the left
