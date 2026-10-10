@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.16.14
+- Homepage calendar key ("volunteers signed up" / "no one yet"): moved back to the bottom of the
+  calendar, under the days, and centered. It had been under the month line since v0.15
+- The key is a little more eye-catching: larger, bolder words (16 pixels, was 14) and larger samples
+  of the green number and the amber box. Sean left the "how" to Claude. No colored chips (he had
+  those removed in v0.14.4) and no gleam: the sign-up bar stays the only thing on the page that moves
+- The calendar box is exactly as tall as before, so nothing else moved. The day names now sit right
+  under the month line
+- Phones: the key is under the days there too, kept at the smaller size so it fits on one line
+- Version number bumped to ?v=0.16.14 on every page (footer still reads v0.16)
+
 ## v0.16.13
 - LAST KNOWN GOOD POINT moved to v0.16.12 (commit 93240ca) at Sean's request, just before this change
 - Homepage: the logo red now fills the whole page (it was white, with a red panel down the left).
