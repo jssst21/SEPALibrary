@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.16.7
+- Homepage on computers: the whole page now enlarges to fit the screen, like enlarging a photo. On a
+  window wider than 1,540 pixels everything (quick launch strip, buttons, search bar, calendar, text)
+  grows in proportion until the page fills the window, up to 25% larger. It looks the same on a
+  laptop and a big monitor, only bigger. Sean asked why the site did not "simply resize" like other
+  sites, then chose this from three options
+- Why it was needed: the red panel runs to the left edge of the screen, so spare room on a wide
+  screen showed as a band of empty red beside the buttons (other sites have the same spare room, but
+  it is blank on both sides and nobody notices). Making the page wider (v0.16.6, 1,920) fixed the
+  red but Sean found the calendar too wide
+- Measured: on his MacBook Air (window about 1,670 wide) the page is 8.5% larger with 26 pixels of red
+  left of the buttons (it was about 160 before today). On a 1920x1080 screen, the most common, it is
+  24% larger with 30 pixels of red (it was 276). The calendar keeps its shape and takes about 73% of
+  the window width on both
+- It also fits the height: the page never enlarges so far that the bottom of the calendar leaves
+  the screen. In a short window it enlarges less and some red returns (about 50 pixels at 800 tall)
+- Unchanged: laptops 1,540 wide or less, tablets, phones and the inside pages
+- Known costs: on a 1920x1080 screen the footer line is just below the fold. Past 1,920 wide the
+  enlarging stops at 25% and the side margins return. The gallery photos are enlarged too. Tested only
+  in Chrome; a browser that does not understand the new line shows the page at normal size, centered
+- The numbers are at the top of css/style.css (--page-w 1540px, --page-h 760px, --fit-max 1.25) and the
+  one working line is under FIT THE SCREEN in the same file. Deleting that line switches it off
+- An earlier v0.16.7, never pushed, only set the page cap to 1,540 ("split the difference" between
+  1,400 and what Sean saw at 1,920). This version keeps that 1,540 as the design size and adds the
+  enlarging on top
+- Version number bumped to ?v=0.16.7 on every page (footer still reads v0.16)
+
 ## v0.16.6
 - Homepage on computers: the page may now be up to 1,920 pixels wide (it was capped at 1,400). Sean
   saw about 160 pixels of empty red to the left of the buttons on his MacBook Air, whose window is about

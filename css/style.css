@@ -16,10 +16,15 @@
   --focus: #3e5c76;
   --navy: #1f3556;   /* Quick launch strip and the bar above the calendar */
   --radius: 10px;
-  /* How wide the homepage may get on a computer. Screens up to this width are filled edge to edge;
-     wider screens get equal empty margins (red on the left, white on the right). 1920px is the most
-     common computer screen. It was 1400px through v0.16.5: to go back, change 1920px to 1400px. */
-  --page-w: 1920px;
+  /* The homepage on a computer is designed at this size: 1540 pixels wide, with everything down to
+     the bottom of the calendar fitting in 760 pixels of height. On a bigger screen the whole page is
+     enlarged to fit, like enlarging a photo (see FIT THE SCREEN further down), up to --fit-max.
+     Screens narrower than --page-w are simply filled edge to edge at normal size.
+     History of --page-w: 1400px through v0.16.5 (too much empty red left of the buttons on wide
+     screens), 1920px in v0.16.6 (calendar too wide), 1540px from v0.16.7. */
+  --page-w: 1540px;
+  --page-h: 760px;
+  --fit-max: 1.25;   /* 1.25 = at most 25% larger, reached on a 1920-wide screen */
 }
 
 * { box-sizing: border-box; }
@@ -621,6 +626,24 @@ body.no-scroll { overflow: hidden; }
   .home-nav { padding-bottom: 20px; }
   .home-nav > .side { grid-column: 1; grid-row: 4 / span 2; align-self: stretch; margin-top: 18px; }
   .home-footer { padding-top: 14px; }
+}
+
+/* ---------- FIT THE SCREEN (homepage, computers, v0.16.7) ----------
+   Why: the red panel runs to the left edge of the screen, so on a screen wider than the page any
+   spare room showed up as a wide band of empty red beside the buttons. Making the page wider only
+   stretched the calendar. So instead the whole homepage (quick launch strip, buttons, search bar,
+   calendar, text) is enlarged in proportion until it fills the window. It looks the same on a laptop
+   and on a big monitor, only bigger.
+   How much: the smaller of (window width / --page-w) and (window height / --page-h), so the bottom
+   of the calendar never drops off the screen. Never smaller than normal size, never more than
+   --fit-max. The three numbers are at the top of this file.
+   A browser too old to understand this line ignores it and shows the page at normal size, centered.
+   To switch the enlarging off: delete the "zoom" line below. */
+@media (min-width: 900px) {
+  body.home {
+    --fit: clamp(1, min(tan(atan2(100vw, var(--page-w))), tan(atan2(100vh, var(--page-h)))), var(--fit-max));
+  }
+  .quick-bar, .home-layout { zoom: var(--fit); }
 }
 
 
