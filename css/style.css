@@ -427,7 +427,8 @@ body.no-scroll { overflow: hidden; }
   .home-cal-dash { display: none; }
 }
 .home-cal-status { margin: 12px 0 0; font-size: 15px; color: var(--ink-soft); text-align: center; }
-.home-cal .cal { margin-top: 12px; }
+/* The soft shadow lifts the calendar box off the page a little (v0.16.2). It matches the search bar's. */
+.home-cal .cal { margin-top: 12px; box-shadow: 0 3px 12px rgba(42, 36, 32, .16); }
 .home-cal .cal[hidden] { display: none; }
 
 .home-cal .cal-day {
@@ -496,7 +497,9 @@ body.no-scroll { overflow: hidden; }
    from the library buttons below. To change the color, edit --navy at the top of this file.
    Wide computers (1100px and up): 50px tall, 16px words, spread evenly from the left edge of the search
    bar to its right edge. Narrower screens: smaller words, centered, wrapping onto extra lines. */
-.quick-bar { background: var(--navy); }
+/* The thin red line along the top edge is an accent to help people notice the strip (v0.16.2).
+   To make it thicker or thinner, change the 6px. */
+.quick-bar { background: var(--navy); border-top: 6px solid var(--red); }
 .quick-inner {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
   max-width: 1400px; margin: 0 auto; padding: 0 12px;
