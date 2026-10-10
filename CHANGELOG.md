@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.16.13
+- LAST KNOWN GOOD POINT moved to v0.16.12 (commit 93240ca) at Sean's request, just before this change
+- Homepage: the logo red now fills the whole page (it was white, with a red panel down the left).
+  Sean chose this from mockups for the more branded look and because the calendar "floats" on the
+  red. Claude had recommended keeping white (weaker contrast for the navy sign-up bar, small white text
+  on red, a lot of red to look at); Sean preferred the red
+- Float: the logo card, the six buttons, the photo and the calendar share one deeper, softer drop
+  shadow, so they all look lifted off the red to the same height. Sean asked for more float on the
+  left buttons; the logo card, photo and calendar were matched to them. The calendar's grey outline
+  is gone (the shadow does that job)
+- Changes the red forced: the search hint, the footer line and the "No matches" and calendar
+  messages are white; clicking into the search bar shows a white glow, not the old red one
+- Phones and tablets: the page is red there too, and the logo now sits on a white card (it would have
+  been a bare white rectangle on red). The card makes the top of the page about 16 pixels taller on
+  phones and tablets. On computers nothing moved
+- Homepage only. The inside pages are unchanged (white, and Contacts red as before). Whether they
+  should follow is an open question for Sean
+- One switch: the word home-red in the body tag of index.html. Delete it and the homepage is white
+  with the red side panel again. The styles are one section of css/style.css, "ALL-RED HOMEPAGE WITH
+  FLOATING CARDS"; the amount of float is the --float line there
+- Version number bumped to ?v=0.16.13 on every page (footer still reads v0.16)
+
 ## v0.16.12
 - Quick launch strip: the link words are no longer bold. They are back to the weight they had before
   v0.16.8 (600, a medium-heavy weight; v0.16.8 had made them 700). Sean asked for the bolding dropped

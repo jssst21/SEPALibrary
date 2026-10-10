@@ -761,6 +761,34 @@ body.no-scroll { overflow: hidden; }
 }
 /* ---------- end of STRONGER SEARCH BAR ---------- */
 
+/* ---------- ALL-RED HOMEPAGE WITH FLOATING CARDS (v0.16.13) ----------
+   Sean chose this from mockups for the more branded look, and because the calendar "floats" on red.
+   The logo red fills the whole homepage. The logo card, the six buttons, the photo, and the calendar
+   sit on it as white cards with one shared drop shadow, so they all look lifted to the same height.
+   It only applies to a page whose body tag carries the word home-red, which is the homepage
+   (index.html). The inside pages are not touched. Delete that one word from index.html and the
+   homepage is white with the red side panel again; nothing here needs to change.
+     --float is the shadow under every card. For more lift, raise the 6px and 14px (try 9px and 20px);
+     for less, lower them (try 3px and 8px).
+   Small things that had to change because of the red: the search hint, the footer line and the "No
+   matches" / calendar messages are white (grey was unreadable); the search bar shows a white glow
+   when you click into it (the old red glow would not show); on phones and tablets the logo sits on
+   a white card, as it already did on computers. */
+body.home-red { background: var(--red); }
+.home-red { --float: 0 6px 14px rgba(45, 5, 12, .45), 0 1px 3px rgba(45, 5, 12, .30); }
+.home-red .search-hint { color: #fff; }
+.home-red .home-footer, .home-red .no-results, .home-red .home-cal-status { color: rgba(255, 255, 255, .9); }
+.home-red .home-cal-status a { color: #fff; }
+.home-red .search input:focus { border-color: var(--navy); box-shadow: 0 0 0 4px rgba(255, 255, 255, .6), 0 3px 10px rgba(31, 53, 86, .28); }
+.home-red .side-btn, .home-red .side-gallery, .home-red .home-cal .cal { box-shadow: var(--float); }
+.home-red .home-cal .cal { border-color: transparent; }
+.home-red .side-btn:hover { box-shadow: 0 10px 20px rgba(45, 5, 12, .50), 0 2px 4px rgba(45, 5, 12, .30); }
+@media (min-width: 900px) { .home-red .home-nav > .home-header { box-shadow: var(--float); } }
+@media (max-width: 899px) {
+  .home-red .home-logo { padding: 8px 20px; border-radius: 8px; background: #fff; box-shadow: var(--float); }
+}
+/* ---------- end of ALL-RED HOMEPAGE WITH FLOATING CARDS ---------- */
+
 
 /* =========================================================
    CONTACTS PAGE (pages/contacts.html)
