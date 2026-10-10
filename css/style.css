@@ -68,8 +68,13 @@ body.home { background: #fff; min-height: 100vh; display: flex; flex-direction: 
   flex-direction: column;
 }
 
-/* The homepage logo was removed in v0.16 to get more of the page on screen without scrolling.
-   The inside pages still show the logo (.page-logo). */
+/* Homepage logo. Phones and tablets: centered, the first thing on the page. Computers: on a white
+   card at the top of the red side panel, in the space beside the search bar (see RED SIDE PANEL at
+   the end of this file). The big centered logo above the search bar was removed in v0.16 to get more
+   of the page on screen without scrolling. The inside pages show the logo top left (.page-logo). */
+.home-header { text-align: center; }
+.home-logo { display: inline-block; }
+.home-logo img { display: block; height: 84px; width: auto; }
 
 .search { display: block; max-width: 560px; margin: 0 auto; }
 .search input {
@@ -457,9 +462,18 @@ body.no-scroll { overflow: hidden; }
     align-items: start;
   }
   .home-nav > * { grid-column: 1; }
-  .home-nav > .search { grid-column: 1 / -1; grid-row: 1; max-width: none; width: 100%; margin: 0; }
-  /* The search bar runs across both columns, in front of the red panel. Its hint line and the
-     "No matches" message sit over the calendar column only, so they never land on the red. */
+  /* Right column, top: the search bar, its hint line and the "No matches" message. The search bar is
+     the same width as the navy bar and the calendar under it.
+     Left column, top (rows 1-3): the logo on a white card, in the red panel, beside the search bar.
+     The card is exactly as tall as the search bar plus its hint line, so it adds no height. */
+  .home-nav > .search { grid-column: 2; grid-row: 1; max-width: none; width: 100%; margin: 0; }
+  .home-nav > .home-header {
+    grid-column: 1; grid-row: 1 / span 3; align-self: stretch;
+    display: flex; align-items: center; justify-content: center;
+    padding: 7px 12px; border-radius: 8px; background: #fff;
+    box-shadow: 0 2px 5px rgba(60, 8, 16, .35);
+  }
+  .home-nav > .home-header .home-logo img { height: 67px; }
   .home-nav > .search-hint { grid-column: 2; grid-row: 2; max-width: none; margin: 6px 0 0; }
   .home-nav > .no-results { grid-column: 2; grid-row: 3; }
   /* The calendar section's parts (navy bar, status, calendar box) are placed straight into this grid.
@@ -561,7 +575,15 @@ body.no-scroll { overflow: hidden; }
    (In index.html the red panel comes before the calendar, which is the order computers use;
    the "order" lines here move it below the calendar on small screens.) */
 @media (max-width: 899px) {
+  /* Scroll order: logo, search bar, calendar, red panel, quick launch strip, footer line.
+     The page box (.home-layout) is "dissolved" here so its two parts, the stage and the footer line,
+     can be ordered around the quick launch strip. Its side padding moves onto those two parts. */
+  .home-layout { display: contents; }
+  .home-stage { order: 1; width: 100%; padding: var(--top-pad) 24px 0; --top-pad: 16px; }
+  .quick-bar { order: 2; }
+  .home-footer { order: 3; margin-top: 0; padding: 16px 24px 20px; }
   .home-nav { display: flex; flex-direction: column; }
+  .home-nav > .home-header { order: 0; margin-bottom: 14px; }
   .home-nav > .search, .home-nav > .search-hint { width: 100%; }
   .home-nav > .search { order: 1; }
   .home-nav > .search-hint { order: 2; }
@@ -572,6 +594,7 @@ body.no-scroll { overflow: hidden; }
   .side-gallery { flex: none; aspect-ratio: 16 / 9; min-height: 0; }
 }
 @media (max-width: 640px) {
+  .home-stage { padding-left: 16px; padding-right: 16px; }
   .side { margin: 24px -16px 0; padding: 16px; }
 }
 

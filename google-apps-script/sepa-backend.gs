@@ -188,7 +188,8 @@ function shiftData_() {
 /* Shared checks for name/contact/hours. Returns an error object, or null if all good. */
 function checkPerson_(d, s) {
   if (!clean_(d.name, 100)) return { ok: false, error: 'Please enter your name.' };
-  if (!clean_(d.phone, 40) && !clean_(d.email, 120)) return { ok: false, error: 'Please enter a phone number or email.' };
+  // No phone or email is required (since Oct 2026). Volunteers are already in the Red Cross system, so
+  // the sign-up form asks for a name only. The Phone and Email columns stay in the Sheet and are left blank.
   var start = parseInt(d.start, 10), hours = parseInt(d.hours, 10);
   if (!(start >= 0 && start <= 23)) return { ok: false, error: 'Please choose a start time.' };
   if (!(hours >= s.minHours && hours <= 24)) return { ok: false, error: 'Shifts must be at least ' + s.minHours + ' hours (and no more than 24).' };

@@ -7,12 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=0.16">
+<link rel="stylesheet" href="css/style.css?v=0.16.1">
 </head>
 <body class="home">
 
-<!-- Quick launch bar: the navy strip across the very top of the page. (The homepage has had no logo
-     since v0.16; the search bar sits right under this strip.)
+<!-- Quick launch bar: on computers, the navy strip across the very top of the page, with the logo
+     and the search bar right under it. On phones and tablets it is shown near the BOTTOM of the page, after the red
+     panel (css/style.css moves it; it stays here in the file).
      Straight to the main platforms. Every one of these needs a Red Cross login.
      Each word opens in a new tab. To change where one goes, replace the address inside href="...".
      Notes (Oct 6, 2026):
@@ -42,6 +43,12 @@
 
   <main class="home-nav">
 
+    <!-- Logo. Computers: on a white card at the top of the red side panel, beside the search bar.
+         Phones and tablets: centered at the very top of the page. -->
+    <div class="home-header">
+      <a class="home-logo" href="index.html"><img src="images/logo.png" alt="SEPA Resource Library"></a>
+    </div>
+
     <label class="search" for="search">
       <span class="visually-hidden">Search</span>
       <input id="search" type="search" placeholder="What are you looking for?" autocomplete="off">
@@ -63,9 +70,9 @@
            stand-ins cropped from the old button pictures. To swap one, replace the file in the
            images/gallery folder with a new photo of the same name (wide photos work best). -->
       <div class="side-gallery" aria-hidden="true">
-        <img src="images/gallery/photo-1.jpg?v=0.16" alt="">
-        <img src="images/gallery/photo-2.jpg?v=0.16" alt="">
-        <img src="images/gallery/photo-3.jpg?v=0.16" alt="">
+        <img src="images/gallery/photo-1.jpg?v=0.16.1" alt="">
+        <img src="images/gallery/photo-2.jpg?v=0.16.1" alt="">
+        <img src="images/gallery/photo-3.jpg?v=0.16.1" alt="">
       </div>
     </div>
 
@@ -102,8 +109,8 @@
 
 </div>
 
-<script src="js/script.js?v=0.16"></script>
-<script src="js/config.js?v=0.16"></script>
-<script src="js/home-calendar.js?v=0.16"></script>
+<script src="js/script.js?v=0.16.1"></script>
+<script src="js/config.js?v=0.16.1"></script>
+<script src="js/home-calendar.js?v=0.16.1"></script>
 </body>
 </html>

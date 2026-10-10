@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.16.1
+- Phones and tablets: new scroll order. Logo, search bar, calendar, the red panel (buttons, then photo
+  gallery), then the quick launch block, then the footer line. The quick launch links used to be at
+  the very top. Sean accepted that they are now about a screen and a half down on a phone
+- The logo is back on the homepage. On computers it sits on a white card at the top of the red side
+  panel, in the space beside the search bar. The card is exactly as tall as the search bar plus its
+  hint line, so the page is no taller than v0.16. The logo is small there (67 pixels tall). On phones
+  and tablets it is centered at the very top (84 pixels tall)
+- On computers the search bar is shorter: it now lines up with the navy "Sign up for DAT Shifts" bar
+  and the calendar under it, and no longer crosses the red panel
+- google-apps-script/sepa-backend.gs: the sign-up check no longer requires a phone number or email.
+  IMPORTANT: this file is only a copy. The change does nothing until it is pasted into the Google script
+  and redeployed (Admin Guide 2, "If the script code is ever changed"). The sign-up page still asks
+  for phone or email until that is done and the page is updated (planned as v0.16.2)
+- Version number bumped to ?v=0.16.1 on every page (footer still reads v0.16)
+
 ## v0.16
 - The Contacts page (pages/contacts.html) is built. It was a "coming soon" page. The Contacts link in
   the quick launch strip already points to it
