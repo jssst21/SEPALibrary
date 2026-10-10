@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.15
+- LAST KNOWN GOOD POINT before this change: v0.14.5 (commit c54130c, Oct 9, 2026). To go back: GitHub
+  Desktop, History tab, right-click the v0.15 commit, Revert Changes in Commit, then Push
+- New homepage layout from Sean's "Ideas" slide. A red panel runs down the left side of the page, from
+  the quick launch strip to just past the calendar. The search bar crosses in front of it
+- In the red panel: six plain white text buttons (Onboarding, Register for Classes and Events,
+  Discussion Forums, Browse Library, Mass Care, RED Talks), same links as before, each opening in a new
+  tab. Hovering over a button slides it to the right, lifts it, turns the words red and shows a small
+  arrow. Under the buttons is a small photo gallery that fades between three pictures
+- The six picture buttons and the navy "Explore the Site" bar are gone from the homepage. The old
+  button pictures are still in the images folder, unused
+- The left column is narrower (330 pixels on a wide screen, was about 440), so the calendar is wider
+- The logo is centered over the white area to the right of the red panel
+- The calendar's key ("volunteers signed up" / "no one yet") moved from the bottom left corner of the
+  calendar to just under the month line, centered. Still bold
+- Phones and tablets: the scroll order is now quick launch strip, logo, search bar, calendar, then the
+  red panel with the buttons and gallery as a full-width band. (The buttons used to come before the
+  calendar.) While someone is typing in the search box the calendar hides, so matching buttons show
+  right under the search bar
+- The gallery pictures are stand-ins cropped from the old button pictures: images/gallery/photo-1.jpg,
+  photo-2.jpg and photo-3.jpg. Replace those three files with real photos of the same names
+- The red is the logo red (--red in css/style.css), not the brighter red on the slide
+- Behind the scenes: index.html has a new "home-stage" wrapper and a "side" block; the styles are in
+  the RED SIDE PANEL section at the end of css/style.css. The panel's width is one setting, --side-w
+- Version number bumped to ?v=0.15 on every page; footer reads v0.15
+
 ## v0.14.5
 - The key under the homepage calendar is back in the bottom left corner of the calendar box, at its
   original size and without the colored chips from v0.14.4. The one thing kept from v0.14.4 is the

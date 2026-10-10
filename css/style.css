@@ -14,7 +14,7 @@
   --card: #ffffff;
   --line: #e4ddd6;
   --focus: #3e5c76;
-  --navy: #1f3556;   /* Quick launch bar and the "Explore the Site" header */
+  --navy: #1f3556;   /* Quick launch strip and the bar above the calendar */
   --radius: 10px;
 }
 
@@ -401,15 +401,14 @@ body.no-scroll { overflow: hidden; }
 
 /* =========================================================
    HOMEPAGE SHIFT CALENDAR (js/home-calendar.js)
-   Phones: sits under the six picture buttons.
-   Computers: buttons on the left third, calendar on the right two-thirds.
-   The heading and its second line sit under the calendar on every screen size.
+   Phones and tablets: sits right under the search bar, above the red panel.
+   Computers: red side panel on the left, calendar on the right.
    ========================================================= */
 
 .home-cal { margin-top: 26px; }
 .home-cal[hidden] { display: none; }
 /* One navy bar above the calendar: "Sign up for DAT Shifts - Pick any day or time and we'll do the
-   rest". Same color, shape and lettering as the "Explore the Site" bar (see .nav-head).
+   rest". Navy, rounded ends, white capital lettering.
    On phones the two parts stack on separate lines and the dash is hidden. */
 .home-cal-title {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0 .5em;
@@ -436,9 +435,9 @@ body.no-scroll { overflow: hidden; }
 .cal-day.open.empty { background: #fdf3df; border-color: #ecd3a2; }
 .cal-day.open.empty:hover { border-color: var(--red); background: var(--red-tint); }
 
-/* The key under the homepage calendar: bottom left corner of the calendar box, plain (no chips),
-   in bold dark text. v0.14.4 tried centered colored chips; Sean asked for the old position back and
-   to keep only the bolding. */
+/* The key for the homepage calendar: plain (no chips), bold dark text. Since v0.15 it sits under the
+   month line (see RED SIDE PANEL at the end of this file). v0.14.4 tried centered colored chips;
+   Sean asked for those to go and to keep only the bolding. */
 .home-cal .cal-key { display: flex; flex-wrap: wrap; gap: 6px 20px; font-weight: 600; color: var(--ink); }
 .key-item { display: inline-flex; align-items: center; gap: 6px; }
 .key-empty {
@@ -454,30 +453,28 @@ body.no-scroll { overflow: hidden; }
      Below them: buttons on the left third, calendar on the right two-thirds. */
   .home-nav {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-columns: var(--side-w) minmax(0, 1fr);   /* red side panel | calendar */
     grid-template-rows: repeat(5, auto);
     column-gap: 36px;
     align-items: start;
   }
   .home-nav > * { grid-column: 1; }
   .home-nav > .search { grid-column: 1 / -1; grid-row: 1; max-width: none; width: 100%; margin: 0; }
-  .home-nav > .search-hint { grid-column: 1 / -1; grid-row: 2; max-width: none; margin: 6px 0 0; }
+  /* The search bar runs across both columns, in front of the red panel. Its hint line and the
+     "No matches" message sit over the calendar column only, so they never land on the red. */
+  .home-nav > .search-hint { grid-column: 2; grid-row: 2; max-width: none; margin: 6px 0 0; }
+  .home-nav > .no-results { grid-column: 2; grid-row: 3; }
   /* The calendar section's parts (navy bar, status, calendar box) are placed straight into this grid.
-     Row 4: the two navy bars, "Explore the Site" (left) and "Sign up for DAT Shifts..." (right), level
-     with each other right under the search bar. If the right bar needs two lines on a narrower screen,
-     the left bar stretches to the same height. Row 5: the six buttons (left) and the calendar box
-     (right), tops level. The "Loading the calendar..." message shares the calendar's spot (only one
-     of the two is ever showing). */
+     Row 4, right: the navy "Sign up for DAT Shifts..." bar. Row 5, right: the calendar box.
+     Rows 4-5, left: the red side panel's buttons and photo gallery (see RED SIDE PANEL below); the first
+     button is level with the navy bar and the gallery ends level with the bottom of the calendar.
+     The "Loading the calendar..." message shares the calendar's spot (only one of the two is ever
+     showing). */
   .home-nav > .home-cal:not([hidden]) { display: contents; }
-  .home-nav > .nav-head { grid-row: 4; margin-top: 18px; align-self: stretch; }
   .home-cal-title { grid-column: 2; grid-row: 4; margin-top: 18px; align-self: stretch; }
-  .home-nav > .nav-main { grid-row: 5; margin-top: 12px; }
   .home-cal-status { grid-column: 2; grid-row: 5; }
   .home-cal .cal { grid-column: 2; grid-row: 5; margin-top: 12px; }
-  .home-nav > .no-results { grid-column: 1 / -1; grid-row: 3; }
-  /* Day boxes grow with the screen (58px up to 70px). Sean does not want the calendar any smaller.
-     The calendar is taller than the six picture buttons beside it, so the gaps between the button rows
-     stretch to keep the last row level with the bottom of the calendar (see .nav-main below). */
+  /* Day boxes grow with the screen (58px up to 70px). Sean does not want the calendar any smaller. */
   .home-cal .cal-day { height: clamp(58px, 4.9vw, 70px); }
 }
 
@@ -510,19 +507,84 @@ body.no-scroll { overflow: hidden; }
   .quick-btn { min-height: 40px; padding: 0 10px; }
 }
 
-/* ---------- Homepage main buttons: navy "Explore the Site" bar, then six picture buttons, two across ---------- */
-.nav-head {
-  display: flex; align-items: center; justify-content: center;
-  min-height: 42px; margin: 22px 0 0; padding: 6px 16px;
-  background: var(--navy); border-radius: 999px;
-  color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-}
-.nav-main { grid-template-columns: 1fr 1fr; margin-top: 12px; }
-@media (min-width: 1100px) {
-  /* Stretch the button block to the bottom of the calendar. The buttons keep their size; only the gaps
-     between the rows grow or shrink (the calendar is taller in months that need six rows of days). */
-  .home-nav > .nav-main { align-self: stretch; align-content: space-between; }
-}
-
 /* ---------- Browse Library page (pages/library.html) ---------- */
 .library-list { margin-top: 24px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+
+/* =========================================================
+   RED SIDE PANEL (homepage, v0.15, from Sean's "Ideas" slide)
+   Left: a red panel with six plain white buttons and a small photo gallery.
+   Right: the calendar. The calendar's key sits under the month line.
+   The panel's width on computers is --side-w (set on .home-stage below).
+   v0.14.5 and earlier had six picture buttons under a navy "Explore the Site" bar here.
+   ========================================================= */
+.side { display: flex; flex-direction: column; gap: 12px; }
+.side-list { display: flex; flex-direction: column; gap: 8px; }
+.side-btn {
+  justify-content: space-between; gap: 10px;
+  min-height: 44px; padding: 8px 12px 8px 16px;
+  border: 0; border-radius: 6px; background: #fff; color: var(--ink);
+  font-size: 16px; font-weight: 600; text-align: left;
+  box-shadow: 0 2px 5px rgba(60, 8, 16, .35);
+  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+.side-btn::after { content: "\203A"; font-size: 22px; line-height: 1; color: var(--red); opacity: 0; transition: opacity .15s ease; }
+/* Hover: the button slides right a little, lifts, and shows a small red arrow. */
+.side-btn:hover { transform: translateX(6px); background: #fff; color: var(--red-dark); border-color: transparent; box-shadow: 0 5px 12px rgba(60, 8, 16, .45); }
+.side-btn:hover::after, .side-btn:focus-visible::after { opacity: 1; }
+.side-btn:focus-visible { outline-color: #fff; }
+@media (prefers-reduced-motion: reduce) { .side-btn { transition: none; } .side-btn:hover { transform: none; } }
+
+.side-gallery {
+  position: relative; flex: 1 1 auto; min-height: 150px; overflow: hidden;
+  border-radius: 8px; border: 3px solid #fff; background: var(--red-dark);
+  box-shadow: 0 2px 5px rgba(60, 8, 16, .35);
+}
+.side-gallery img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; animation: side-fade 18s infinite; }
+.side-gallery img:nth-child(1) { animation-delay: 0s; }
+.side-gallery img:nth-child(2) { animation-delay: 6s; }
+.side-gallery img:nth-child(3) { animation-delay: 12s; }
+@keyframes side-fade { 0% { opacity: 0; } 6% { opacity: 1; } 33% { opacity: 1; } 39% { opacity: 0; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .side-gallery img { animation: none; } .side-gallery img:first-child { opacity: 1; } }
+
+/* The key sits under the month line, centered */
+.home-cal .cal-head { margin-bottom: 6px; }
+.home-cal .cal-key { justify-content: center; margin: 0 0 10px; }
+
+/* Phones and tablets: one column. Scroll order is quick launch strip, logo, search bar, calendar,
+   then the red panel with the buttons and the photo gallery as a full-width band at the bottom.
+   (In index.html the red panel comes before the calendar, which is the order computers use;
+   the "order" lines here move it below the calendar on small screens.) */
+@media (max-width: 899px) {
+  .home-nav { display: flex; flex-direction: column; }
+  .home-nav > .search, .home-nav > .search-hint { width: 100%; }
+  .home-nav > .search { order: 1; }
+  .home-nav > .search-hint { order: 2; }
+  .home-nav > .no-results { order: 3; }
+  .home-nav > .home-cal { order: 4; }
+  .home-nav > .side { order: 5; }
+  .side { margin: 26px -24px 0; padding: 18px 24px; background: var(--red); }
+  .side-gallery { flex: none; aspect-ratio: 16 / 9; min-height: 0; }
+}
+@media (max-width: 640px) {
+  .side { margin: 24px -16px 0; padding: 16px; }
+}
+
+@media (min-width: 900px) {
+  /* --side-w is the width of the red panel's column. The homepage grid further up uses it too. */
+  .home-stage { position: relative; --side-w: clamp(250px, 23vw, 330px); }
+  /* The red panel itself: painted behind the left column, from the quick launch strip (top of the page
+     box) down to the bottom of the stage, and out to the left edge of the screen. */
+  .home-stage::before {
+    content: ""; position: absolute; z-index: 0;
+    top: -22px; bottom: 0; left: calc(50% - 50vw);
+    width: calc(50vw - 50% + var(--side-w) + 18px);
+    background: var(--red);
+  }
+  .home-header, .home-nav { position: relative; z-index: 1; }
+  /* Center the logo over the white area (the calendar column), not over the whole page. */
+  .home-header { padding-left: calc(var(--side-w) + 36px); }
+  .home-nav { padding-bottom: 20px; }
+  .home-nav > .side { grid-column: 1; grid-row: 4 / span 2; align-self: stretch; margin-top: 18px; }
+  .home-footer { padding-top: 14px; }
+}

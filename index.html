@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=0.14.5">
+<link rel="stylesheet" href="css/style.css?v=0.15">
 </head>
 <body class="home">
 
@@ -35,6 +35,10 @@
 
 <div class="home-layout">
 
+  <!-- The stage holds everything above the footer. On computers the red side panel is painted behind
+       its left edge, from the quick launch strip down to the bottom of the calendar. -->
+  <div class="home-stage">
+
   <header class="home-header">
     <a class="home-logo" href="index.html">
       <img src="images/logo.png" alt="SEPA Resource Library">
@@ -49,19 +53,26 @@
     </label>
     <p class="search-hint">Site search: Example, search &ldquo;6409&rdquo; and it will pull the form up for you.</p>
 
-    <!-- Six main buttons, two across. The pictures are placeholders until final photos are chosen
-         (made with tools/make_button.py). -->
-    <!-- Navy header bar above the six buttons. It has the nav-label class so the search box hides it
-         while someone is typing, the same way it hides the buttons that do not match. -->
-    <p class="nav-label nav-head">Explore the Site</p>
-    <nav class="nav-list nav-main" aria-label="Explore the Site">
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/new.html"><img src="images/onboarding.jpg?v=0.14.5" alt=""><span class="visually-hidden">Onboarding</span></a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="https://www.redcross.org/sso/vc.html?resume=%2Fidp%2F8dKrrmyECH%2FresumeSAML20%2Fidp%2FSSO.ping&amp;spentity=http%3A%2F%2Fpingone.com%2Fd5b109be-ce0e-4a23-b2ea-171a180ac2a5"><img src="images/register-classes-events.jpg?v=0.14.5" alt=""><span class="visually-hidden">Register for Classes and Events</span></a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/forums.html"><img src="images/discussion-forums.jpg?v=0.14.5" alt=""><span class="visually-hidden">Discussion Forums</span></a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/library.html"><img src="images/browse-library.jpg?v=0.14.5" alt=""><span class="visually-hidden">Browse Library</span></a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/masscare.html"><img src="images/mass-care.jpg?v=0.14.5" alt=""><span class="visually-hidden">Mass Care</span></a>
-      <a class="nav-btn nav-btn-image" target="_blank" rel="noopener" href="pages/redtalks.html"><img src="images/red-talks.jpg?v=0.14.5" alt=""><span class="visually-hidden">RED Talks</span></a>
-    </nav>
+    <!-- Red side panel: six plain buttons, then a small photo gallery. Each button opens in a new tab.
+         The buttons keep the nav-btn class so the search box can still hide the ones that do not match. -->
+    <div class="side">
+      <nav class="side-list" aria-label="Explore the Site">
+        <a class="nav-btn side-btn" target="_blank" rel="noopener" href="pages/new.html">Onboarding</a>
+        <a class="nav-btn side-btn" target="_blank" rel="noopener" href="https://www.redcross.org/sso/vc.html?resume=%2Fidp%2F8dKrrmyECH%2FresumeSAML20%2Fidp%2FSSO.ping&amp;spentity=http%3A%2F%2Fpingone.com%2Fd5b109be-ce0e-4a23-b2ea-171a180ac2a5">Register for Classes and Events</a>
+        <a class="nav-btn side-btn" target="_blank" rel="noopener" href="pages/forums.html">Discussion Forums</a>
+        <a class="nav-btn side-btn" target="_blank" rel="noopener" href="pages/library.html">Browse Library</a>
+        <a class="nav-btn side-btn" target="_blank" rel="noopener" href="pages/masscare.html">Mass Care</a>
+        <a class="nav-btn side-btn" target="_blank" rel="noopener" href="pages/redtalks.html">RED Talks</a>
+      </nav>
+      <!-- Photo gallery: the pictures fade from one to the next (six seconds each). These three are
+           stand-ins cropped from the old button pictures. To swap one, replace the file in the
+           images/gallery folder with a new photo of the same name (wide photos work best). -->
+      <div class="side-gallery" aria-hidden="true">
+        <img src="images/gallery/photo-1.jpg?v=0.15" alt="">
+        <img src="images/gallery/photo-2.jpg?v=0.15" alt="">
+        <img src="images/gallery/photo-3.jpg?v=0.15" alt="">
+      </div>
+    </div>
 
     <!-- DAT shift calendar (js/home-calendar.js fills it in) -->
     <section class="home-cal" id="home-cal" aria-labelledby="home-cal-title">
@@ -75,14 +86,14 @@
           <h3 class="cal-month" id="home-cal-month"></h3>
           <button type="button" class="cal-nav" id="home-cal-next" aria-label="Next month">&rarr;</button>
         </div>
-        <div class="cal-grid cal-dow" aria-hidden="true">
-          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
-        </div>
-        <div class="cal-grid" id="home-cal-days"></div>
         <p class="cal-key">
           <span class="key-item"><span class="count-badge">2</span> volunteers signed up</span>
           <span class="key-item"><span class="key-empty"></span> no one yet</span>
         </p>
+        <div class="cal-grid cal-dow" aria-hidden="true">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div class="cal-grid" id="home-cal-days"></div>
       </div>
     </section>
 
@@ -90,12 +101,14 @@
 
   </main>
 
-  <footer class="home-footer">SEPA Resource Library v0.14</footer>
+  </div>
+
+  <footer class="home-footer">SEPA Resource Library v0.15</footer>
 
 </div>
 
-<script src="js/script.js?v=0.14.5"></script>
-<script src="js/config.js?v=0.14.5"></script>
-<script src="js/home-calendar.js?v=0.14.5"></script>
+<script src="js/script.js?v=0.15"></script>
+<script src="js/config.js?v=0.15"></script>
+<script src="js/home-calendar.js?v=0.15"></script>
 </body>
 </html>
