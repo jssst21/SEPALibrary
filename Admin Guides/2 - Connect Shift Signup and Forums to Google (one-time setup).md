@@ -81,13 +81,26 @@ The Escalation Form page saves each worksheet to a tab called **Escalations** in
 row per worksheet. The tab appears by itself the first time someone uses the form after the script
 has been updated as described just above. Do not edit the last two columns.
 
+### Several responders on one worksheet (since website v0.18)
+
+The person who starts a worksheet can tap **Add a responder** and send a teammate a join link.
+Everyone who opens that link types into the same worksheet, so HQ sees one worksheet for the event.
+Nothing has to be set up for this. Three things to know:
+
+- The join link is the key. Anyone who has it can read and type in that one worksheet, with no
+  login. It should only go to the team on scene.
+- One person cannot be taken out again. The link stops working for everyone when HQ clears the
+  worksheet.
+- If two people type in the same box, the later entry replaces the earlier one.
+
 ### Setting the HQ user name and password
 
 Filling in a worksheet needs no login. Reading one (the live view and the list of recent worksheets)
 needs the HQ user name and password. They are not in the website files, because those are public.
 You set them in the Sheet:
 
-1. Update the script as described above, then open the Escalation Form page on the website once.
+1. Update the script as described above, then open the Escalation Form page on the website once
+   and type something in any box.
 2. Open the Sheet and go to the **Settings** tab. Two new rows are at the bottom. Their labels start
    with "Escalation Form live view".
 3. Type the user name in the box to the right of the first one, and the password to the right of the

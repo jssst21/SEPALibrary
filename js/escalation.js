@@ -1,13 +1,15 @@
 // SEPA Resource Library - Escalation Form (pages/escalation.html)
 // The DAT Response Lead Incident Reporting Worksheet as a page that works on a phone or a laptop.
 //
-// PROOF OF CONCEPT (v0.17). What it does:
+// PROOF OF CONCEPT (v0.17; shared worksheets since v0.18). What it does:
 //   - Fill-in mode (the normal page): everything typed is saved on the device straight away and,
 //     a moment later, sent to the Google Sheet (tab "Escalations"). Nothing has to be pressed.
+//   - Shared worksheets: "Add a responder" sends a join link, and everyone who opens it types into
+//     the same worksheet. See the notes above editMode() further down.
 //   - Live view (same page with ?view=CODE on the end): a read-only copy that re-reads the Google
 //     Sheet every few seconds, so someone else can watch the worksheet fill in.
 //   - ?view=list shows the most recent worksheets.
-// Filling in needs no login. READING (the live view and the list) needs the HQ user name and
+// Filling in needs no login. READING as HQ (the live view and the list) needs the HQ user name and
 // password, which are checked by the Google script and kept in the Google Sheet's Settings tab.
 // They are deliberately not in this file or anywhere else in the website folder, which is public.
 // The Google connection is set in js/config.js. The wording below comes from the Word original,
@@ -87,6 +89,14 @@
     try { rnd = crypto.getRandomValues(new Uint8Array(12)); } catch (e) { for (i = 0; i < 12; i++) rnd.push(Math.floor(Math.random() * 256)); }
     for (i = 0; i < 12; i++) out += abc.charAt(rnd[i] % abc.length);
     return out;
+  }
+  // The secret "edit key" of a shared worksheet (see editMode). Longer than the worksheet code.
+  function goodKey(v) { return /^[A-Za-z0-9]{16,40}$/.test(v || '') ? v : ''; }
+  function newKey() { return newId() + newId(); }
+  // A value from the part of the address after the # (that part is never sent to a web server).
+  function hashParam(name) {
+    var m = new RegExp('[#&]' + name + '=([^&]*)').exec(location.hash || '');
+    return m ? decodeURIComponent(m[1]) : '';
   }
   function call(data) {
     if (!URL) return Promise.resolve({ ok: false, error: 'Unknown request.' });
@@ -219,112 +229,221 @@
   editMode();
 
   // ================================================================ FILL-IN MODE
+  // Since v0.18 a worksheet can be SHARED: several phones type into the same one.
+  //   - Every worksheet has a code (in the address bar, ?id=CODE) and a second, secret code, its
+  //     "edit key". The key is made on the phone that starts the worksheet and kept on that phone.
+  //   - "Add a responder" sends a join link: the page address with #k=KEY on the end. A phone that
+  //     opens the join link keeps the key too, and from then on types into the same worksheet.
+  //   - The address bar never keeps the key, and the live view link never contains it. So a link
+  //     copied from the address bar, or a forwarded live view link, lets nobody in.
+  //   - Every few seconds this page sends Google the boxes that changed here and gets back the boxes
+  //     that changed on the other phones (one call: escSync). Boxes are sent one at a time, so two
+  //     people in different boxes never overwrite each other. In the same box the later entry wins.
+  //   - What is typed is always kept on this device first. With no connection it waits here and goes
+  //     out by itself when the connection is back.
+  //   - THE LEAD. The phone that STARTS a worksheet is its lead, and only that phone shows "Add a
+  //     responder". Phones that joined see a line saying whose worksheet they are on instead. Sean
+  //     asked for this for chain of command clarity, not security: it is decided on the phone, and
+  //     someone who was sent the join link could still forward the text message itself.
   function editMode() {
-    var id = goodId(param('id')) || goodId(lsGet('sepaEscCurrent')) || newId();
+    var urlId = goodId(param('id')), urlKey = goodKey(hashParam('k'));
+    var mine = goodId(lsGet('sepaEscCurrent'));
+    var joined = false, wrongLink = false;
+
+    // A join link, on a phone that already has a worksheet of its own with entries in it: ask first.
+    if (urlId && urlKey && mine && mine !== urlId && hasEntries(mine)) return askJoin(urlId, urlKey, mine);
+
+    var id;
+    if (urlId && (urlKey || goodKey(lsGet('sepaEscKey:' + urlId)))) { id = urlId; joined = !!urlKey && mine !== urlId; }
+    else if (urlId && urlId !== mine) { id = mine || newId(); wrongLink = true; }   // someone else's link without its key
+    else id = mine || newId();
+    var hadKey = goodKey(lsGet('sepaEscKey:' + id));
+    var key = (id === urlId && urlKey) || hadKey || newKey();
+    // No key on this phone and no join link: this phone is starting the worksheet (or carried one over
+    // from before v0.18), so it is the lead.
+    if (!hadKey && !(id === urlId && urlKey)) lsSet('sepaEscLead:' + id, '1');
+    var lead = lsGet('sepaEscLead:' + id) === '1';
+    lsSet('sepaEscKey:' + id, key);
     lsSet('sepaEscCurrent', id);
-    try { history.replaceState(null, '', pageLink('id=' + id)); } catch (e) {}
+    try { history.replaceState(null, '', pageLink('id=' + id)); } catch (e) {}    // also takes the key out of the address bar
     $('esc-edit-tools').hidden = false; $('esc-bottom').hidden = false;
     draw();
 
-    var live = 'unknown';          // 'unknown' | 'on' | 'off' (the Google script has not had its update) | 'offline'
-    var dirty = false, sending = false, timer = null, lastSent = null;
-    var saved = null;
+    var saved = null, meta = null;
     try { saved = JSON.parse(lsGet('sepaEsc:' + id) || 'null'); } catch (e) {}
     if (saved) fill(saved);
-    // Ask Google at the start whether live sharing is switched on, and every 20 seconds after that
-    // whether HQ has cleared this worksheet. (This page never reads a worksheet back from Google:
-    // reading needs the HQ login. What you see comes from this device.)
+    // meta.base = each box as Google last had it; meta.rev = how far this phone has caught up.
+    try { meta = JSON.parse(lsGet('sepaEscSync:' + id) || 'null'); } catch (e) {}
+    if (!meta || typeof meta.base !== 'object' || !meta.base) meta = { rev: 0, base: {} };
+
+    // 'unknown' | 'on' | 'off' (the Google script has not had its update) | 'offline' | 'nokey' (this phone is not allowed into this worksheet)
+    var live = 'unknown', problem = '';
+    var busy = false, again = false, claim = false, timer = null, lastSent = null, lastActive = Date.now(), ticks = 0;
+
+    function cur(k) { return inputs[k].value.replace(/\s+$/, ''); }
+    function changedHere() { return Object.keys(inputs).filter(function (k) { return cur(k) !== (meta.base[k] || ''); }); }
+    function store() { lsSet('sepaEsc:' + id, JSON.stringify(read())); lsSet('sepaEscSync:' + id, JSON.stringify(meta)); }
+    function setBox(k, v) { var i = inputs[k]; i.value = v; i.classList.remove('esc-flash'); void i.offsetWidth; i.classList.add('esc-flash'); }
     function cleared() {            // HQ ended the event: forget this worksheet and start a blank one
-      lsSet('sepaEsc:' + id, '');
-      var fresh = newId(); lsSet('sepaEscCurrent', fresh); lsSet('sepaEscNote', 'HQ cleared the last worksheet at the end of the event. This is a new blank one.');
+      lsSet('sepaEsc:' + id, ''); lsSet('sepaEscSync:' + id, ''); lsSet('sepaEscKey:' + id, ''); lsSet('sepaEscLead:' + id, '');
+      var fresh = newId(); lsSet('sepaEscCurrent', fresh);
+      lsSet('sepaEscNote', 'HQ cleared the last worksheet at the end of the event. This is a new blank one.'); lsSet('sepaEscNoteOk', '');
       location.href = pageLink('id=' + fresh);
     }
-    function ping(first) {
-      call({ action: 'escPing', id: id }).then(function (r) {
+
+    function sync() {
+      if (busy) { again = true; return; }
+      if (live === 'off' || live === 'nokey') return;
+      busy = true; again = false; clearTimeout(timer);
+      var names = changedHere(), sent = {}, claiming = claim;
+      names.forEach(function (k) { sent[k] = cur(k); });
+      var req = { action: 'escSync', id: id, key: key, since: meta.rev, changes: sent };
+      if (claiming) req.claim = true;
+      call(req).then(function (r) {
+        busy = false;
         if (r && r.ok && r.cleared) return cleared();
-        if (!first) { if (r && r.ok && live !== 'on') { live = 'on'; status(); if (dirty) queue(300); } return; }
-        if (r && r.ok) { live = 'on'; if (Object.keys(read()).length) { dirty = true; queue(300); } }   // make sure Google has what this device has
-        else if (r && r.offline) live = 'offline';
-        else live = 'off';
+        if (r && r.ok) {
+          live = 'on'; problem = '';
+          if (claiming) claim = false;
+          if ((r.rev || 0) < meta.rev) {
+            meta = { rev: 0, base: {} }; again = true;      // Google holds less than this phone thought (a row was removed by hand): send everything again
+          } else {
+            names.forEach(function (k) { meta.base[k] = sent[k]; });
+            var got = r.changed || {}, n = 0;
+            Object.keys(got).forEach(function (k) {
+              if (!inputs[k] || Object.prototype.hasOwnProperty.call(sent, k)) return;
+              var v = String(got[k] == null ? '' : got[k]);
+              var typing = cur(k) !== (meta.base[k] || '');   // changed here while this was on its way: keep what is here, it goes out next
+              meta.base[k] = v;
+              if (!typing && cur(k) !== v) { setBox(k, v); n++; }
+            });
+            meta.rev = r.rev || 0;
+            if (names.length) lastSent = new Date();
+            if (names.length || n) lastActive = Date.now();
+          }
+          store();
+        }
+        else if (r && r.nokey) live = 'nokey';
+        else if (r && r.toolong) { live = 'on'; problem = r.error || 'This worksheet is too long to save.'; }
+        else if (r && !r.offline && /unknown request/i.test(r.error || '')) live = 'off';
+        else live = 'offline';
         status();
+        if (again) queue(200);
+        else if (live === 'on' && !problem && changedHere().length) queue(1200);
       });
     }
-    ping(true);
-    setInterval(function () { if (!document.hidden && live !== 'off') ping(false); }, 20000);
-    document.addEventListener('visibilitychange', function () { if (!document.hidden && live !== 'off') ping(false); });
-    var carried = lsGet('sepaEscNote');
-    if (carried) { lsSet('sepaEscNote', ''); var cn = $('esc-cleared-note'); cn.textContent = carried; cn.hidden = false; }
+    function queue(ms) { clearTimeout(timer); timer = setTimeout(sync, ms); }
 
     function status() {
       var s = $('esc-status'), t;
       s.className = 'esc-status';
-      if (live === 'on') {
+      if (problem) { t = 'Saved on this device. ' + problem; s.className += ' esc-warn'; }
+      else if (live === 'on') {
         t = lastSent ? 'Shared live. Last sent ' + clock(lastSent) + '.' : 'Live sharing is on. Everything you type is saved and shared by itself.';
         s.className += ' esc-ok';
       }
       else if (live === 'off') t = 'Saved on this device. Live sharing is not switched on yet (the Google script needs its update).';
       else if (live === 'offline') { t = 'Saved on this device. No connection: it will be sent when you are back online.'; s.className += ' esc-warn'; }
+      else if (live === 'nokey') { t = 'Saved on this device, but NOT shared: this phone was not added to that worksheet. Ask the person who started it to tap "Add a responder" and send you the link.'; s.className += ' esc-warn'; }
       else t = 'Saved on this device.';
       s.textContent = t;
+      whose();
     }
-    function send() {
-      if (sending || !dirty) return;
-      sending = true; dirty = false;
-      var d = read();
-      call({ action: 'escSave', id: id, data: d }).then(function (r) {
-        sending = false;
-        if (r && r.ok && r.cleared) return cleared();
-        if (r && r.ok) { live = 'on'; lastSent = new Date(); }
-        else if (r && r.offline) { live = 'offline'; dirty = true; }
-        else if (r && /unknown request/i.test(r.error || '')) live = 'off';
-        else { live = 'offline'; dirty = true; }
-        status();
-        if (dirty && live !== 'off') queue(live === 'offline' ? 8000 : 1500);
-      });
+    // Only the lead's phone (the one that started the worksheet) can add responders. A phone that
+    // joined is told whose worksheet it is on, using the name in the "ARC DAT Event Lead" box.
+    function whose() {
+      var name = cur('leaders_arc_lead_1').split('\n')[0];
+      $('esc-joined-how').textContent = 'You joined this worksheet' + (name ? '. Lead: ' + name : '') + '. Only the lead, who started it, can add responders.';
     }
-    function queue(ms) { clearTimeout(timer); timer = setTimeout(send, ms); }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.hidden = !lead; });
+    $('esc-add-how').hidden = !lead; $('esc-joined-how').hidden = lead;
+
     root.addEventListener('input', function () {
       lsSet('sepaEsc:' + id, JSON.stringify(read()));
-      dirty = true;
-      if (live !== 'off') queue(1500);
+      if (!lead) whose();
+      lastActive = Date.now();
+      if (live !== 'off' && live !== 'nokey') queue(1200);
     });
-    window.addEventListener('online', function () { if (dirty) queue(300); });
-    document.addEventListener('visibilitychange', function () { if (document.hidden && dirty && live !== 'off') { clearTimeout(timer); send(); } });
-    status();
+    window.addEventListener('online', function () { sync(); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden || changedHere().length) sync(); });
+    // Check in every 5 seconds while the worksheet is busy, every 15 seconds once it has been quiet for 2 minutes.
+    setInterval(function () {
+      ticks++;
+      if (document.hidden) return;
+      if (Date.now() - lastActive < 120000 || ticks % 3 === 0) sync();
+    }, 5000);
 
-    // ---- sharing
-    var viewUrl = pageLink('view=' + id);
-    function note(msg) { var n = $('esc-share-note'); n.textContent = msg; n.hidden = !msg; }
-    function showLink() { var b = $('esc-link-box'); b.hidden = false; $('esc-link').value = viewUrl; }
-    function copy(text, done) {
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { showLink(); note('Press and hold the link below to copy it.'); });
-      else { showLink(); note('Press and hold the link below to copy it.'); }
+    var carried = lsGet('sepaEscNote'), cn = $('esc-cleared-note');
+    if (wrongLink) { carried = 'That link cannot be used to join a worksheet. Ask the person who started it to tap "Add a responder" and send you the link. This is a separate worksheet of your own.'; }
+    else if (joined) { carried = 'You have joined a shared worksheet. What you type goes into the same worksheet as the rest of your team, and their entries appear here.'; lsSet('sepaEscNoteOk', '1'); }
+    if (carried) {
+      cn.textContent = carried; cn.hidden = false;
+      cn.className = 'esc-status esc-cleared-note ' + ((lsGet('sepaEscNoteOk') === '1' && !wrongLink) ? 'esc-ok' : 'esc-warn');
+      lsSet('sepaEscNote', ''); lsSet('sepaEscNoteOk', '');
     }
+    status();
+    sync();
+
+    // ---- sharing: the live view (for HQ) and the join link (for teammates on scene)
+    var viewUrl = pageLink('view=' + id);
+    function joinUrl() { return pageLink('id=' + id) + '#k=' + key; }
+    function note(msg) { var n = $('esc-share-note'); n.textContent = msg; n.hidden = !msg; }
+    function showLink(url, label) { var b = $('esc-link-box'); b.hidden = false; $('esc-link-label').textContent = label || 'Live view link'; $('esc-link').value = url || viewUrl; }
+    function copy(text, done, url, label) {
+      var hold = function () { showLink(url, label); note('Press and hold the link below to copy it.'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, hold);
+      else hold();
+    }
+    function where() { var a = cur('incident_addresses'); return a ? ' for ' + a.split('\n')[0] : ''; }
     function share() {
-      var d = read(), where = d.incident_addresses ? ' for ' + d.incident_addresses.split('\n')[0] : '';
       if (live === 'off' || !URL) {      // no live view to link to: share the words instead
-        var words = asText(d);
+        var words = asText(read());
         if (navigator.share) navigator.share({ title: 'DAT escalation form', text: words }).catch(function () {});
         else copy(words, function () { note('The worksheet was copied as text. Paste it into a message or email.'); });
         return;
       }
-      if (dirty) { clearTimeout(timer); send(); }
-      var msg = { title: 'DAT escalation form (live)', text: 'Live view of the DAT escalation form' + where + '. It updates as it is filled in.', url: viewUrl };
+      claim = true; sync();              // make sure Google knows this worksheet before the link goes out
+      var msg = { title: 'DAT escalation form (live)', text: 'Live view of the DAT escalation form' + where() + '. It updates as it is filled in.', url: viewUrl };
       if (navigator.share) navigator.share(msg).catch(function () {});
       else copy(viewUrl, function () { showLink(); note('The live view link was copied. Paste it into a message or email.'); });
     }
+    function add() {
+      if (live === 'off' || !URL) { note('A responder cannot be added yet: live sharing is not switched on.'); return; }
+      if (!lead || live === 'nokey') { note('Only the lead, who started this worksheet, can add a responder.'); return; }
+      claim = true; sync();
+      var link = joinUrl();
+      var msg = { title: 'Join the DAT escalation form', text: 'Join the DAT escalation form' + where() + '. Open this link to type into the same worksheet.', url: link };
+      if (navigator.share) navigator.share(msg).catch(function () {});
+      else copy(link, function () { showLink(link, 'Join link for a responder'); note('The join link was copied. Paste it into a text or email to your teammate.'); }, link, 'Join link for a responder');
+    }
     Array.prototype.forEach.call(document.querySelectorAll('[data-esc="share"]'), function (b) { b.addEventListener('click', share); });
-    $('esc-copy').addEventListener('click', function () { copy(viewUrl, function () { showLink(); note('Link copied.'); }); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.addEventListener('click', add); });
+    $('esc-copy').addEventListener('click', function () { claim = true; sync(); copy(viewUrl, function () { showLink(); note('Link copied.'); }); });
     $('esc-open-view').href = viewUrl;
 
     // ---- start a new worksheet (asks first, on the page, no pop-up)
     $('esc-new').addEventListener('click', function () { $('esc-new-ask').hidden = false; $('esc-new').hidden = true; });
     $('esc-new-no').addEventListener('click', function () { $('esc-new-ask').hidden = true; $('esc-new').hidden = false; });
     $('esc-new-yes').addEventListener('click', function () {
-      if (dirty && live !== 'off') { clearTimeout(timer); send(); }
-      var fresh = newId(); lsSet('sepaEscCurrent', fresh);
-      location.href = pageLink('id=' + fresh);
+      var go = function () { var fresh = newId(); lsSet('sepaEscCurrent', fresh); location.href = pageLink('id=' + fresh); };
+      if (!changedHere().length || live !== 'on') return go();
+      sync(); setTimeout(go, 1500);      // give the last entries a moment to go out first (they are kept on this device either way)
     });
+  }
+
+  // A join link was opened on a phone that already has its own worksheet with entries: ask which to use.
+  function hasEntries(id) {
+    try { return Object.keys(JSON.parse(lsGet('sepaEsc:' + id) || '{}') || {}).length > 0; } catch (e) { return false; }
+  }
+  function askJoin(urlId, urlKey, mine) {
+    root.hidden = true;
+    $('esc-join-ask').hidden = false;
+    $('esc-join-yes').addEventListener('click', function () {
+      lsSet('sepaEscKey:' + urlId, urlKey); lsSet('sepaEscCurrent', urlId);
+      lsSet('sepaEscNote', 'You have joined a shared worksheet. What you type goes into the same worksheet as the rest of your team, and their entries appear here.'); lsSet('sepaEscNoteOk', '1');
+      location.replace(pageLink('id=' + urlId));
+    });
+    $('esc-join-no').addEventListener('click', function () { location.replace(pageLink('id=' + mine)); });
   }
 
   // ================================================================ HQ LOGIN (live view and list)

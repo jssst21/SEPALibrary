@@ -860,7 +860,7 @@ body.page-red { background: var(--red); }
 }
 
 /* =========================================================
-   ESCALATION FORM (pages/escalation.html, v0.17, proof of concept)
+   ESCALATION FORM (pages/escalation.html, v0.17, proof of concept; shared worksheets v0.18)
    The DAT Response Lead Incident Reporting Worksheet as a fill-in page. js/escalation.js draws the
    boxes. Built for a phone first: one column, large boxes that are easy to tap, 16px typing (smaller
    typing makes an iPhone zoom in every time a box is tapped).
@@ -886,6 +886,13 @@ body.page-red { background: var(--red); }
 }
 .esc-btn:hover { background: #eef3fb; }
 .esc-note { margin: 10px 0 0; font-size: 15px; font-weight: 600; color: #1f5c38; }
+/* v0.18: the two groups of buttons ("For your team on scene", "For HQ") and the small line under the first */
+.esc-group { margin: 14px 0 0; font-size: 13px; font-weight: 700; letter-spacing: .02em; color: var(--ink-soft); }
+.esc-group + .esc-buttons { margin-top: 6px; }
+.esc-group-how { margin: 6px 0 0; font-size: 14px; color: var(--ink-soft); }
+.esc-bottom .esc-buttons { margin-top: 0; }
+/* "Add a responder" is only shown on the phone that started the worksheet (the lead). */
+.esc-buttons > [hidden] { display: none; }
 .esc-link-box { display: block; margin-top: 10px; font-size: 14px; font-weight: 600; }
 .esc-link-box[hidden] { display: none; }
 .esc-link-box input { display: block; width: 100%; margin-top: 4px; padding: 10px 12px; font: inherit; font-size: 15px; font-weight: 400; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; }
@@ -951,6 +958,10 @@ textarea.esc-in { resize: vertical; }
 @keyframes esc-flash { 0% { background: #ffe37a; border-color: #c9a100; } 100% { background: #fff; border-color: #c5ccd8; } }
 .esc-flash { animation: esc-flash 4s ease-out 1; }
 @media (prefers-reduced-motion: reduce) { .esc-flash { animation-duration: .01s; } }
+/* v0.18: on the fill-in page a box also flashes when a teammate's entry arrives. It fades back to the
+   pale blue of a box you can type in (the live view fades to white). */
+@keyframes esc-flash-edit { 0% { background: #ffe37a; border-color: #c9a100; } 100% { background: #eef3fb; border-color: #8fa3c2; } }
+body:not(.esc-viewing) .esc-flash { animation-name: esc-flash-edit; }
 
 /* "Clear this worksheet" in the live view */
 .esc-clear-line { margin: 12px 0 0; font-size: 15px; }

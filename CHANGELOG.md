@@ -1,5 +1,45 @@
 # Changelog
 
+## v0.18
+- ESCALATION FORM: SEVERAL RESPONDERS, ONE WORKSHEET (Sean asked for this: with four responders on
+  scene, v0.17 made four separate worksheets and HQ had to flip between them). Now the person who
+  starts a worksheet taps "Add a responder". The phone's share menu opens and sends a join link.
+  Whoever opens the link types into the same worksheet: no login, and everything already typed is
+  there. Each person's entries reach the others in a few seconds and the box flashes yellow. HQ sees
+  one worksheet per event
+- THE LEAD: the phone that starts a worksheet is its lead, and only that phone shows "Add a
+  responder" (Sean: "isn't so much for security as for chain of command clarity"). Phones that
+  joined see "You joined this worksheet. Lead: (name). Only the lead, who started it, can add
+  responders." The name comes from the "ARC DAT Event Lead" box. This is decided on the phone, so
+  it gives clarity, not a lock: someone sent the link could still forward the text message itself
+- Boxes are now saved one at a time, not the whole worksheet at once, so two people working in
+  different boxes never overwrite each other. In the same box the later entry wins
+- No signal still loses nothing: entries wait on the phone and go out by themselves when service
+  returns, and that phone then catches up on what the others typed meanwhile
+- When HQ clears the worksheet, every phone that joined goes blank and says why, and the join link
+  stops working
+- THE JOIN LINK IS THE KEY. It carries a long random code after a # sign. Anyone who has the link
+  can read and type in that one worksheet without a login, so it should only go to the team. One
+  person cannot be removed again; the worksheet ends for everyone when HQ clears it
+- The code is not left in the address bar and is not in the live view link. So a link copied from
+  the address bar, or a live view link, lets nobody into a worksheet (in v0.17 a copied address-bar
+  link made two phones overwrite each other; that is gone). A phone that opens such a link gets its
+  own separate worksheet and a message saying to ask for "Add a responder"
+- A phone that already has its own worksheet with entries is asked before it switches to a shared
+  one ("Join the shared worksheet" / "Stay on my own worksheet")
+- The buttons at the top of the form are now in two groups: "For your team on scene" (Add a
+  responder) and "For HQ" (Share the live view, Copy the link, Open the live view)
+- The form checks in with Google every 5 seconds while a worksheet is busy and every 15 seconds
+  once it has been quiet for 2 minutes
+- NEEDS THE GOOGLE SCRIPT UPDATED AGAIN: paste google-apps-script/sepa-backend.gs into the script
+  "SEPA Library Backend" at script.google.com and deploy a new version (Admin Guide 2). Do that
+  BEFORE pushing this version. Until both are done the form says live sharing is not switched on
+  and keeps everything on the device. Worksheets started under v0.17 carry over
+- HQ side unchanged: same login, live view, list and clear button
+- Changed files: js/escalation.js, pages/escalation.html, css/style.css (Escalation section),
+  google-apps-script/sepa-backend.gs (new request "escSync"; the old "escSave" is removed)
+- Version number is now ?v=0.18 on every page, and the homepage footer reads v0.18
+
 ## v0.17
 - NEW, PROOF OF CONCEPT: the Escalation Form (pages/escalation.html). It is the "DAT Response Lead
   Incident Reporting Worksheet" (edition 2026.2.8, from Volunteer Leadership Tools) as a page that can

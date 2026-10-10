@@ -7,11 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.17">
+<link rel="stylesheet" href="../css/style.css?v=0.18">
 </head>
 <body class="home">
 
-<!-- ESCALATION FORM (proof of concept, v0.17)
+<!-- ESCALATION FORM (proof of concept, v0.17; shared worksheets added in v0.18)
      The DAT Response Lead Incident Reporting Worksheet (edition 2026.2.8) as a page that can be filled
      in on a phone or a laptop. js/escalation.js draws the boxes and does the saving and sharing.
      Three ways this one page is used:
@@ -19,7 +19,9 @@
        escalation.html?view=CODE    live view of one worksheet, read only, updates by itself
        escalation.html?view=list    the most recent worksheets
      Filling in needs no login. The live view and the list need the HQ user name and password, which
-     are set in the Google Sheet (Settings tab), never in these website files. -->
+     are set in the Google Sheet (Settings tab), never in these website files.
+     v0.18: "Add a responder" sends a join link (this page's address with a secret code after a #).
+     Everyone who opens it types into the same worksheet, so HQ sees one worksheet per event. -->
 
 <div class="page-wrap">
 
@@ -37,15 +39,36 @@
     <p class="esc-status esc-warn esc-cleared-note" id="esc-cleared-note" role="status" hidden></p>
     <p class="esc-how">Tap a box and type. There is no Save button: everything saves by itself.</p>
     <p class="esc-status" id="esc-status" role="status">Saved on this device.</p>
+    <!-- Two groups of buttons. The first lets teammates on scene type into this same worksheet.
+         The second sends HQ the read-only live view. -->
+    <p class="esc-group">For your team on scene</p>
+    <div class="esc-buttons">
+      <button type="button" class="primary-btn esc-add" data-esc="add">Add a responder</button>
+    </div>
+    <!-- Only the phone that started the worksheet (the lead) gets the button. A phone that joined
+         gets the second line instead, filled in by js/escalation.js. -->
+    <p class="esc-group-how" id="esc-add-how">You started this worksheet, so you are its lead. This sends a link. Whoever opens it types into this same worksheet with you.</p>
+    <p class="esc-group-how" id="esc-joined-how" hidden></p>
+    <p class="esc-group">For HQ</p>
     <div class="esc-buttons">
       <button type="button" class="primary-btn esc-share" data-esc="share">Share the live view</button>
       <button type="button" class="esc-btn" id="esc-copy">Copy the link</button>
       <a class="esc-btn" id="esc-open-view" href="#" target="_blank" rel="noopener">Open the live view</a>
     </div>
-    <p class="esc-note" id="esc-share-note" hidden></p>
-    <label class="esc-link-box" id="esc-link-box" hidden>Live view link
+    <p class="esc-note" id="esc-share-note" role="status" hidden></p>
+    <label class="esc-link-box" id="esc-link-box" hidden><span id="esc-link-label">Live view link</span>
       <input id="esc-link" readonly>
     </label>
+  </section>
+
+  <!-- Shown when a join link is opened on a phone that already has its own worksheet with entries -->
+  <section class="esc-tools" id="esc-join-ask" hidden>
+    <h2 class="esc-login-title">Join the shared worksheet?</h2>
+    <p class="esc-how">You were sent a link to a shared worksheet. This device already has a worksheet of its own with entries in it. If you join, this device switches to the shared one. Your own worksheet stays saved, and HQ can still see it.</p>
+    <div class="esc-buttons">
+      <button type="button" class="primary-btn" id="esc-join-yes">Join the shared worksheet</button>
+      <button type="button" class="esc-btn" id="esc-join-no">Stay on my own worksheet</button>
+    </div>
   </section>
 
   <!-- Shown in the live view -->
@@ -92,7 +115,10 @@
   <form class="esc-form" id="esc-form" novalidate onsubmit="return false"></form>
 
   <section class="esc-bottom" id="esc-bottom" hidden>
-    <button type="button" class="primary-btn esc-share" data-esc="share">Share the live view</button>
+    <div class="esc-buttons">
+      <button type="button" class="primary-btn esc-add" data-esc="add">Add a responder</button>
+      <button type="button" class="primary-btn esc-share" data-esc="share">Share the live view</button>
+    </div>
     <p class="esc-bottom-links">
       <button type="button" class="link-btn" id="esc-new">Start a new blank worksheet</button>
       <span class="esc-new-ask" id="esc-new-ask" hidden>Start a new blank worksheet? This one stays saved and shared.
@@ -108,8 +134,8 @@
 
 </div>
 
-<script src="../js/config.js?v=0.17"></script>
-<script src="../js/escalation.js?v=0.17"></script>
-<script src="../js/close-tab.js?v=0.17"></script>
+<script src="../js/config.js?v=0.18"></script>
+<script src="../js/escalation.js?v=0.18"></script>
+<script src="../js/close-tab.js?v=0.18"></script>
 </body>
 </html>

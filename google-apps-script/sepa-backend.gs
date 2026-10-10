@@ -13,8 +13,9 @@
  *   Topics    - forum discussions. Type YES in "Hidden" to hide one.
  *   Replies   - forum replies. Type YES in "Hidden" to hide one.
  *   Sessions  - logins, only if turned on (leave alone; delete all rows to log everyone out)
- *   Escalations - one row per Escalation Form worksheet (proof of concept, website v0.17). The tab
- *               appears by itself the first time someone uses the form.
+ *   Escalations - one row per Escalation Form worksheet (proof of concept, website v0.17; since
+ *               v0.18 several responders can type into one worksheet). The tab appears by itself
+ *               the first time someone uses the form.
  *   Escalations cleared - worksheets HQ cleared at the end of an event. Kept as a record; delete rows
  *               here to remove them for good.
  *   Settings also holds the HQ user name and password for the Escalation Form live view.
@@ -130,7 +131,7 @@ function doPost(e) {
       newTopic: newTopic_,
       reply: reply_,
       escPing: escPing_,
-      escSave: escSave_,
+      escSync: escSync_,
       escLogin: escLogin_,
       escGet: escGet_,
       escList: escList_,
@@ -469,22 +470,33 @@ function reply_(d) {
 }
 
 /* =========================================================
-   ESCALATION FORM (pages/escalation.html) - PROOF OF CONCEPT, added for website v0.17
-   The website page sends the whole worksheet here a moment after anything is typed, and the
-   "live view" page reads it back every few seconds.
+   ESCALATION FORM (pages/escalation.html) - PROOF OF CONCEPT, added for website v0.17,
+   shared worksheets added for v0.18
+   The website page sends each box here a moment after it is typed, and the "live view" page reads
+   the worksheet back every few seconds.
    One row per worksheet in the tab "Escalations" (the tab is made automatically the first time).
    The last column holds the worksheet itself in a coded form: leave it alone.
    WHO CAN DO WHAT:
      - Filling in a worksheet needs no login (the responder on scene must not be slowed down).
-     - READING a worksheet (the live view, and the list of recent worksheets) needs the HQ user name
-       and password. Those two are NOT in this code, because this code is also kept in the website
-       folder, which is public. They live in the Sheet's "Settings" tab, in the two rows whose labels
-       start "Escalation Form live view". Type them there. To change the password, change it there:
-       everyone who was logged in is logged out. While either row is blank, nobody can read.
+     - SEVERAL RESPONDERS, ONE WORKSHEET (v0.18). The person who starts a worksheet can tap "Add a
+       responder", which sends a join link. Everyone who opens that link types into the same
+       worksheet and sees the others' entries a few seconds later. The join link carries a long
+       random code (the "edit key"). Only a scrambled form of it is kept here, inside the coded
+       last column. Whoever has the link can read and change that ONE worksheet and no other, with
+       no login. It stops working when HQ clears the worksheet. Boxes are saved one at a time, so two
+       people working in different boxes never overwrite each other; in the same box the later
+       entry wins.
+     - READING a worksheet as HQ (the live view, and the list of recent worksheets) needs the HQ
+       user name and password. Those two are NOT in this code, because this code is also kept in the
+       website folder, which is public. They live in the Sheet's "Settings" tab, in the two rows
+       whose labels start "Escalation Form live view". Type them there. To change the password,
+       change it there: everyone who was logged in is logged out. While either row is blank, nobody
+       can open the live view. The live view link does NOT contain the edit key, so a forwarded live
+       view link lets nobody read or change anything without the HQ login.
      - One shared user name and password for everyone at HQ (Sean's choice for the proof of concept).
      - CLEARING a worksheet at the end of an event (the button in the live view) also needs the HQ
        login. Nothing is destroyed: the row moves to the tab "Escalations cleared", so there is still a
-       record. The responder's page notices within about 20 seconds and starts a new blank worksheet.
+       record. Every responder's page notices within a few seconds and starts a new blank worksheet.
        To really delete a worksheet, delete its row in "Escalations cleared" (or in "Escalations").
    ========================================================= */
 var ESC_HEADERS = ['ID', 'Started', 'Last update', 'Incident address', 'Date/ Time (as typed)', 'Updated ms (do not edit)', 'Worksheet (do not edit)'];
@@ -493,6 +505,12 @@ var ESC_MAX_CHARS = 45000;   // a single spreadsheet cell holds 50,000 character
 var ESC_USER_LABEL = 'Escalation Form live view: user name (while blank, the live view is locked to everyone)';
 var ESC_PASS_LABEL = 'Escalation Form live view: password';
 var ESC_SESSION_DAYS = 30;   // how long an HQ login lasts on one device
+
+/* Inside the coded last column, next to the boxes, sits one extra entry under this name. It holds the
+   bookkeeping for shared worksheets: r = how many times the worksheet has changed, k = the scrambled
+   edit key, f = for each box, the change number at which it last changed. A box name can never be
+   "#", so it cannot collide with a real box. */
+var ESC_META = '#';
 
 function escTab_() { makeTab_('Escalations', ESC_HEADERS); return tab_('Escalations'); }
 function escClearedTab_() { makeTab_('Escalations cleared', ESC_HEADERS.concat(['Cleared'])); return tab_('Escalations cleared'); }
@@ -514,8 +532,8 @@ function escLoginSettings_() {
    so changing the password logs everyone out. */
 function escMark_(s) { return 'HQ ' + hash_('esc-live-view', s.user.toLowerCase() + '|' + s.pass).slice(0, 20); }
 
-// Does nothing but answer. The fill-in page uses it to learn that live sharing is switched on.
-// If it is told which worksheet is asking, it also says whether HQ has cleared that worksheet.
+// Does nothing but answer. If it is told which worksheet is asking, it also says whether HQ has
+// cleared that worksheet. (The fill-in page now learns both from escSync; this stays for older pages.)
 function escPing_(d) {
   escTab_(); escLoginSettings_();
   var id = escId_(d && d.id);
@@ -551,6 +569,8 @@ function escDenied_(d) {
   return { ok: false, login: true, error: 'Please log in.' };
 }
 function escId_(v) { v = String(v || ''); return /^[A-Za-z0-9]{8,24}$/.test(v) ? v : ''; }
+function escKey_(v) { v = String(v || ''); return /^[A-Za-z0-9]{16,40}$/.test(v) ? v : ''; }
+function escKeyMark_(id, key) { return hash_('esc-edit-key|' + id, key).slice(0, 32); }
 function escText_(v) { return String(v == null ? '' : v).replace(/^'/, ''); }
 
 function escFindRow_(sh, id) {
@@ -561,25 +581,72 @@ function escFindRow_(sh, id) {
   return 0;
 }
 
-// Save (or update) one worksheet. d.data is { boxName: "what was typed", ... }
-function escSave_(d) {
-  var id = escId_(d.id);
-  if (!id) return { ok: false, error: 'This worksheet link is not valid.' };
-  if (escIsCleared_(id)) return { ok: true, cleared: true };      // HQ ended this one: do not bring it back
-  var data = (d.data && typeof d.data === 'object') ? d.data : {};
-  var kept = {};
-  Object.keys(data).forEach(function (k) {
-    if (!/^[a-z0-9_]{1,60}$/.test(k)) return;
-    var v = clean_(data[k], 4000);
-    if (v) kept[k] = v;
+/* Reads one worksheet's coded cell. Gives back the boxes and the bookkeeping separately.
+   A worksheet saved before v0.18 has no bookkeeping yet: every box it holds counts as change 1. */
+function escOpen_(cell) {
+  var raw = {};
+  try { raw = JSON.parse(escText_(cell)) || {}; } catch (err) { raw = {}; }
+  if (typeof raw !== 'object') raw = {};
+  var meta = raw[ESC_META];
+  delete raw[ESC_META];
+  if (!meta || typeof meta !== 'object' || typeof meta.f !== 'object' || !meta.f) {
+    meta = { r: 0, k: '', f: {} };
+    Object.keys(raw).forEach(function (k) { meta.f[k] = 1; meta.r = 1; });
+  }
+  meta.r = Number(meta.r) || 0;
+  meta.k = String(meta.k || '');
+  return { data: raw, meta: meta };
+}
+
+/* THE ONE CALL THE FILL-IN PAGE MAKES (v0.18). It does three things at once:
+     1. saves the boxes this device changed (d.changes = { boxName: "what is in it now" }; "" = emptied),
+     2. hands back every box that changed since this device last asked (d.since = the change number it
+        already has), so entries typed on other phones show up here,
+     3. says whether HQ has cleared the worksheet.
+   d.key is the edit key. The first device to save a worksheet sets its key; after that only devices
+   with the same key (those sent the join link) get in. No login. */
+function escSync_(d) {
+  var id = escId_(d.id), key = escKey_(d.key);
+  if (!id || !key) return { ok: false, nokey: true, error: 'This link cannot open the worksheet.' };
+  if (escIsCleared_(id)) return { ok: true, cleared: true };
+  var sh = escTab_(), row = escFindRow_(sh, id), now = new Date();
+  var changes = (d.changes && typeof d.changes === 'object') ? d.changes : {};
+  var names = Object.keys(changes).filter(function (k) { return /^[a-z0-9_]{1,60}$/.test(k); });
+  var since = Math.max(0, parseInt(d.since, 10) || 0);
+  // Nothing saved yet and nothing to save: do not make an empty row (keeps HQ's list clean).
+  if (!row && !names.length && !d.claim) return { ok: true, rev: 0, changed: {}, now: now.getTime() };
+
+  var mark = escKeyMark_(id, key);
+  var w = row ? escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]) : { data: {}, meta: { r: 0, k: '', f: {} } };
+  var adopt = !w.meta.k;                       // a new worksheet, or one saved before v0.18: this key becomes its key
+  if (adopt) w.meta.k = mark;
+  else if (w.meta.k !== mark) return { ok: false, nokey: true, error: 'This link cannot open the worksheet.' };
+
+  var touched = false;
+  names.forEach(function (k) {
+    var v = clean_(changes[k], 4000);
+    if ((w.data[k] || '') === v) return;       // already what is saved: not a change
+    if (!touched) { touched = true; w.meta.r++; }
+    if (v) w.data[k] = v; else delete w.data[k];
+    w.meta.f[k] = w.meta.r;
   });
-  var text = JSON.stringify(kept);
-  if (text.length > ESC_MAX_CHARS) return { ok: false, error: 'This worksheet is too long to save. Please shorten the notes.' };
-  var sh = escTab_(), now = new Date(), nowText = stamp_(now), row = escFindRow_(sh, id);
-  var tail = [nowText, safe_(clean_(kept.incident_addresses, 200)), safe_(clean_(kept.date_time, 80)), String(now.getTime()), text];
-  if (row) sh.getRange(row, 3, 1, 5).setValues([tail]);
-  else sh.appendRow([id, nowText].concat(tail));
-  return { ok: true, updated: nowText, ms: now.getTime(), now: now.getTime() };
+
+  if (touched || adopt || !row) {
+    var store = {};
+    Object.keys(w.data).forEach(function (k) { store[k] = w.data[k]; });
+    store[ESC_META] = w.meta;
+    var text = JSON.stringify(store);
+    if (text.length > ESC_MAX_CHARS) return { ok: false, toolong: true, error: 'This worksheet is too long to save. Please shorten the notes.' };
+    var nowText = stamp_(now);
+    if (!row) escLoginSettings_();             // a first worksheet also makes sure the two HQ login rows exist in Settings
+    if (!row) sh.appendRow([id, nowText, nowText, safe_(clean_(w.data.incident_addresses, 200)), safe_(clean_(w.data.date_time, 80)), String(now.getTime()), text]);
+    else if (touched) sh.getRange(row, 3, 1, 5).setValues([[nowText, safe_(clean_(w.data.incident_addresses, 200)), safe_(clean_(w.data.date_time, 80)), String(now.getTime()), text]]);
+    else sh.getRange(row, 7, 1, 1).setValues([[text]]);
+  }
+
+  var out = {};
+  Object.keys(w.meta.f).forEach(function (k) { if (w.meta.f[k] > since) out[k] = w.data[k] || ''; });
+  return { ok: true, rev: w.meta.r, changed: out, now: now.getTime() };
 }
 
 // Read one worksheet back (the live view calls this every few seconds). HQ login needed.
@@ -590,9 +657,8 @@ function escGet_(d) {
   if (!id) return { ok: false, error: 'This worksheet link is not valid.' };
   var sh = escTab_(), row = escFindRow_(sh, id), now = new Date().getTime();
   if (!row) return { ok: true, found: false, cleared: escIsCleared_(id), now: now };
-  var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0], data = {};
-  try { data = JSON.parse(escText_(r[6])) || {}; } catch (err) { data = {}; }
-  return { ok: true, found: true, id: id, started: iso_(r[1]), updated: iso_(r[2]), ms: Number(escText_(r[5])) || 0, now: now, data: data };
+  var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0];
+  return { ok: true, found: true, id: id, started: iso_(r[1]), updated: iso_(r[2]), ms: Number(escText_(r[5])) || 0, now: now, data: escOpen_(r[6]).data };
 }
 
 // The most recent worksheets, newest first. HQ login needed.
