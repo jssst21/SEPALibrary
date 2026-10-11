@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.18.1
+- Quick launch: SCIA now opens redcross.org/scia and Practice SCIA opens redcross.org/scia-training.
+  These are the short official addresses from the "System Links" table Sean sent on Oct 11, 2026.
+  Both were checked and lead to the Red Cross Volunteer Single Sign-On page. They replace the long
+  sign-in addresses that had a one-time-looking code in them and might have stopped working
+- The other eight Quick launch links are unchanged. Calendar and Volunteer Connect still both use
+  the plain Volunteer Connection address (best guess, not yet confirmed)
+- Version number is now ?v=0.18.1 on every page. The homepage footer still reads v0.18
+
 ## v0.18
 - ESCALATION FORM: SEVERAL RESPONDERS, ONE WORKSHEET (Sean asked for this: with four responders on
   scene, v0.17 made four separate worksheets and HQ had to flip between them). Now the person who
