@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.19">
+<link rel="stylesheet" href="../css/style.css?v=0.20">
 </head>
 <body class="home">
 
@@ -20,6 +20,12 @@
 
   <h1 class="page-title">Sign Up for DAT Shifts</h1>
   <p class="page-intro">Choose a day, choose a shift, and enter your name. That's it.</p>
+
+  <!-- The two calendars (v0.20). Field Responders always shows first. js/shifts.js switches them. -->
+  <div class="cal-tabs shift-tabs" role="tablist" aria-label="Which shift calendar">
+    <button type="button" class="cal-tab on" role="tab" aria-selected="true" data-team="dat">Field Responders</button>
+    <button type="button" class="cal-tab" role="tab" aria-selected="false" tabindex="-1" data-team="do">Duty Officers</button>
+  </div>
 
   <p class="notice" id="notice" hidden></p>
 
@@ -108,8 +114,8 @@
 
 </div>
 
-<script src="../js/config.js?v=0.19"></script>
-<script src="../js/shifts.js?v=0.19"></script>
-<script src="../js/close-tab.js?v=0.19"></script>
+<script src="../js/config.js?v=0.20"></script>
+<script src="../js/shifts.js?v=0.20"></script>
+<script src="../js/close-tab.js?v=0.20"></script>
 </body>
 </html>

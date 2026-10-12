@@ -1045,3 +1045,37 @@ body:not(.esc-viewing) .esc-flash { animation-name: esc-flash-edit; }
 .doc-dl:hover { background: var(--red); color: #fff; }
 .onb-thanks { margin: 34px 0 0; text-align: center; color: #fff; font-family: 'Source Serif 4', Georgia, serif; font-size: 22px; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .doc, .doc:hover { transition: none; transform: none; } }
+
+/* =========================================================
+   TWO SHIFT CALENDARS: FIELD RESPONDERS / DUTY OFFICERS TABS (v0.20)
+   Two pill tabs inside the white calendar box. The chosen tab is navy (like the bar above).
+   Homepage, computers: the tabs sit at the left end of the month line and the month with its arrows
+   moves to the right end, so the calendar box is no taller than before.
+   Homepage, phones: the tabs get their own line above the month.
+   Shift sign-up page: the tabs run full width above Step One.
+   ========================================================= */
+.cal-tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: #f1eeeb; }
+.cal-tab {
+  padding: 8px 16px; border: 0; border-radius: 999px; background: transparent;
+  font: inherit; font-size: 15px; font-weight: 700; line-height: 1.2; color: var(--ink-soft);
+  cursor: pointer; white-space: nowrap;
+}
+.cal-tab:hover { color: var(--ink); background: #e7e2dd; }
+.cal-tab.on { background: var(--navy); color: #fff; box-shadow: 0 1px 3px rgba(31, 53, 86, .35); }
+.cal-monthnav { display: flex; align-items: center; gap: 12px; }
+.cal-monthnav .cal-month { min-width: 9.5em; text-align: center; }
+.home-cal .cal { position: relative; }
+.home-cal-msg {
+  position: absolute; left: 14px; right: 14px; top: 50%; transform: translateY(-50%);
+  margin: 0; text-align: center; font-size: 16px; font-weight: 600; color: var(--ink-soft);
+}
+@media (max-width: 640px) {
+  .home-cal .cal-head { flex-wrap: wrap; row-gap: 10px; }
+  .home-cal .cal-tabs { display: flex; width: 100%; }
+  .home-cal .cal-tab { flex: 1; padding: 8px 6px; font-size: 14px; }
+  .home-cal .cal-monthnav { width: 100%; justify-content: space-between; }
+  .home-cal .cal-monthnav .cal-month { min-width: 0; }
+}
+/* Shift sign-up page: the tabs run full width under the intro line, above Step One. */
+.shift-tabs { display: flex; margin-top: 18px; }
+.shift-tabs .cal-tab { flex: 1; font-size: 17px; padding: 11px 8px; }

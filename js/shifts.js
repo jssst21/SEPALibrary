@@ -1,14 +1,37 @@
 // SEPA Resource Library - DAT shift signup calendar
 // The Google connection is set in js/config.js
 //
-// The 4 standard shifts are listed just below (start hour on a 24-hour clock, 6 hours each).
-var STANDARD_SHIFTS = [
-  { name: 'Overnight', start: 0 },
-  { name: 'Morning', start: 6 },
-  { name: 'Afternoon', start: 12 },
-  { name: 'Evening', start: 18 }
-];
-var STANDARD_HOURS = 6;
+// Two calendars share this page (since v0.20), chosen with the two tabs at the top:
+//   Field Responders ("dat"): 4 standard shifts of 6 hours. This one always loads first.
+//   Duty Officers ("do"):     6 standard shifts of 4 hours, starting at noon and every 4 hours after.
+// Each calendar's standard shifts are listed just below (start hour on a 24-hour clock).
+// "minHours" is only used if the Google Sheet does not say (Settings tab).
+// "recDefault" is the shift already chosen when someone opens Recurring.
+var TEAMS = {
+  dat: {
+    hours: 6, minHours: 6, recDefault: 1,
+    shifts: [
+      { name: 'Overnight', start: 0 },
+      { name: 'Morning', start: 6 },
+      { name: 'Afternoon', start: 12 },
+      { name: 'Evening', start: 18 }
+    ]
+  },
+  do: {
+    hours: 4, minHours: 4, recDefault: 3,
+    shifts: [
+      { name: 'Overnight', start: 0 },
+      { name: 'Early morning', start: 4 },
+      { name: 'Morning', start: 8 },
+      { name: 'Afternoon', start: 12 },
+      { name: 'Evening', start: 16 },
+      { name: 'Night', start: 20 }
+    ]
+  }
+};
+var team = 'dat';                      // which calendar is showing
+var STANDARD_SHIFTS = TEAMS.dat.shifts;
+var STANDARD_HOURS = TEAMS.dat.hours;
 
 var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
 
@@ -73,20 +96,47 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
   // ---------- load ----------
   function notice(msg) { var el = $('notice'); el.textContent = msg; el.hidden = !msg; }
 
+  var loadNo = 0;   // so a slow answer for the other tab is ignored after switching back
   function load(done) {
+    var T = TEAMS[team], mine = ++loadNo;
+    notice('');
     if (preview) {
       var n = new Date();
-      data = { today: toText(n.getFullYear(), n.getMonth(), n.getDate()), daysAhead: 60, minHours: 6, one: [], rec: [] };
+      data = { today: toText(n.getFullYear(), n.getMonth(), n.getDate()), daysAhead: 60, minHours: T.minHours, one: [], rec: [] };
       notice('Preview mode: this calendar is not connected yet, so signups are not saved.');
       return done();
     }
-    fetch(SIGNUP_URL).then(function (r) { return r.json(); }).then(function (d) {
+    fetch(SIGNUP_URL + (team === 'do' ? '?team=do' : '')).then(function (r) { return r.json(); }).then(function (d) {
+      if (mine !== loadNo) return;
+      // The Duty Officers calendar needs the v0.20 Google script. An older script answers with the
+      // Field Responder signups and no "team", so it must not be shown as the Duty Officer calendar.
+      if (team === 'do' && d.team !== 'do') {
+        notice('The Duty Officers calendar is not switched on yet. The site admin needs to update the Google script. ' +
+          'Field Responders can still sign up on the other tab.');
+        $('step-day').hidden = true; $('step-shift').hidden = true; $('step-info').hidden = true;
+        return;
+      }
       data = d;
-      data.one = d.one || []; data.rec = d.rec || []; data.minHours = d.minHours || 6;
+      data.one = d.one || []; data.rec = d.rec || []; data.minHours = d.minHours || T.minHours;
       done();
     }).catch(function () {
+      if (mine !== loadNo) return;
       notice('The signup calendar could not load. Please refresh the page or try again later.');
     });
+  }
+
+  // ---------- the two tabs: Field Responders / Duty Officers ----------
+  function setTeam(t) {
+    team = TEAMS[t] ? t : 'dat';
+    STANDARD_SHIFTS = TEAMS[team].shifts;
+    STANDARD_HOURS = TEAMS[team].hours;
+    document.querySelectorAll('.cal-tab').forEach(function (b) {
+      var on = b.dataset.team === team;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+    });
+    document.body.dataset.team = team;
   }
 
   // ---------- step 1: calendar ----------
@@ -227,7 +277,7 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
   function drawRecChoices() {
     var box = $('rec-choices');
     box.innerHTML = '';
-    recBlock = STANDARD_SHIFTS[1];
+    recBlock = STANDARD_SHIFTS[TEAMS[team].recDefault];
     STANDARD_SHIFTS.concat([null]).forEach(function (s) {
       var b = document.createElement('button');
       b.type = 'button';
@@ -279,6 +329,7 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
       email: f.email.value.trim(), notes: f.notes.value.trim(), website: f.website.value,
       start: choice.start, hours: choice.hours
     };
+    info.team = team;
     if (choice.type === 'one') { info.action = 'shiftSignup'; info.date = pickedDate; }
     else { info.action = 'recurringSignup'; info.from = pickedDate; info.days = choice.days; }
     if (!info.name) return showError('Please enter your name.');
@@ -292,7 +343,7 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
       if (!res.ok) return showError(res.error || 'Something went wrong. Please try again.');
       if (choice.type === 'one') data.one.push({ date: pickedDate, start: choice.start, hours: choice.hours });
       else data.rec.push({ days: choice.days, start: choice.start, hours: choice.hours, from: pickedDate });
-      $('done-text').textContent = info.name + ': ' + describe(choice) + '.' +
+      $('done-text').textContent = info.name + ': ' + (team === 'do' ? 'Duty Officer shift, ' : '') + describe(choice) + '.' +
         (preview ? ' (Preview mode: nothing was saved.)' : '');
       $('step-done').hidden = false;
       document.body.classList.add('no-scroll');
@@ -317,23 +368,13 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
   }
 
   // ---------- start ----------
-  load(function () {
+  // Show a calendar once its data has arrived: the month, and today's shifts (or the day that was asked).
+  function show(asked) {
     var p = parts(data.today);
     viewYear = p[0]; viewMonth = p[1];
+    pickedDate = null; choice = null;
+    $('step-day').hidden = false; $('step-info').hidden = true;
     drawMonth();
-    $('prev').addEventListener('click', function () { moveMonth(-1); });
-    $('next').addEventListener('click', function () { moveMonth(1); });
-    $('custom-btn').addEventListener('click', function () { togglePanel('custom'); togglePanel('rec', false); });
-    $('rec-btn').addEventListener('click', function () { togglePanel('rec'); togglePanel('custom', false); });
-    $('custom-go').addEventListener('click', function () {
-      choose({ type: 'one', start: pickers.custom.start, hours: pickers.custom.hours });
-    });
-    $('rec-go').addEventListener('click', goRecurring);
-    $('signup-form').addEventListener('submit', submit);
-    $('again').addEventListener('click', again);
-    // If the homepage calendar sent a day (shifts.html?date=2026-10-12), start on that day.
-    // Otherwise start on today.
-    var asked = new URLSearchParams(window.location.search).get('date');
     if (asked && /^\d{4}-\d{2}-\d{2}$/.test(asked) && isOpen(asked) && asked !== data.today) {
       var ap = parts(asked);
       viewYear = ap[0]; viewMonth = ap[1];
@@ -341,5 +382,44 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
     } else {
       pickDay(data.today, true);   // show today's shifts right away
     }
+  }
+
+  // The Field Responders tab always loads first. The Duty Officers tab loads first only when the
+  // homepage sent someone here from its Duty Officers tab (shifts.html?team=do).
+  var query = new URLSearchParams(window.location.search);
+  setTeam(query.get('team') === 'do' ? 'do' : 'dat');
+
+  function switchTo(t) {
+    if (t === team) return;
+    setTeam(t);
+    // Keep the address in step, so a refresh or a shared link stays on the same tab.
+    var q = new URLSearchParams(window.location.search);
+    q.delete('date');
+    if (team === 'do') q.set('team', 'do'); else q.delete('team');
+    history.replaceState(null, '', window.location.pathname + (q.toString() ? '?' + q : ''));
+    $('step-shift').hidden = true; $('step-info').hidden = true;
+    load(function () { show(null); });
+  }
+  document.querySelectorAll('.cal-tab').forEach(function (b) {
+    b.addEventListener('click', function () { switchTo(b.dataset.team); });
+    b.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      var other = document.querySelector('.cal-tab:not(.on)');
+      switchTo(other.dataset.team); other.focus();
+    });
   });
+
+  // Buttons that work the same on both tabs.
+  $('prev').addEventListener('click', function () { moveMonth(-1); });
+  $('next').addEventListener('click', function () { moveMonth(1); });
+  $('custom-btn').addEventListener('click', function () { togglePanel('custom'); togglePanel('rec', false); });
+  $('rec-btn').addEventListener('click', function () { togglePanel('rec'); togglePanel('custom', false); });
+  $('custom-go').addEventListener('click', function () {
+    choose({ type: 'one', start: pickers.custom.start, hours: pickers.custom.hours });
+  });
+  $('rec-go').addEventListener('click', goRecurring);
+  $('signup-form').addEventListener('submit', submit);
+  $('again').addEventListener('click', again);
+
+  load(function () { show(query.get('date')); });
 })();

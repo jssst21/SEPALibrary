@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.20
+- TWO SHIFT CALENDARS, ONE SPOT (Sean asked for this). The homepage calendar now has two tabs:
+  "Field Responders" and "Duty Officers". Field Responders always shows when the page opens.
+  Each tab has its own signups, its own green numbers and its own amber "no one yet" days
+- Duty Officers works exactly like Field Responders (one-time, custom and recurring signups,
+  same sign-up page, same daily report) except the standard shifts are 4 hours, not 6, starting
+  at noon and every 4 hours after: 12 AM-4 AM (Overnight), 4-8 AM (Early morning), 8 AM-12 PM
+  (Morning), 12-4 PM (Afternoon), 4-8 PM (Evening), 8 PM-12 AM (Night). They are listed in clock
+  order for the day. Custom Duty Officer shifts can be as short as 4 hours (Field Responders stay
+  at 6). Recurring opens with Afternoon (noon to 4) already chosen
+- Homepage, computers: the tabs sit at the left end of the month line and the month with its
+  arrows moved to the right end, so the calendar box is exactly as tall as before (checked at
+  1540 and 1920 wide). Phones: the tabs get their own line above the month (the box is 50px taller)
+- Clicking a day on the Duty Officers tab, or the navy bar while that tab is showing, opens the
+  shift page on the Duty Officers tab (shifts.html?team=do). The shift page has the same two tabs
+  above Step One, and also opens on Field Responders unless sent to Duty Officers
+- GOOGLE SCRIPT CHANGED (Sean pastes and deploys it). New tabs "DO Signups" and "DO Recurring"
+  appear in the Sheet by themselves, with the same columns as Signups and Recurring. A new
+  Settings row "Minimum hours for a custom Duty Officer shift" appears set to 4. The 7 AM report
+  now lists Field Responders first, then Duty Officers. Instant emails say "Duty Officer shift
+  signup" for the new calendar
+- Until the new script is deployed, the Duty Officers tab says "not switched on yet" and shows
+  nothing, and Field Responders keeps working as before. (The website checks that the script
+  answers as the Duty Officer calendar, so Field Responder signups can never show up there.)
+- Version number is now ?v=0.20 on every page and the homepage footer reads v0.20
+
 ## v0.19
 - ONBOARDING PAGE BUILT (pages/new.html, the "Onboarding" button on the homepage). It was a "coming
   soon" filler. Now it has the same red look as Contacts and:

@@ -1,14 +1,19 @@
 /**
  * SEPA Resource Library - Google Sheet backend
- * Powers: DAT shift signup calendar + Discussion Forums + Escalation Form (proof of concept)
+ * Powers: DAT shift signup calendars (Field Responders and Duty Officers) + Discussion Forums +
+ *         Escalation Form (proof of concept)
  *
  * This code lives inside ONE Google Sheet (Extensions > Apps Script).
  * It is NOT part of the website itself. See "Admin Guides" folder, Guide 2.
  *
  * Tabs the admin uses:
- *   Signups   - one-time shift signups (delete a row to cancel it)
- *   Recurring - weekly repeating signups (delete a row, or type YES in "Stopped", to end it)
+ *   Signups   - Field Responder one-time shift signups (delete a row to cancel it)
+ *   Recurring - Field Responder weekly repeating signups (delete a row, or type YES in "Stopped", to end it)
+ *   DO Signups   - the same, for the Duty Officers calendar (website v0.20). Appears by itself the
+ *                  first time anyone opens the Duty Officers tab.
+ *   DO Recurring - the same as Recurring, for Duty Officers.
  *   Settings  - report email(s), how far ahead people can sign up, minimum hours for custom shifts
+ *               (one row for Field Responders, and since v0.20 one row for Duty Officers, default 4)
  *   Members   - forum members (only used if logins are turned on). YES in "Blocked" blocks someone.
  *   Topics    - forum discussions. Type YES in "Hidden" to hide one.
  *   Replies   - forum replies. Type YES in "Hidden" to hide one.
@@ -37,6 +42,22 @@ var SESSION_DAYS = 180;
 var REPORT_HOUR = 7;   // daily signup report goes out at 7 AM
 var SETTING_EMAIL_LABEL = 'Admin email(s) for the daily 7 AM signup report (separate several with commas; blank = no report)';
 var SETTING_INSTANT_LABEL = 'Also email each signup the moment it happens? (YES or NO)';
+var SETTING_DO_MIN_LABEL = 'Minimum hours for a custom Duty Officer shift';
+
+/* The two shift calendars (website v0.20). Each has its own pair of tabs in the Sheet.
+   "dat" = Field Responders (the original calendar). "do" = Duty Officers. */
+var TEAMS = {
+  dat: { one: 'Signups', rec: 'Recurring', label: 'DAT', title: 'Field Responder' },
+  do: { one: 'DO Signups', rec: 'DO Recurring', label: 'Duty Officer', title: 'Duty Officer' }
+};
+function team_(t) { return t === 'do' ? 'do' : 'dat'; }
+/* The tabs for one team. The Duty Officer tabs are made the first time they are needed. */
+function teamTabs_(t) {
+  var T = TEAMS[team_(t)];
+  makeTab_(T.one, SIGNUP_HEADERS);
+  makeTab_(T.rec, RECURRING_HEADERS);
+  return T;
+}
 
 /* =========================================================
    ONE-TIME SETUP: run this once from the Apps Script editor
@@ -44,6 +65,8 @@ var SETTING_INSTANT_LABEL = 'Also email each signup the moment it happens? (YES 
 function setup() {
   makeTab_('Signups', SIGNUP_HEADERS);
   makeTab_('Recurring', RECURRING_HEADERS);
+  makeTab_('DO Signups', SIGNUP_HEADERS);
+  makeTab_('DO Recurring', RECURRING_HEADERS);
   makeTab_('Settings', ['Setting', 'Value'], [
     [SETTING_EMAIL_LABEL, ''],
     ['Days ahead people can sign up', '60'],
@@ -109,9 +132,10 @@ function json_(obj) {
    Web entry points
    ========================================================= */
 
-// GET = shift calendar data (public: counts only, never names)
-function doGet() {
-  return json_(shiftData_());
+// GET = shift calendar data (public: counts only, never names).
+// ...exec?team=do gives the Duty Officers calendar; anything else gives Field Responders.
+function doGet(e) {
+  return json_(shiftData_(e && e.parameter && e.parameter.team));
 }
 
 // POST = everything else. Body is JSON with an "action".
@@ -158,9 +182,22 @@ function readSettings_() {
     adminEmail: String(r[1] && r[1][1] || '').trim(),
     daysAhead: parseInt(r[2] && r[2][1], 10) || 60,
     minHours: parseInt(r[3] && r[3][1], 10) || 6,
+    doMinHours: doMinHours_(r),
     instant: isYes_(r[4] && r[4][1])
   };
 }
+
+/* Minimum hours for a custom Duty Officer shift: its own row in Settings, found by its label.
+   The row is added (set to 4) the first time this runs, so the admin can change it later. */
+function doMinHours_(rows) {
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][0]).trim() === SETTING_DO_MIN_LABEL) return parseInt(rows[i][1], 10) || 4;
+  }
+  tab_('Settings').appendRow([SETTING_DO_MIN_LABEL, '4']);
+  return 4;
+}
+/* The minimum for the calendar being used. */
+function minFor_(s, t) { return team_(t) === 'do' ? s.doMinHours : s.minHours; }
 
 function hourText_(h) {
   h = ((h % 24) + 24) % 24;
@@ -181,32 +218,37 @@ function dow_(dateText) {
 }
 
 /* Public calendar data: times only, never names. */
-function shiftData_() {
+function shiftData_(team) {
+  team = team_(team);
+  var T = teamTabs_(team);
   var s = readSettings_(), today = today_(), yesterday = addDays_(today, -1);
   var one = [];
-  rows_('Signups').forEach(function (r) {
+  rows_(T.one).forEach(function (r) {
     var date = asDateText_(r[1]), start = parseInt(r[7], 10), hours = parseInt(r[8], 10);
     if (date >= yesterday && start >= 0 && hours > 0) one.push({ date: date, start: start, hours: hours });
   });
   var rec = [];
-  rows_('Recurring').forEach(function (r) {
+  rows_(T.rec).forEach(function (r) {
     if (isYes_(r[8])) return;
     var days = String(r[1]).split(',').map(function (x) { return DAY_NAMES.indexOf(x.trim().slice(0, 3)); })
       .filter(function (x) { return x >= 0; });
     var start = parseInt(r[9], 10), hours = parseInt(r[10], 10);
     if (days.length && start >= 0 && hours > 0) rec.push({ days: days, start: start, hours: hours, from: asDateText_(r[7]) });
   });
-  return { ok: true, today: today, daysAhead: s.daysAhead, minHours: s.minHours, one: one, rec: rec };
+  // "team" tells the website which calendar this is. A website page for Duty Officers checks it, so an
+  // older copy of this script (which only knew one calendar) is never mistaken for the Duty Officer one.
+  return { ok: true, team: team, today: today, daysAhead: s.daysAhead, minHours: minFor_(s, team), one: one, rec: rec };
 }
 
 /* Shared checks for name/contact/hours. Returns an error object, or null if all good. */
 function checkPerson_(d, s) {
+  var min = minFor_(s, d.team);
   if (!clean_(d.name, 100)) return { ok: false, error: 'Please enter your name.' };
   // No phone or email is required (since Oct 2026). Volunteers are already in the Red Cross system, so
   // the sign-up form asks for a name only. The Phone and Email columns stay in the Sheet and are left blank.
   var start = parseInt(d.start, 10), hours = parseInt(d.hours, 10);
   if (!(start >= 0 && start <= 23)) return { ok: false, error: 'Please choose a start time.' };
-  if (!(hours >= s.minHours && hours <= 24)) return { ok: false, error: 'Shifts must be at least ' + s.minHours + ' hours (and no more than 24).' };
+  if (!(hours >= min && hours <= 24)) return { ok: false, error: 'Shifts must be at least ' + min + ' hours (and no more than 24).' };
   return null;
 }
 
@@ -229,8 +271,9 @@ function shiftSignup_(d) {
   var start = parseInt(d.start, 10), hours = parseInt(d.hours, 10), when = rangeText_(start, hours);
   var name = clean_(d.name, 100), phone = clean_(d.phone, 40), email = clean_(d.email, 120), notes = clean_(d.notes, 500);
 
-  tab_('Signups').appendRow([stamp_(), date, when, safe_(name), safe_(phone), safe_(email), safe_(notes), String(start), String(hours)]);
-  notify_(s, 'DAT shift signup: ' + name + ', ' + date,
+  var T = teamTabs_(d.team);
+  tab_(T.one).appendRow([stamp_(), date, when, safe_(name), safe_(phone), safe_(email), safe_(notes), String(start), String(hours)]);
+  notify_(s, T.label + ' shift signup: ' + name + ', ' + date,
     name + ' signed up for ' + date + ', ' + when + ' (' + hours + ' hours).\n\n' +
     'Phone: ' + (phone || '-') + '\nEmail: ' + (email || '-') + '\nNotes: ' + (notes || '-'));
   return { ok: true };
@@ -249,10 +292,11 @@ function recurringSignup_(d) {
   var start = parseInt(d.start, 10), hours = parseInt(d.hours, 10), when = rangeText_(start, hours);
   var name = clean_(d.name, 100), phone = clean_(d.phone, 40), email = clean_(d.email, 120), notes = clean_(d.notes, 500);
 
-  tab_('Recurring').appendRow([stamp_(), every, when, safe_(name), safe_(phone), safe_(email), safe_(notes), from, '', String(start), String(hours)]);
-  notify_(s, 'Recurring DAT signup: ' + name + ', every ' + every,
+  var T = teamTabs_(d.team);
+  tab_(T.rec).appendRow([stamp_(), every, when, safe_(name), safe_(phone), safe_(email), safe_(notes), from, '', String(start), String(hours)]);
+  notify_(s, 'Recurring ' + T.label + ' signup: ' + name + ', every ' + every,
     name + ' signed up for every ' + every + ', ' + when + ' (' + hours + ' hours), starting ' + from + '.\n' +
-    'This repeats until it is removed from the Recurring tab.\n\n' +
+    'This repeats until it is removed from the ' + T.rec + ' tab.\n\n' +
     'Phone: ' + (phone || '-') + '\nEmail: ' + (email || '-') + '\nNotes: ' + (notes || '-'));
   return { ok: true };
 }
@@ -288,21 +332,26 @@ function dailyReport() {
     return Utilities.formatDate(new Date(+p[0], +p[1] - 1, +p[2]), tz_(), 'EEE, MMM d');
   };
 
-  var one = rows_('Signups').filter(function (r) { return iso_(r[0]) > since && iso_(r[0]) <= now; });
-  var rec = rows_('Recurring').filter(function (r) { return iso_(r[0]) > since && iso_(r[0]) <= now; });
-  one.sort(function (a, b) { return asDateText_(a[1]) < asDateText_(b[1]) ? -1 : 1; });
-
-  var total = one.length + rec.length;
-  var lines = [];
+  // Both calendars, Field Responders first, then Duty Officers.
+  var isNew = function (r) { return iso_(r[0]) > since && iso_(r[0]) <= now; };
+  var total = 0, lines = [], parts = [];
+  ['dat', 'do'].forEach(function (t) {
+    var T = teamTabs_(t);
+    var one = rows_(T.one).filter(isNew), rec = rows_(T.rec).filter(isNew);
+    one.sort(function (a, b) { return asDateText_(a[1]) < asDateText_(b[1]) ? -1 : 1; });
+    total += one.length + rec.length;
+    var head = T.title.toUpperCase() + 'S';
+    if (one.length) {
+      parts.push('', head + ': ONE-TIME SHIFTS');
+      one.forEach(function (r) { parts.push('  ' + nice(asDateText_(r[1])) + ', ' + r[2] + '\n      ' + person(r)); });
+    }
+    if (rec.length) {
+      parts.push('', head + ': RECURRING (every week until stopped)');
+      rec.forEach(function (r) { parts.push('  Every ' + r[1] + ', ' + r[2] + ', starting ' + nice(asDateText_(r[7])) + '\n      ' + person(r)); });
+    }
+  });
   lines.push(total ? total + ' new signup' + (total === 1 ? '' : 's') + ' since the last report:' : 'No new signups since the last report.');
-  if (one.length) {
-    lines.push('', 'ONE-TIME SHIFTS');
-    one.forEach(function (r) { lines.push('  ' + nice(asDateText_(r[1])) + ', ' + r[2] + '\n      ' + person(r)); });
-  }
-  if (rec.length) {
-    lines.push('', 'RECURRING (every week until stopped)');
-    rec.forEach(function (r) { lines.push('  Every ' + r[1] + ', ' + r[2] + ', starting ' + nice(asDateText_(r[7])) + '\n      ' + person(r)); });
-  }
+  lines = lines.concat(parts);
   lines.push('', 'Full list: ' + ss_().getUrl());
 
   MailApp.sendEmail(s.adminEmail,

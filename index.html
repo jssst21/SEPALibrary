@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=0.19">
+<link rel="stylesheet" href="css/style.css?v=0.20">
 </head>
 <!-- "home-red" in the line below is the switch for the all-red homepage (v0.16.13): the logo red behind
      the whole page, with the buttons, search bar and calendar floating on it as white cards.
@@ -86,9 +86,9 @@
            stand-ins cropped from the old button pictures. To swap one, replace the file in the
            images/gallery folder with a new photo of the same name (wide photos work best). -->
       <div class="side-gallery" aria-hidden="true">
-        <img src="images/gallery/photo-1.jpg?v=0.19" alt="">
-        <img src="images/gallery/photo-2.jpg?v=0.19" alt="">
-        <img src="images/gallery/photo-3.jpg?v=0.19" alt="">
+        <img src="images/gallery/photo-1.jpg?v=0.20" alt="">
+        <img src="images/gallery/photo-2.jpg?v=0.20" alt="">
+        <img src="images/gallery/photo-3.jpg?v=0.20" alt="">
       </div>
     </div>
 
@@ -101,11 +101,20 @@
       <h2 class="home-cal-title" id="home-cal-title"><a class="home-cal-link" href="pages/shifts.html" target="_blank" rel="noopener"><span>Sign up for DAT Shifts</span> <span class="home-cal-dash">&ndash;</span> <span>Pick any day or time and we'll do the rest</span></a></h2>
       <p class="home-cal-status" id="home-cal-status" hidden></p>
       <div class="cal" id="home-cal-body" hidden>
+        <!-- The two calendars (v0.20): Field Responders (always shows first) and Duty Officers.
+             On computers the tabs sit at the left of the month line, so the calendar is no taller. -->
         <div class="cal-head">
+          <div class="cal-tabs" role="tablist" aria-label="Which shift calendar">
+            <button type="button" class="cal-tab on" role="tab" aria-selected="true" data-team="dat">Field Responders</button>
+            <button type="button" class="cal-tab" role="tab" aria-selected="false" tabindex="-1" data-team="do">Duty Officers</button>
+          </div>
+          <div class="cal-monthnav">
           <button type="button" class="cal-nav" id="home-cal-prev" aria-label="Previous month">&larr;</button>
           <h3 class="cal-month" id="home-cal-month"></h3>
           <button type="button" class="cal-nav" id="home-cal-next" aria-label="Next month">&rarr;</button>
+          </div>
         </div>
+        <p class="home-cal-msg" id="home-cal-msg" hidden></p>
         <div class="cal-grid cal-dow" aria-hidden="true">
           <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
         </div>
@@ -124,12 +133,12 @@
 
   </div>
 
-  <footer class="home-footer">SEPA Resource Library v0.19</footer>
+  <footer class="home-footer">SEPA Resource Library v0.20</footer>
 
 </div>
 
-<script src="js/script.js?v=0.19"></script>
-<script src="js/config.js?v=0.19"></script>
-<script src="js/home-calendar.js?v=0.19"></script>
+<script src="js/script.js?v=0.20"></script>
+<script src="js/config.js?v=0.20"></script>
+<script src="js/home-calendar.js?v=0.20"></script>
 </body>
 </html>
