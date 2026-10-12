@@ -1,5 +1,54 @@
 # Changelog
 
+## v0.25
+- MASS CARE PAGE BUILT (pages/masscare.html, the homepage's Mass Care button). It was a "coming
+  soon" filler. Now a red page like the others with:
+  - Four big buttons across the top: Launch SCIA (navy; the same address as SCIA in the Quick
+    launch bar, redcross.org/scia), Escalation Form, Reception Center Form, and "Find someone in
+    the Red Cross that you need" (opens Contacts)
+  - Every file from Library assets/Mass Care Resources, one line each with its type, size and a
+    Download button, in groups: Start here, Important forms, Sheltering, Helping clients with
+    disabilities and access needs, Feeding, Military-connected clients, Logistics, Videos. A search
+    box filters them as you type
+  - Files are in documents/masscare with plain web-safe names; titles were tidied (e.g. "(Master)",
+    "Editable" and "- OneSource" dropped, "Ofline" and "Fullfillment" corrected)
+- Left out: only the "Restricted" folder (Library Administration and permissions videos; Sean:
+  ignore it for now). "Shelter Key Phone Numbers (Dec 2025)" IS included (Sean: those numbers are
+  public, most match the Contacts page). Files that sit in more than one of Sean's folders are listed
+  in each of those groups on purpose ("so people can find things wherever they end up"); the page
+  points them all at one copy of the file. A SCIA group was added for the SCIA Resources folder. The
+  Supervisor Shift Change document appears in Start here and Important forms, both using the newer
+  (Feb 15) version
+- VIDEOS: the two long ones were too big for GitHub (172 MB and 145 MB; the limit is 100 MB per file),
+  so they were re-encoded at 720p: Volunteer Training for Family Resource Centers (41 min, 69 MB) and
+  Mass Care Feeding Workshop (54 min, 74 MB). Slides stay readable. The originals in Library assets
+  are untouched. The Primer on SCIA Interface Changes is the original (28 MB). The "Speciality Driver
+  Videos" shortcut is a link to its YouTube playlist
+- Version number is now ?v=0.25 on every page and the homepage footer reads v0.25
+
+## v0.24
+- FORUMS ON THE RED BACKGROUND, like Contacts and Onboarding (Sean: for consistency). The logo sits
+  on a white card in the middle; "Log in / Register" (white) and "Close this tab" are top right.
+  Words straight on the red are white; boards, threads and posts stay white cards. On phones the
+  board counts sit under the board name
+- A client-privacy box right under the "Discussion Forums" title on the forums' front page: never
+  post a client's name, address, phone number, case number, health details, or a photo or
+  description that could identify them. The photo rules on the Share your Photos board are unchanged
+- ONBOARDING PAGE, Sean's wording changes:
+  - The welcome is split: "Welcome Aboard!" then, on its own line, "Thank you so much for joining
+    us". "an average of" is gone: "helps more than 50 displaced families every month..."
+  - Step 1: the three contact cards are smaller (40px photos, smaller type) so they no longer
+    dominate; the "Not sure who your Team Leader is?" line is in a yellow box to stand out
+  - Step 3: "It can be hard to find these on the Volunteer Connection site, so use How to Find
+    Your Assigned Trainings". "Tell your Team Leader when you have finished RC Respond Basics and
+    you're ready to go out and observe. You'll be sent a link to set up your account. Then list
+    yourself as On Call..." "Take a look at What a Request Looks Like on Your Phone to see exactly
+    what will be coming to you and understand each step."
+  - Step 5 heading is now "Your first time out – Don't panic!" (removed from the text below)
+  - The closing thank-you is now a heading the same size as the steps, with a navy heart badge
+- No Google script change
+- Version number is now ?v=0.24 on every page and the homepage footer reads v0.24
+
 ## v0.23
 - DISCUSSION FORUMS REBUILT as a classic message board, from Sean's "Forums" document:
   - Six boards: New to the Red Cross? Ask your questions here / General Discussion / Help tackling

@@ -279,6 +279,7 @@
   function boardsPage() {
     document.title = 'Discussion Forums - SEPA Resource Library';
     $('f-title').textContent = 'Discussion Forums'; crumbs([]);
+    $('f-privacy').hidden = false;
     loading();
     call({ action: 'fBoards' }).then(function (r) {
       if (!(r && r.ok)) return failed(r);
@@ -361,7 +362,7 @@
       document.title = 'New thread - ' + b.title + ' - SEPA Resource Library';
       crumbs([['Forums', link('')], [b.title.split(':')[0], link('b=' + b.id)], ['New thread', '']]);
       main.innerHTML = '';
-      main.appendChild(el('p', 'page-intro', 'In: ' + b.title));
+      main.appendChild(el('p', 'page-intro f-new-in', 'In: ' + b.title));
       if (b.id === 'photos') main.appendChild(photoRules(true));
       if (!me) main.appendChild(el('p', 'notice', 'You will be asked to log in or register when you post. What you write here is kept.'));
       main.appendChild(composer({ kind: 'thread', board: b.id, photosBoard: b.id === 'photos', done: function (res) { location.href = link('t=' + res.id); } }));

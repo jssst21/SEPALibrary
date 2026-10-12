@@ -3,26 +3,338 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mass Care Resources - SEPA Resource Library</title>
+<title>Mass Care - SEPA Resource Library</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.23">
+<link rel="stylesheet" href="../css/style.css?v=0.25">
 </head>
-<body class="home">
+<body class="home page-red">
 
-<div class="page-wrap">
+<!-- MASS CARE (v0.25). Red page like Contacts, Onboarding and the Forums.
+     Top: four big buttons. Below: every file from Library assets/Mass Care Resources, in groups, with a
+     search box. The files live in documents/masscare.
+     HOW TO EDIT: each file is one line that starts with <li class="mc-item"> and ends with </li>. The file
+     name appears twice (the title link and the Download button). To add a file, copy a line, change the
+     words and the file name, and put the file in documents/masscare. -->
+
+<div class="page-wrap page-wide">
 
   <header class="page-top">
-    <a href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
+    <a class="page-logo-card" href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
     <a class="back-link" href="../index.html">&times; Close this tab</a>
   </header>
 
-  <h1 class="page-title">Mass Care Resources</h1>
-  <p class="page-intro">This page is coming soon.</p>
+  <h1 class="page-title">Mass Care</h1>
+
+  <!-- The four big buttons. "Launch SCIA" goes to the same address as SCIA in the homepage's Quick launch bar. -->
+  <nav class="mc-launch" aria-label="Mass Care tools">
+    <a class="mc-btn mc-btn-main" href="https://www.redcross.org/scia" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14V3zM5 5h6v2H5v12h12v-6h2v8H3V5h2z"/></svg>
+      <span>Launch SCIA</span></a>
+    <a class="mc-btn" href="escalation.html" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 18H2L12 2zm0 4.3L5.4 18h13.2L12 6.3zM11 10h2v4h-2v-4zm0 5h2v2h-2v-2z"/></svg>
+      <span>Escalation Form</span></a>
+    <a class="mc-btn" href="reception.html" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10v2h3v18H4V4h3V2zm2 2v2h6V4H9zM6 6v14h12V6h-1v2H7V6H6zm2 5h8v2H8v-2zm0 4h6v2H8v-2z"/></svg>
+      <span>Reception Center Form</span></a>
+    <a class="mc-btn" href="contacts.html" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4a4 4 0 110 8 4 4 0 010-8zm0 2a2 2 0 100 4 2 2 0 000-4zm0 8c3.3 0 7 1.6 7 4v2H3v-2c0-2.4 3.7-4 7-4zm0 2c-2.6 0-4.7 1.1-5 2h10c-.3-.9-2.4-2-5-2zm9.5-7.5l1.4 1.4-2.1 2.1 2.1 2.1-1.4 1.4-2.1-2.1V9.6l2.1-2.1z"/></svg>
+      <span>Find someone in the Red Cross that you need</span></a>
+  </nav>
+
+  <div class="mc-resources">
+    <div class="mc-head">
+      <h2 class="mc-h">Mass Care Resources</h2>
+      <label class="mc-search"><span class="visually-hidden">Search these resources</span>
+        <input type="search" id="mc-q" placeholder="Search these resources, e.g. pets, intake, minors" autocomplete="off"></label>
+    </div>
+    <p class="mc-hint">Click a title to open it, or Download to save a copy. Word and PowerPoint files download when opened.</p>
+    <p class="mc-none" id="mc-none" hidden>Nothing matches that. Try a different word.</p>
+  <section class="mc-section">
+    <h2 class="people-head">Start here <span class="mc-count">6</span></h2>
+    <ul class="mc-list">
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/shelter-quick-start-guide-dec-2025.pdf" target="_blank" rel="noopener">Shelter Quick Start Guide (Dec 2025)</a>
+        <span class="mc-meta">PDF &middot; 219 KB</span><a class="doc-dl" href="../documents/masscare/shelter-quick-start-guide-dec-2025.pdf" download="Shelter Quick Start Guide (Dec 2025).pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-ppt">Slides</span>
+        <a class="mc-title" href="../documents/masscare/15-minute-mass-care-overview-deck.pptx" target="_blank" rel="noopener">15 Minute Mass Care Overview Deck</a>
+        <span class="mc-meta">PowerPoint &middot; 4.3 MB</span><a class="doc-dl" href="../documents/masscare/15-minute-mass-care-overview-deck.pptx" download="15 Minute Mass Care Overview Deck.pptx">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/shelter-client-welcome-handout.pdf" target="_blank" rel="noopener">Shelter Client Welcome Handout</a>
+        <span class="mc-meta">PDF &middot; 225 KB</span><a class="doc-dl" href="../documents/masscare/shelter-client-welcome-handout.pdf" download="Shelter Client Welcome Handout.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/how-to-update-mass-care-availability.pdf" target="_blank" rel="noopener">How to Update Mass Care Availability</a>
+        <span class="mc-meta">PDF &middot; 158 KB</span><a class="doc-dl" href="../documents/masscare/how-to-update-mass-care-availability.pdf" download="How to Update Mass Care Availability.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-word">Word</span>
+        <a class="mc-title" href="../documents/masscare/supervisor-shift-change-documentation.docx" target="_blank" rel="noopener">Supervisor Shift Change Documentation</a>
+        <span class="mc-meta">Word &middot; 62 KB</span><a class="doc-dl" href="../documents/masscare/supervisor-shift-change-documentation.docx" download="Supervisor Shift Change Documentation.docx">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/setting-up-survey-123.pdf" target="_blank" rel="noopener">Setting Up Survey123</a>
+        <span class="mc-meta">PDF &middot; 1.4 MB</span><a class="doc-dl" href="../documents/masscare/setting-up-survey-123.pdf" download="Setting Up Survey123.pdf">Download</a></li>
+    </ul>
+  </section>
+  <section class="mc-section">
+    <h2 class="people-head">Important forms <span class="mc-count">19</span></h2>
+    <ul class="mc-list">
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/concept-of-operations-5-0.pdf" target="_blank" rel="noopener">Concept of Operations 5.0</a>
+        <span class="mc-meta">PDF &middot; 6.0 MB</span><a class="doc-dl" href="../documents/masscare/concept-of-operations-5-0.pdf" download="Concept of Operations 5.0.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-word">Word</span>
+        <a class="mc-title" href="../documents/masscare/daily-shelter-summary.docx" target="_blank" rel="noopener">Daily Shelter Summary</a>
+        <span class="mc-meta">Word &middot; 53 KB</span><a class="doc-dl" href="../documents/masscare/daily-shelter-summary.docx" download="Daily Shelter Summary.docx">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/dealing-with-law-enforcement.pdf" target="_blank" rel="noopener">Dealing with Law Enforcement</a>
+        <span class="mc-meta">PDF &middot; 84 KB</span><a class="doc-dl" href="../documents/masscare/dealing-with-law-enforcement.pdf" download="Dealing with Law Enforcement.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/6409-form.pdf" target="_blank" rel="noopener">Form 6409</a>
+        <span class="mc-meta">PDF &middot; 476 KB</span><a class="doc-dl" href="../documents/masscare/6409-form.pdf" download="Form 6409.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-word">Word</span>
+        <a class="mc-title" href="../documents/masscare/fulfillment-team-request-form.docx" target="_blank" rel="noopener">Fulfillment Team Request Form</a>
+        <span class="mc-meta">Word &middot; 40 KB</span><a class="doc-dl" href="../documents/masscare/fulfillment-team-request-form.docx" download="Fulfillment Team Request Form.docx">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-word">Word</span>
+        <a class="mc-title" href="../documents/masscare/important-shelter-forms.docx" target="_blank" rel="noopener">Important Shelter Forms</a>
+        <span class="mc-meta">Word &middot; 77 KB</span><a class="doc-dl" href="../documents/masscare/important-shelter-forms.docx" download="Important Shelter Forms.docx">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/paper-intake-form.pdf" target="_blank" rel="noopener">Paper Intake Form</a>
+        <span class="mc-meta">PDF &middot; 91 KB</span><a class="doc-dl" href="../documents/masscare/paper-intake-form.pdf" download="Paper Intake Form.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/reunification-job-tool.pdf" target="_blank" rel="noopener">Reunification Job Tool</a>
+        <span class="mc-meta">PDF &middot; 107 KB</span><a class="doc-dl" href="../documents/masscare/reunification-job-tool.pdf" download="Reunification Job Tool.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/scia-offline-intake-20-cases.pdf" target="_blank" rel="noopener">SCIA Offline Intake (20 Cases)</a>
+        <span class="mc-meta">PDF &middot; 2.5 MB</span><a class="doc-dl" href="../documents/masscare/scia-offline-intake-20-cases.pdf" download="SCIA Offline Intake (20 Cases).pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/scia-finding-someone-who-has-checked-out.pdf" target="_blank" rel="noopener">SCIA: Finding Someone Who Has Checked Out</a>
+        <span class="mc-meta">PDF &middot; 156 KB</span><a class="doc-dl" href="../documents/masscare/scia-finding-someone-who-has-checked-out.pdf" download="SCIA - Finding Someone Who Has Checked Out.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-ppt">Slides</span>
+        <a class="mc-title" href="../documents/masscare/shelter-items-checklist.pptx" target="_blank" rel="noopener">Shelter Items Checklist</a>
+        <span class="mc-meta">PowerPoint &middot; 290 KB</span><a class="doc-dl" href="../documents/masscare/shelter-items-checklist.pptx" download="Shelter Items Checklist.pptx">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/shelter-log.pdf" target="_blank" rel="noopener">Shelter Log</a>
+        <span class="mc-meta">PDF &middot; 254 KB</span><a class="doc-dl" href="../documents/masscare/shelter-log.pdf" download="Shelter Log.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/shelter-opening-supply-list.pdf" target="_blank" rel="noopener">Shelter Opening Supply List</a>
+        <span class="mc-meta">PDF &middot; 155 KB</span><a class="doc-dl" href="../documents/masscare/shelter-opening-supply-list.pdf" download="Shelter Opening Supply List.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/shelter-shift-inspection-form.pdf" target="_blank" rel="noopener">Shelter Shift Inspection Form</a>
+        <span class="mc-meta">PDF &middot; 197 KB</span><a class="doc-dl" href="../documents/masscare/shelter-shift-inspection-form.pdf" download="Shelter Shift Inspection Form.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/shelter-web-links.pdf" target="_blank" rel="noopener">Shelter Web Links</a>
+        <span class="mc-meta">PDF &middot; 141 KB</span><a class="doc-dl" href="../documents/masscare/shelter-web-links.pdf" download="Shelter Web Links.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-word">Word</span>
+        <a class="mc-title" href="../documents/masscare/staffing-request-form.docx" target="_blank" rel="noopener">Staffing Request Form</a>
+        <span class="mc-meta">Word &middot; 105 KB</span><a class="doc-dl" href="../documents/masscare/staffing-request-form.docx" download="Staffing Request Form.docx">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/unaccompanied-minor-report-form.pdf" target="_blank" rel="noopener">Unaccompanied Minor Report Form</a>
+        <span class="mc-meta">PDF &middot; 432 KB</span><a class="doc-dl" href="../documents/masscare/unaccompanied-minor-report-form.pdf" download="Unaccompanied Minor Report Form.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/use-agreement.pdf" target="_blank" rel="noopener">Use Agreement</a>
+        <span class="mc-meta">PDF &middot; 174 KB</span><a class="doc-dl" href="../documents/masscare/use-agreement.pdf" download="Use Agreement.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/using-rc-care-before-a-da-is-done-for-mass-care.pdf" target="_blank" rel="noopener">Using RC Care Before a DA Is Done (Mass Care)</a>
+        <span class="mc-meta">PDF &middot; 3.5 MB</span><a class="doc-dl" href="../documents/masscare/using-rc-care-before-a-da-is-done-for-mass-care.pdf" download="Using RC Care Before a DA Is Done (Mass Care).pdf">Download</a></li>
+    </ul>
+  </section>
+  <section class="mc-section">
+    <h2 class="people-head">Sheltering <span class="mc-count">30</span></h2>
+    <ul class="mc-list">
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/animals-in-shelters.pdf" target="_blank" rel="noopener">Animals in Shelters</a>
+        <span class="mc-meta">PDF &middot; 94 KB</span><a class="doc-dl" href="../documents/masscare/animals-in-shelters.pdf" download="Animals in Shelters.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/approved-shelter-necessities-list.pdf" target="_blank" rel="noopener">Approved Shelter Necessities List</a>
+        <span class="mc-meta">PDF &middot; 1.9 MB</span><a class="doc-dl" href="../documents/masscare/approved-shelter-necessities-list.pdf" download="Approved Shelter Necessities List.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/cleaning-and-maintaining-pet-areas.pdf" target="_blank" rel="noopener">Cleaning and Maintaining Pet Areas</a>
+        <span class="mc-meta">PDF &middot; 313 KB</span><a class="doc-dl" href="../documents/masscare/cleaning-and-maintaining-pet-areas.pdf" download="Cleaning and Maintaining Pet Areas.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/cleaning-cots-at-the-shelter.pdf" target="_blank" rel="noopener">Cleaning Cots at the Shelter</a>
+        <span class="mc-meta">PDF &middot; 367 KB</span><a class="doc-dl" href="../documents/masscare/cleaning-cots-at-the-shelter.pdf" download="Cleaning Cots at the Shelter.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/client-volunteers-in-shelters-tip-sheet.pdf" target="_blank" rel="noopener">Client Volunteers in Shelters Tip Sheet</a>
+        <span class="mc-meta">PDF &middot; 144 KB</span><a class="doc-dl" href="../documents/masscare/client-volunteers-in-shelters-tip-sheet.pdf" download="Client Volunteers in Shelters Tip Sheet.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/complete-shelter-useful-information-book.pdf" target="_blank" rel="noopener">Complete Shelter Useful Information Book</a>
+        <span class="mc-meta">PDF &middot; 11.4 MB</span><a class="doc-dl" href="../documents/masscare/complete-shelter-useful-information-book.pdf" download="Complete Shelter Useful Information Book.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/creating-a-client-first-sheltering-environment.pdf" target="_blank" rel="noopener">Creating a Client-First Sheltering Environment</a>
+        <span class="mc-meta">PDF &middot; 209 KB</span><a class="doc-dl" href="../documents/masscare/creating-a-client-first-sheltering-environment.pdf" download="Creating a Client-First Sheltering Environment.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/evicting-a-client-from-a-shelter.pdf" target="_blank" rel="noopener">Evicting a Client from a Shelter</a>
+        <span class="mc-meta">PDF &middot; 307 KB</span><a class="doc-dl" href="../documents/masscare/evicting-a-client-from-a-shelter.pdf" download="Evicting a Client from a Shelter.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/interacting-with-shelter-clients-tip-sheet.pdf" target="_blank" rel="noopener">Interacting with Shelter Clients Tip Sheet</a>
+        <span class="mc-meta">PDF &middot; 125 KB</span><a class="doc-dl" href="../documents/masscare/interacting-with-shelter-clients-tip-sheet.pdf" download="Interacting with Shelter Clients Tip Sheet.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/interview-do-s-and-don-ts-for-red-cross-workers.pdf" target="_blank" rel="noopener">Interview Do&#x27;s and Don&#x27;ts for Red Cross Workers</a>
+        <span class="mc-meta">PDF &middot; 207 KB</span><a class="doc-dl" href="../documents/masscare/interview-do-s-and-don-ts-for-red-cross-workers.pdf" download="Interview Do&#x27;s and Don&#x27;ts for Red Cross Workers.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/just-in-time-sheltering-knowledge-and-skill-building-presentations.pdf" target="_blank" rel="noopener">Just-In-Time Sheltering Knowledge and Skill Building Presentations</a>
+        <span class="mc-meta">PDF &middot; 326 KB</span><a class="doc-dl" href="../documents/masscare/just-in-time-sheltering-knowledge-and-skill-building-presentations.pdf" download="Just-In-Time Sheltering Knowledge and Skill Building Presentations.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/keeping-shelter-clients-informed-about-the-disaster-and-red-cross-services.pdf" target="_blank" rel="noopener">Keeping Shelter Clients Informed about the Disaster and Red Cross Services</a>
+        <span class="mc-meta">PDF &middot; 321 KB</span><a class="doc-dl" href="../documents/masscare/keeping-shelter-clients-informed-about-the-disaster-and-red-cross-services.pdf" download="Keeping Shelter Clients Informed about the Disaster and Red Cross Services.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/law-enforcement-doctrine.pdf" target="_blank" rel="noopener">Law Enforcement Doctrine</a>
+        <span class="mc-meta">PDF &middot; 128 KB</span><a class="doc-dl" href="../documents/masscare/law-enforcement-doctrine.pdf" download="Law Enforcement Doctrine.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/maintaining-safety-and-health-in-shelters.pdf" target="_blank" rel="noopener">Maintaining Safety and Health in Shelters</a>
+        <span class="mc-meta">PDF &middot; 334 KB</span><a class="doc-dl" href="../documents/masscare/maintaining-safety-and-health-in-shelters.pdf" download="Maintaining Safety and Health in Shelters.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/maintaining-security-at-the-shelter.pdf" target="_blank" rel="noopener">Maintaining Security at the Shelter</a>
+        <span class="mc-meta">PDF &middot; 266 KB</span><a class="doc-dl" href="../documents/masscare/maintaining-security-at-the-shelter.pdf" download="Maintaining Security at the Shelter.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/managing-unaccompanied-or-displaced-minors-and-reports-of-a-missing-child-at-a-s.pdf" target="_blank" rel="noopener">Managing Unaccompanied or Displaced Minors and Reports of a Missing Child at a Shelter</a>
+        <span class="mc-meta">PDF &middot; 425 KB</span><a class="doc-dl" href="../documents/masscare/managing-unaccompanied-or-displaced-minors-and-reports-of-a-missing-child-at-a-s.pdf" download="Managing Unaccompanied or Displaced Minors and Reports of a Missing Child at a Shelter.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/protecting-the-dignity-and-privacy-of-shelter-clients.pdf" target="_blank" rel="noopener">Protecting the Dignity and Privacy of Shelter Clients</a>
+        <span class="mc-meta">PDF &middot; 305 KB</span><a class="doc-dl" href="../documents/masscare/protecting-the-dignity-and-privacy-of-shelter-clients.pdf" download="Protecting the Dignity and Privacy of Shelter Clients.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/responding-to-conflict-and-difficult-client-situations-in-a-shelter.pdf" target="_blank" rel="noopener">Responding to Conflict and Difficult Client Situations in a Shelter</a>
+        <span class="mc-meta">PDF &middot; 350 KB</span><a class="doc-dl" href="../documents/masscare/responding-to-conflict-and-difficult-client-situations-in-a-shelter.pdf" download="Responding to Conflict and Difficult Client Situations in a Shelter.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/responding-to-incidents-with-pets.pdf" target="_blank" rel="noopener">Responding to Incidents with Pets</a>
+        <span class="mc-meta">PDF &middot; 291 KB</span><a class="doc-dl" href="../documents/masscare/responding-to-incidents-with-pets.pdf" download="Responding to Incidents with Pets.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/safety-in-shelters-emergency-action-plan.pdf" target="_blank" rel="noopener">Safety in Shelters Emergency Action Plan</a>
+        <span class="mc-meta">PDF &middot; 2.4 MB</span><a class="doc-dl" href="../documents/masscare/safety-in-shelters-emergency-action-plan.pdf" download="Safety in Shelters Emergency Action Plan.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/serving-clients-legally-required-to-register-with-government-agencies.pdf" target="_blank" rel="noopener">Serving Clients Legally Required to Register with Government Agencies</a>
+        <span class="mc-meta">PDF &middot; 318 KB</span><a class="doc-dl" href="../documents/masscare/serving-clients-legally-required-to-register-with-government-agencies.pdf" download="Serving Clients Legally Required to Register with Government Agencies.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/sheltering-useful-information-contents.pdf" target="_blank" rel="noopener">Sheltering Useful Information: Contents</a>
+        <span class="mc-meta">PDF &middot; 27 KB</span><a class="doc-dl" href="../documents/masscare/sheltering-useful-information-contents.pdf" download="Sheltering Useful Information - Contents.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/storing-client-belongings.pdf" target="_blank" rel="noopener">Storing Client Belongings</a>
+        <span class="mc-meta">PDF &middot; 344 KB</span><a class="doc-dl" href="../documents/masscare/storing-client-belongings.pdf" download="Storing Client Belongings.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/supporting-accessibility-at-shelters.pdf" target="_blank" rel="noopener">Supporting Accessibility at Shelters</a>
+        <span class="mc-meta">PDF &middot; 251 KB</span><a class="doc-dl" href="../documents/masscare/supporting-accessibility-at-shelters.pdf" download="Supporting Accessibility at Shelters.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/welcoming-and-supporting-partners-working-at-a-shelter.pdf" target="_blank" rel="noopener">Welcoming and Supporting Partners Working at a Shelter</a>
+        <span class="mc-meta">PDF &middot; 280 KB</span><a class="doc-dl" href="../documents/masscare/welcoming-and-supporting-partners-working-at-a-shelter.pdf" download="Welcoming and Supporting Partners Working at a Shelter.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/what-to-expect-on-the-job-first-time-congregate-shelter-service-worker.pdf" target="_blank" rel="noopener">What to Expect on the Job: First-Time Congregate Shelter Service Worker</a>
+        <span class="mc-meta">PDF &middot; 175 KB</span><a class="doc-dl" href="../documents/masscare/what-to-expect-on-the-job-first-time-congregate-shelter-service-worker.pdf" download="What to Expect on the Job - First-Time Congregate Shelter Service Worker.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/when-and-how-to-offer-disaster-mental-health-services.pdf" target="_blank" rel="noopener">When and How to Offer Disaster Mental Health Services</a>
+        <span class="mc-meta">PDF &middot; 970 KB</span><a class="doc-dl" href="../documents/masscare/when-and-how-to-offer-disaster-mental-health-services.pdf" download="When and How to Offer Disaster Mental Health Services.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/when-to-refer-to-disaster-mental-health-reference-card.pdf" target="_blank" rel="noopener">When to Refer to Disaster Mental Health: Reference Card</a>
+        <span class="mc-meta">PDF &middot; 452 KB</span><a class="doc-dl" href="../documents/masscare/when-to-refer-to-disaster-mental-health-reference-card.pdf" download="When to Refer to Disaster Mental Health - Reference Card.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/when-to-refer-to-disaster-spiritual-care.pdf" target="_blank" rel="noopener">When to Refer to Disaster Spiritual Care</a>
+        <span class="mc-meta">PDF &middot; 352 KB</span><a class="doc-dl" href="../documents/masscare/when-to-refer-to-disaster-spiritual-care.pdf" download="When to Refer to Disaster Spiritual Care.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/working-with-disaster-spiritual-care-in-shelters.pdf" target="_blank" rel="noopener">Working with Disaster Spiritual Care in Shelters</a>
+        <span class="mc-meta">PDF &middot; 266 KB</span><a class="doc-dl" href="../documents/masscare/working-with-disaster-spiritual-care-in-shelters.pdf" download="Working with Disaster Spiritual Care in Shelters.pdf">Download</a></li>
+    </ul>
+  </section>
+  <section class="mc-section">
+    <h2 class="people-head">Helping clients with disabilities and access needs <span class="mc-count">10</span></h2>
+    <ul class="mc-list">
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/helping-autistic-clients.pdf" target="_blank" rel="noopener">Helping Autistic Clients</a>
+        <span class="mc-meta">PDF &middot; 42 KB</span><a class="doc-dl" href="../documents/masscare/helping-autistic-clients.pdf" download="Helping Autistic Clients.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/helping-clients-with-cognitive-disabilities.pdf" target="_blank" rel="noopener">Helping Clients with Cognitive Disabilities</a>
+        <span class="mc-meta">PDF &middot; 63 KB</span><a class="doc-dl" href="../documents/masscare/helping-clients-with-cognitive-disabilities.pdf" download="Helping Clients with Cognitive Disabilities.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/helping-clients-with-mental-health-issues.pdf" target="_blank" rel="noopener">Helping Clients with Mental Health Issues</a>
+        <span class="mc-meta">PDF &middot; 41 KB</span><a class="doc-dl" href="../documents/masscare/helping-clients-with-mental-health-issues.pdf" download="Helping Clients with Mental Health Issues.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/helping-clients-with-mobility-issues.pdf" target="_blank" rel="noopener">Helping Clients with Mobility Issues</a>
+        <span class="mc-meta">PDF &middot; 46 KB</span><a class="doc-dl" href="../documents/masscare/helping-clients-with-mobility-issues.pdf" download="Helping Clients with Mobility Issues.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/helping-clients-with-seizure-disorders.pdf" target="_blank" rel="noopener">Helping Clients with Seizure Disorders</a>
+        <span class="mc-meta">PDF &middot; 41 KB</span><a class="doc-dl" href="../documents/masscare/helping-clients-with-seizure-disorders.pdf" download="Helping Clients with Seizure Disorders.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/helping-hearing-impaired-clients.pdf" target="_blank" rel="noopener">Helping Hearing Impaired Clients</a>
+        <span class="mc-meta">PDF &middot; 41 KB</span><a class="doc-dl" href="../documents/masscare/helping-hearing-impaired-clients.pdf" download="Helping Hearing Impaired Clients.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/helping-people-with-service-animals.pdf" target="_blank" rel="noopener">Helping People with Service Animals</a>
+        <span class="mc-meta">PDF &middot; 32 KB</span><a class="doc-dl" href="../documents/masscare/helping-people-with-service-animals.pdf" download="Helping People with Service Animals.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/helping-pregnant-clients-and-babies.pdf" target="_blank" rel="noopener">Helping Pregnant Clients and Babies</a>
+        <span class="mc-meta">PDF &middot; 46 KB</span><a class="doc-dl" href="../documents/masscare/helping-pregnant-clients-and-babies.pdf" download="Helping Pregnant Clients and Babies.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/helping-senior-clients.pdf" target="_blank" rel="noopener">Helping Senior Clients</a>
+        <span class="mc-meta">PDF &middot; 33 KB</span><a class="doc-dl" href="../documents/masscare/helping-senior-clients.pdf" download="Helping Senior Clients.pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/helping-visually-impaired-clients.pdf" target="_blank" rel="noopener">Helping Visually Impaired Clients</a>
+        <span class="mc-meta">PDF &middot; 41 KB</span><a class="doc-dl" href="../documents/masscare/helping-visually-impaired-clients.pdf" download="Helping Visually Impaired Clients.pdf">Download</a></li>
+    </ul>
+  </section>
+  <section class="mc-section">
+    <h2 class="people-head">Feeding <span class="mc-count">1</span></h2>
+    <ul class="mc-list">
+      <li class="mc-item"><span class="mc-type mc-ppt">Slides</span>
+        <a class="mc-title" href="../documents/masscare/strengthen-congregate-feeding-skills.pptx" target="_blank" rel="noopener">Strengthen Congregate Feeding Skills</a>
+        <span class="mc-meta">PowerPoint &middot; 2.1 MB</span><a class="doc-dl" href="../documents/masscare/strengthen-congregate-feeding-skills.pptx" download="Strengthen Congregate Feeding Skills.pptx">Download</a></li>
+    </ul>
+  </section>
+  <section class="mc-section">
+    <h2 class="people-head">Military-connected clients <span class="mc-count">3</span></h2>
+    <ul class="mc-list">
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/military-connected-clients-casework-2-pager-aug-2026.pdf" target="_blank" rel="noopener">Military-Connected Clients: Casework 2-Pager (Aug 2026)</a>
+        <span class="mc-meta">PDF &middot; 155 KB</span><a class="doc-dl" href="../documents/masscare/military-connected-clients-casework-2-pager-aug-2026.pdf" download="Military-Connected Clients - Casework 2-Pager (Aug 2026).pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/military-connected-clients-scia-and-rc-care-2-pager-aug-2026.pdf" target="_blank" rel="noopener">Military-Connected Clients: SCIA and RC Care 2-Pager (Aug 2026)</a>
+        <span class="mc-meta">PDF &middot; 166 KB</span><a class="doc-dl" href="../documents/masscare/military-connected-clients-scia-and-rc-care-2-pager-aug-2026.pdf" download="Military-Connected Clients - SCIA and RC Care 2-Pager (Aug 2026).pdf">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/sepa-job-tool-supporting-military-connected-clients-aug-2026.pdf" target="_blank" rel="noopener">SEPA Job Tool: Supporting Military-Connected Clients (Aug 2026)</a>
+        <span class="mc-meta">PDF &middot; 767 KB</span><a class="doc-dl" href="../documents/masscare/sepa-job-tool-supporting-military-connected-clients-aug-2026.pdf" download="SEPA Job Tool - Supporting Military-Connected Clients (Aug 2026).pdf">Download</a></li>
+    </ul>
+  </section>
+  <section class="mc-section">
+    <h2 class="people-head">Logistics <span class="mc-count">1</span></h2>
+    <ul class="mc-list">
+      <li class="mc-item"><span class="mc-type mc-pdf">PDF</span>
+        <a class="mc-title" href="../documents/masscare/official-spotter-hand-signals.pdf" target="_blank" rel="noopener">Official Spotter Hand Signals</a>
+        <span class="mc-meta">PDF &middot; 134 KB</span><a class="doc-dl" href="../documents/masscare/official-spotter-hand-signals.pdf" download="Official Spotter Hand Signals.pdf">Download</a></li>
+    </ul>
+  </section>
+  <section class="mc-section">
+    <h2 class="people-head">Videos <span class="mc-count">4</span></h2>
+    <ul class="mc-list">
+      <li class="mc-item"><span class="mc-type mc-video">Video</span>
+        <a class="mc-title" href="../documents/masscare/primer-on-scia-interface-changes.mp4" target="_blank" rel="noopener">Primer on SCIA Interface Changes</a>
+        <span class="mc-meta">Video &middot; 7 min</span><a class="doc-dl" href="../documents/masscare/primer-on-scia-interface-changes.mp4" download="Primer on SCIA Interface Changes.mp4">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-video">Video</span>
+        <a class="mc-title" href="../documents/masscare/volunteer-training-family-resource-centers.mp4" target="_blank" rel="noopener">Volunteer Training for Family Resource Centers</a>
+        <span class="mc-meta">Video &middot; 41 min</span><a class="doc-dl" href="../documents/masscare/volunteer-training-family-resource-centers.mp4" download="Volunteer Training for Family Resource Centers.mp4">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-video">Video</span>
+        <a class="mc-title" href="../documents/masscare/mass-care-feeding-workshop.mp4" target="_blank" rel="noopener">Mass Care Feeding Workshop</a>
+        <span class="mc-meta">Video &middot; 54 min</span><a class="doc-dl" href="../documents/masscare/mass-care-feeding-workshop.mp4" download="Mass Care Feeding Workshop.mp4">Download</a></li>
+      <li class="mc-item"><span class="mc-type mc-link">YouTube</span>
+        <a class="mc-title" href="https://www.youtube.com/playlist?list=PLkWdjWl12oHxw2Tn-9CIe-sxVXbx6M04k" target="_blank" rel="noopener">Specialty Driver Videos (YouTube playlist)</a>
+        <span class="mc-meta">Opens YouTube</span></li>
+    </ul>
+  </section>
+  </div>
 
 </div>
 
-<script src="../js/close-tab.js?v=0.23"></script>
+<script>
+// Search box: hides the files that do not match and any group left empty.
+(function () {
+  var q = document.getElementById('mc-q'); if (!q) return;
+  q.addEventListener('input', function () {
+    var words = q.value.toLowerCase().split(/\s+/).filter(Boolean), any = false;
+    Array.prototype.forEach.call(document.querySelectorAll('.mc-section'), function (s) {
+      var shown = 0;
+      Array.prototype.forEach.call(s.querySelectorAll('.mc-item'), function (li) {
+        var t = li.textContent.toLowerCase(), ok = words.every(function (w) { return t.indexOf(w) >= 0; });
+        li.hidden = !ok; if (ok) shown++;
+      });
+      s.hidden = !shown; if (shown) any = true;
+    });
+    document.getElementById('mc-none').hidden = any;
+  });
+})();
+</script>
+<script src="../js/close-tab.js?v=0.25"></script>
 </body>
 </html>

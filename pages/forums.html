@@ -7,11 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.23">
+<link rel="stylesheet" href="../css/style.css?v=0.25">
 </head>
-<body class="home forum-page">
+<body class="home page-red forum-page">
 
-<!-- DISCUSSION FORUMS (rebuilt in v0.23). A classic message board. js/forums.js draws everything.
+<!-- DISCUSSION FORUMS (rebuilt in v0.23; red background like Contacts and Onboarding since v0.24). A classic message board. js/forums.js draws everything.
      forums.html              the six boards
      forums.html?b=BOARD      one board's threads (add &p=2 for page 2)
      forums.html?t=THREAD     one thread (20 posts a page; &p=2, or &p=last for the newest page)
@@ -22,7 +22,7 @@
 <div class="page-wrap forum-wrap">
 
   <header class="page-top forum-top">
-    <a href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
+    <a class="page-logo-card" href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
     <div class="forum-top-right">
       <div class="f-acct" id="f-acct">
         <button type="button" class="f-acct-btn" id="f-login-open">Log in / Register</button>
@@ -37,6 +37,12 @@
 
   <h1 class="page-title" id="f-title">Discussion Forums</h1>
   <nav class="f-crumbs" id="f-crumbs" aria-label="Where you are" hidden></nav>
+
+  <!-- The client-privacy rule, right under the title on the forums' front page (v0.24, Sean asked). -->
+  <div class="f-privacy" id="f-privacy" hidden>
+    <strong>Protect our clients' privacy.</strong> Never post a client's name, address, phone number, case number,
+    health details, or a photo or description that could identify them. Talk about the situation, not the person.
+  </div>
 
   <p class="notice f-welcome" id="f-welcome" hidden>You can read everything here without an account. To start a thread or reply,
     make a simple account: <button type="button" class="link-btn" data-open="register">Register</button>. Any email address
@@ -91,8 +97,8 @@
   </div>
 </div>
 
-<script src="../js/config.js?v=0.23"></script>
-<script src="../js/forums.js?v=0.23"></script>
-<script src="../js/close-tab.js?v=0.23"></script>
+<script src="../js/config.js?v=0.25"></script>
+<script src="../js/forums.js?v=0.25"></script>
+<script src="../js/close-tab.js?v=0.25"></script>
 </body>
 </html>
