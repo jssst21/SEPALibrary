@@ -7,22 +7,176 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.18.1">
+<link rel="stylesheet" href="../css/style.css?v=0.19">
 </head>
-<body class="home">
+<body class="home page-red">
 
-<div class="page-wrap">
+<div class="page-wrap page-wide">
 
+  <!-- Same red look as the Contacts page (page-red on the body tag above). -->
   <header class="page-top">
-    <a href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
+    <a class="page-logo-card" href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
     <a class="back-link" href="../index.html">&times; Close this tab</a>
   </header>
 
-  <h1 class="page-title">Onboarding</h1>
-  <p class="page-intro">This page is coming soon.</p>
+  <h1 class="page-title">Welcome aboard!</h1>
+  <p class="page-intro onb-lead">Thank you so much for joining us. The gift of your time helps an average of more than
+    50 displaced families every month across the Philadelphia region.</p>
+
+  <!-- HOW TO EDIT THE TEAM LEADER BOX
+       To change a contact, change the name, the photo file name, and the email in BOTH places
+       (after mailto: and between > and <). Photos live in images/people. -->
+  <section class="onb-start">
+    <div class="onb-start-text">
+      <h2>Start with your Team Leader</h2>
+      <p>Getting to know our processes and procedures can be confusing at first. Your first resource is
+        always the <strong>Team Leader</strong> you were assigned when you began.</p>
+      <p class="onb-start-ask">Not sure who your Team Leader is? Email either of these two and they will point you
+        the right way:</p>
+    </div>
+    <ul class="people onb-people">
+      <li class="person">
+        <img class="person-photo" src="../images/people/debbie-tevlin.jpg?v=0.19" alt="" width="64" height="64">
+        <div class="person-text">
+          <p class="person-name">Debbie Tevlin</p>
+          <p class="person-title">DAT Regional Volunteer Lead</p>
+          <a class="person-email" href="mailto:debbie.tevlin@redcross.org">debbie.tevlin@redcross.org</a>
+        </div>
+      </li>
+      <li class="person">
+        <img class="person-photo" src="../images/people/marty-westermann.jpg?v=0.19" alt="" width="64" height="64">
+        <div class="person-text">
+          <p class="person-name">Marty Westermann</p>
+          <p class="person-title">DelVal Chapter Volunteer Lead</p>
+          <a class="person-email" href="mailto:marty.westermann@redcross.org">marty.westermann@redcross.org</a>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <p class="page-intro onb-guides-intro">Below are guides to help with the rest of your onboarding. Click a guide to open it,
+    or click <strong>Download</strong> to save a copy to your computer or phone.</p>
+
+  <!-- HOW TO EDIT THE GUIDES
+       Each guide is one block that starts with <li class="doc"> and ends with </li>.
+       - The files live in documents/onboarding. The small pictures live in images/onboarding.
+       - The file name appears THREE times in a block (the picture link, the title link and the
+         Download button). Change all three if you swap a file.
+       - download="..." is the name the file gets when someone saves it. Spaces are fine there.
+       - To add a guide, copy a block, change the words and file names, and put the files in place. -->
+
+  <h2 class="people-head">Getting started</h2>
+  <ul class="docs">
+    <li class="doc">
+      <a class="doc-thumb" href="../documents/onboarding/dat-member-expectations.pdf" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/dat-member-expectations.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/dat-member-expectations.pdf" target="_blank" rel="noopener">DAT Member Expectations</a></h3>
+        <p class="doc-desc">What you commit to, what we commit to, and what you get.</p>
+        <p class="doc-foot"><span class="doc-type">PDF &middot; 1 page</span><a class="doc-dl" href="../documents/onboarding/dat-member-expectations.pdf" download="DAT Member Expectations.pdf">Download</a></p>
+      </div>
+    </li>
+    <li class="doc">
+      <a class="doc-thumb" href="../documents/onboarding/how-to-find-your-assigned-trainings.pdf" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/how-to-find-your-assigned-trainings.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/how-to-find-your-assigned-trainings.pdf" target="_blank" rel="noopener">How to Find Your Assigned Trainings</a></h3>
+        <p class="doc-desc">Step by step from Volunteer Connection to EDGE, your transcript and a finished GAP.</p>
+        <p class="doc-foot"><span class="doc-type">PDF &middot; 3 pages</span><a class="doc-dl" href="../documents/onboarding/how-to-find-your-assigned-trainings.pdf" download="How to Find Your Assigned Trainings.pdf">Download</a></p>
+      </div>
+    </li>
+    <li class="doc">
+      <a class="doc-thumb doc-video" href="../documents/onboarding/how-to-use-volunteer-connection.mp4" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/how-to-use-volunteer-connection.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/how-to-use-volunteer-connection.mp4" target="_blank" rel="noopener">How to Use Volunteer Connection</a></h3>
+        <p class="doc-desc">A short video tour of the Volunteer Connection website.</p>
+        <p class="doc-foot"><span class="doc-type">Video &middot; 6 min</span><a class="doc-dl" href="../documents/onboarding/how-to-use-volunteer-connection.mp4" download="How to Use Volunteer Connection.mp4">Download</a></p>
+      </div>
+    </li>
+    <li class="doc">
+      <a class="doc-thumb" href="../documents/onboarding/dat-pocket-guide.pdf" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/dat-pocket-guide.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/dat-pocket-guide.pdf" target="_blank" rel="noopener">DAT Pocket Guide</a></h3>
+        <p class="doc-desc">Quick reference for the scene: safety, assessments, eligibility, scaling up and who to call.</p>
+        <p class="doc-foot"><span class="doc-type">PDF &middot; 16 pages</span><a class="doc-dl" href="../documents/onboarding/dat-pocket-guide.pdf" download="DAT Pocket Guide.pdf">Download</a></p>
+      </div>
+    </li>
+    <li class="doc">
+      <a class="doc-thumb" href="../documents/onboarding/map-to-norristown-meetings.pdf" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/map-to-norristown-meetings.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/map-to-norristown-meetings.pdf" target="_blank" rel="noopener">Map to Norristown Meetings</a></h3>
+        <p class="doc-desc">Which gate to use and where to park. Your GPS will send you to the wrong entrance.</p>
+        <p class="doc-foot"><span class="doc-type">PDF &middot; 1 page</span><a class="doc-dl" href="../documents/onboarding/map-to-norristown-meetings.pdf" download="Map to Norristown Meetings.pdf">Download</a></p>
+      </div>
+    </li>
+  </ul>
+
+  <h2 class="people-head">Going on call</h2>
+  <ul class="docs">
+    <li class="doc">
+      <a class="doc-thumb" href="../documents/onboarding/how-to-go-on-call-volunteer-connection.pdf" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/how-to-go-on-call-volunteer-connection.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/how-to-go-on-call-volunteer-connection.pdf" target="_blank" rel="noopener">How to Go On Call on the Volunteer Connection Website</a></h3>
+        <p class="doc-desc">Sign up for on-call shifts on a computer through RC View and RC Respond.</p>
+        <p class="doc-foot"><span class="doc-type">PDF &middot; 4 pages</span><a class="doc-dl" href="../documents/onboarding/how-to-go-on-call-volunteer-connection.pdf" download="How to Go On Call on the Volunteer Connection Website.pdf">Download</a></p>
+      </div>
+    </li>
+    <li class="doc">
+      <a class="doc-thumb" href="../documents/onboarding/how-to-go-on-call-noggin-app.pdf" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/how-to-go-on-call-noggin-app.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/how-to-go-on-call-noggin-app.pdf" target="_blank" rel="noopener">How to Go On Call with the Noggin App</a></h3>
+        <p class="doc-desc">Put yourself on call from your phone, including the domain that trips people up.</p>
+        <p class="doc-foot"><span class="doc-type">PDF &middot; 2 pages</span><a class="doc-dl" href="../documents/onboarding/how-to-go-on-call-noggin-app.pdf" download="How to Go On Call with the Noggin App.pdf">Download</a></p>
+      </div>
+    </li>
+    <li class="doc">
+      <a class="doc-thumb" href="../documents/onboarding/what-a-request-looks-like.pdf" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/what-a-request-looks-like.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/what-a-request-looks-like.pdf" target="_blank" rel="noopener">What a Request Looks Like on Your Phone</a></h3>
+        <p class="doc-desc">The texts you get during a response, from Requested to Complete, and what to do with each.</p>
+        <p class="doc-foot"><span class="doc-type">PDF &middot; 2 pages</span><a class="doc-dl" href="../documents/onboarding/what-a-request-looks-like.pdf" download="What a Request Looks Like on Your Phone.pdf">Download</a></p>
+      </div>
+    </li>
+  </ul>
+
+  <h2 class="people-head">On scene and after</h2>
+  <ul class="docs">
+    <li class="doc">
+      <a class="doc-thumb" href="../documents/onboarding/your-first-time-to-a-scene.pdf" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/your-first-time-to-a-scene.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/your-first-time-to-a-scene.pdf" target="_blank" rel="noopener">Your First Time to a Scene</a></h3>
+        <p class="doc-desc">The DAT on-scene assessment checklist: arriving, safety, who is there and when to escalate.</p>
+        <p class="doc-foot"><span class="doc-type">PDF &middot; 3 pages</span><a class="doc-dl" href="../documents/onboarding/your-first-time-to-a-scene.pdf" download="Your First Time to a Scene.pdf">Download</a></p>
+      </div>
+    </li>
+    <li class="doc">
+      <a class="doc-thumb" href="../documents/onboarding/what-information-to-collect-at-a-scene.png" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/what-information-to-collect-at-a-scene.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/what-information-to-collect-at-a-scene.png" target="_blank" rel="noopener">What Information to Collect at a Scene</a></h3>
+        <p class="doc-desc">What goes in RC Care case comments and what goes in your RC Respond notes.</p>
+        <p class="doc-foot"><span class="doc-type">Image &middot; 1 page</span><a class="doc-dl" href="../documents/onboarding/what-information-to-collect-at-a-scene.png" download="What Information to Collect at a Scene.png">Download</a></p>
+      </div>
+    </li>
+    <li class="doc">
+      <a class="doc-thumb" href="../documents/onboarding/tips-interacting-with-clients.docx" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/tips-interacting-with-clients.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/tips-interacting-with-clients.docx" target="_blank" rel="noopener">Tips When Interacting with Clients</a></h3>
+        <p class="doc-desc">Put Down the Pen: the 15 pillars of excellent customer service.</p>
+        <p class="doc-foot"><span class="doc-type">Word &middot; 1 page</span><a class="doc-dl" href="../documents/onboarding/tips-interacting-with-clients.docx" download="Tips When Interacting with Clients.docx">Download</a></p>
+      </div>
+    </li>
+    <li class="doc">
+      <a class="doc-thumb" href="../documents/onboarding/how-to-log-in-to-rc-care.pdf" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="../images/onboarding/how-to-log-in-to-rc-care.jpg?v=0.19" alt="" loading="lazy"></a>
+      <div class="doc-body">
+        <h3 class="doc-title"><a href="../documents/onboarding/how-to-log-in-to-rc-care.pdf" target="_blank" rel="noopener">How to Log In to RC Care</a></h3>
+        <p class="doc-desc">Four steps with Single Sign-On, for when you start opening cases.</p>
+        <p class="doc-foot"><span class="doc-type">PDF &middot; 2 pages</span><a class="doc-dl" href="../documents/onboarding/how-to-log-in-to-rc-care.pdf" download="How to Log In to RC Care.pdf">Download</a></p>
+      </div>
+    </li>
+  </ul>
+
+  <p class="onb-thanks">Thank you for volunteering with the Red Cross!</p>
 
 </div>
 
-<script src="../js/close-tab.js?v=0.18.1"></script>
+<script src="../js/close-tab.js?v=0.19"></script>
 </body>
 </html>

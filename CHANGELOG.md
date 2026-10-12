@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.19
+- ONBOARDING PAGE BUILT (pages/new.html, the "Onboarding" button on the homepage). It was a "coming
+  soon" filler. Now it has the same red look as Contacts and:
+  - A welcome: "Welcome aboard!" and the families-helped line (an average of more than 50 displaced
+    families a month across the Philadelphia region; Sean: 50 is an average that goes up and down
+    with the season)
+  - A white box, "Start with your Team Leader", with Debbie Tevlin and Marty Westermann as the
+    people to email if a new volunteer doesn't know who their Team Leader is. Photos, titles and
+    clickable emails are the same as on the Contacts page
+  - 12 guides as cards in three groups (Getting started / Going on call / On scene and after).
+    Each card shows a picture of the first page, the title, one line about it, the file type and
+    length, and a Download button. Clicking the picture or the title opens the guide in a new tab
+  - Guides: DAT Member Expectations, How to Find Your Assigned Trainings, How to Use Volunteer
+    Connection (video), DAT Pocket Guide, Map to Norristown Meetings, How to Go On Call on the
+    Volunteer Connection Website, How to Go On Call with the Noggin App, What a Request Looks Like
+    on Your Phone, Your First Time to a Scene, What Information to Collect at a Scene, Tips When
+    Interacting with Clients (Word), How to Log In to RC Care
+  - "How to Reserve a Car" is left out on purpose (Sean: more advanced than new volunteers need)
+- The guide files are in documents/onboarding and their pictures in images/onboarding. Eight are
+  the versions redesigned on Oct 12, 2026 and dated "Updated October 12, 2026". The Pocket Guide,
+  First Time to a Scene and the Norristown map are unchanged originals. The video is the original
+  file, rearranged so it starts playing before it has fully loaded (nothing re-encoded)
+- DOWNLOADS ACROSS THE SITE (Sean: any document people pull up should be downloadable). Every
+  guide has a Download button, which saves the file with a readable name. The Escalation Form's
+  printable worksheet now also has a "Download the PDF" link next to "Printable PDF of this
+  worksheet". New CSS class doc-dl is the Download button for future pages
+- Version number is now ?v=0.19 on every page and the homepage footer reads v0.19
+
 ## v0.18.1
 - Quick launch: SCIA now opens redcross.org/scia and Practice SCIA opens redcross.org/scia-training.
   These are the short official addresses from the "System Links" table Sean sent on Oct 11, 2026.

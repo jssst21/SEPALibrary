@@ -987,3 +987,61 @@ body:not(.esc-viewing) .esc-flash { animation-name: esc-flash-edit; }
 .esc-item:hover { border-color: var(--navy); }
 .esc-item strong { display: block; font-size: 17px; }
 .esc-item span { display: block; margin-top: 2px; font-size: 14px; color: var(--ink-soft); white-space: pre-wrap; }
+
+/* =========================================================
+   ONBOARDING PAGE (pages/new.html, v0.19)
+   Red page like Contacts. A white "Start with your Team Leader" box, then guide cards: a picture of
+   the first page, the title (opens the file in a new tab), one line about it, and a Download button.
+   Phones: one card per row. Tablets: two. Computers: three.
+   ========================================================= */
+.onb-lead { max-width: 760px; font-size: 20px; }
+.onb-start {
+  margin-top: 22px; padding: 20px 22px; border-radius: 12px; background: #fff;
+  box-shadow: 0 3px 10px rgba(60, 8, 16, .35);
+  display: grid; grid-template-columns: 1fr; gap: 14px; align-items: center;
+}
+.onb-start h2 { font-size: 24px; color: var(--ink); }
+.onb-start p { margin: 6px 0 0; }
+.onb-start-ask { font-weight: 600; }
+.onb-people { margin: 0; grid-template-columns: 1fr !important; }
+.onb-people .person { background: var(--red-tint); border-color: transparent; box-shadow: none; }
+@media (min-width: 900px) { .onb-start { grid-template-columns: 1.1fr 1fr; gap: 24px; } }
+.onb-guides-intro { margin-top: 26px; max-width: 760px; }
+
+.docs { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 640px) { .docs { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1000px) { .docs { grid-template-columns: repeat(3, 1fr); } }
+.doc {
+  display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+  border-radius: var(--radius); background: #fff; box-shadow: 0 2px 5px rgba(60, 8, 16, .35);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.doc:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(60, 8, 16, .4); }
+.doc-thumb { position: relative; display: block; aspect-ratio: 4 / 3; background: #f1eeeb; border-bottom: 1px solid var(--line); overflow: hidden; }
+.doc-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+/* A round play button over the video's picture */
+.doc-video::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px;
+  border-radius: 50%; background: rgba(174, 39, 58, .92) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6.5v11l9-5.5z' fill='%23fff'/%3E%3C/svg%3E") center / 34px no-repeat;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+}
+.doc-body { flex: 1; display: flex; flex-direction: column; padding: 12px 16px 14px; }
+.doc-title { font-size: 19px; line-height: 1.25; }
+.doc-title a { color: var(--ink); text-decoration: none; }
+.doc-title a:hover { color: var(--red); text-decoration: underline; }
+.doc-desc { margin: 6px 0 0; font-size: 15px; line-height: 1.4; color: var(--ink-soft); }
+.doc-foot { margin: auto 0 0; padding-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.doc-type { font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
+/* The Download button. Used on any page that offers a file (class="doc-dl" plus the download attribute). */
+.doc-dl {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px;
+  border: 1.5px solid var(--red); color: var(--red); font-size: 15px; font-weight: 700; text-decoration: none; white-space: nowrap;
+}
+.doc-dl::before {
+  content: ""; width: 14px; height: 14px; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11 3h2v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6zM4 19h16v2H4z'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11 3h2v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6zM4 19h16v2H4z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.doc-dl:hover { background: var(--red); color: #fff; }
+.onb-thanks { margin: 34px 0 0; text-align: center; color: #fff; font-family: 'Source Serif 4', Georgia, serif; font-size: 22px; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .doc, .doc:hover { transition: none; transform: none; } }
