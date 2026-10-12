@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reception Center - SEPA Resource Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css?v=0.21">
+</head>
+<body class="home">
+
+<!-- RECEPTION CENTER FORM (v0.21)
+     One short intake form per displaced person or family, done on a phone at a reception center.
+     js/reception.js does the work. Three ways this one page is used:
+       reception.html              the intake form (what the Quick launch link opens)
+       reception.html?view=CODE    the summary of one reception center: every intake, with totals.
+                                   Only the lead (on the phone that started the center) and HQ (logged
+                                   in) can see it.
+       reception.html?view=list    HQ: all open reception centers
+     The HQ user name and password are the same as for the Escalation Form live view. They are set in
+     the Google Sheet (Settings tab), never in these website files.
+     Client details are deleted when HQ clears a center, or 5 days after its last intake. -->
+
+<div class="page-wrap">
+
+  <header class="page-top">
+    <a href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
+    <a class="back-link" href="../index.html">&times; Close this tab</a>
+  </header>
+
+  <h1 class="page-title" id="rec-title">Reception Center</h1>
+  <p class="page-intro" id="rec-intro">Intake form: one per displaced person or family.</p>
+
+  <p class="notice" id="rec-notice" hidden></p>
+
+  <!-- 1. No reception center on this phone yet: start one (this phone becomes the lead) -->
+  <section class="esc-tools" id="rec-start" hidden>
+    <h2 class="esc-login-title">Start a reception center</h2>
+    <p class="esc-how">The person who starts it is the <strong>lead</strong>. You can then add responders, and you and HQ can see every intake as it comes in.</p>
+    <p class="esc-how rec-joinhint">Were you sent a link by your lead? Open that link instead.</p>
+    <form id="rec-start-form" novalidate>
+      <label class="field">Reception center name or location
+        <input id="rec-center" autocomplete="off" placeholder="e.g. Pottstown Middle School">
+      </label>
+      <label class="field">Your name
+        <input id="rec-lead-name" autocomplete="name">
+      </label>
+      <p class="form-error" id="rec-start-error" hidden></p>
+      <button class="primary-btn" type="submit" id="rec-start-btn">Start</button>
+    </form>
+  </section>
+
+  <!-- 2. A responder opened a join link but this phone does not know their name yet -->
+  <section class="esc-tools" id="rec-name-ask" hidden>
+    <h2 class="esc-login-title">Your name</h2>
+    <p class="esc-how">Each intake you do is marked with your name, so your lead knows who to ask.</p>
+    <form id="rec-name-form" novalidate>
+      <label class="field">Your name
+        <input id="rec-my-name" autocomplete="name">
+      </label>
+      <p class="form-error" id="rec-name-error" hidden></p>
+      <button class="primary-btn" type="submit">Continue</button>
+    </form>
+  </section>
+
+  <!-- 3. The intake form -->
+  <section id="rec-work" hidden>
+    <div class="esc-tools">
+      <p class="rec-where"><strong id="rec-where-center"></strong><span id="rec-where-me"></span></p>
+      <p class="esc-status" id="rec-status" role="status">Ready.</p>
+      <!-- Lead only -->
+      <div id="rec-lead-tools" hidden>
+        <p class="esc-group">For your team</p>
+        <div class="esc-buttons">
+          <button type="button" class="primary-btn" id="rec-add">Add a responder</button>
+        </div>
+        <p class="esc-group-how">This sends a link. Whoever opens it does intakes for this same reception center.</p>
+        <p class="esc-group">Everyone's intakes</p>
+        <div class="esc-buttons">
+          <a class="esc-btn" id="rec-open-summary" href="#" target="_blank" rel="noopener">See the summary</a>
+          <button type="button" class="esc-btn" id="rec-share">Send HQ the summary link</button>
+        </div>
+        <p class="esc-note" id="rec-share-note" role="status" hidden></p>
+        <label class="esc-link-box" id="rec-link-box" hidden><span id="rec-link-label">Link</span>
+          <input id="rec-link" readonly>
+        </label>
+      </div>
+      <p class="esc-group-how" id="rec-joined-how" hidden></p>
+    </div>
+
+    <p class="rec-saved" id="rec-saved" role="status" hidden></p>
+
+    <form class="esc-form rec-form" id="rec-form" novalidate>
+      <div class="esc-q">
+        <label class="esc-label esc-bold" for="r_name">1. What's your name?</label>
+        <input class="esc-in" id="r_name" name="name" autocomplete="off" autocapitalize="words">
+      </div>
+      <div class="esc-q">
+        <span class="esc-label esc-bold">2. Where do you live? Include the unit number.</span>
+        <div class="rec-pair rec-pair-wide">
+          <label><span class="esc-cap">Address</span><input class="esc-in" id="r_address" name="address" autocomplete="off"></label>
+          <label><span class="esc-cap">Unit</span><input class="esc-in" id="r_unit" name="unit" autocomplete="off"></label>
+        </div>
+      </div>
+      <div class="esc-q">
+        <span class="esc-label esc-bold">3. Do you have your phone? What's the number?</span>
+        <label><span class="esc-cap rec-capl">Phone number</span><input class="esc-in" id="r_phone" name="phone" type="tel" inputmode="tel" autocomplete="off"></label>
+        <label><span class="esc-cap rec-capl">Is there someone else we can contact if we can't reach you? Name and number</span><input class="esc-in" id="r_alt" name="alt" autocomplete="off"></label>
+      </div>
+      <div class="esc-q">
+        <span class="esc-label esc-bold">4. How many people do you live with, in total?</span>
+        <div class="rec-pair">
+          <label><span class="esc-cap">Adults</span><input class="esc-in rec-num" id="r_adults" name="adults" inputmode="numeric" autocomplete="off"></label>
+          <label><span class="esc-cap">Children</span><input class="esc-in rec-num" id="r_children" name="children" inputmode="numeric" autocomplete="off"></label>
+        </div>
+        <p class="rec-total" id="rec-total"></p>
+      </div>
+      <div class="esc-q">
+        <span class="esc-label esc-bold" id="l_pets">5. Do you have any pets?</span>
+        <div class="rc-choice" role="radiogroup" aria-labelledby="l_pets" data-name="has_pets">
+          <button type="button" data-v="Yes">Yes</button><button type="button" data-v="No">No</button>
+        </div>
+        <div class="rec-more" data-when="has_pets=Yes" hidden>
+          <label><span class="esc-cap rec-capl">What pets, and how many?</span><input class="esc-in" id="r_pets" name="pets" autocomplete="off"></label>
+          <span class="esc-cap rec-capl" id="l_pets_with">Are they with you?</span>
+          <div class="rc-choice" role="radiogroup" aria-labelledby="l_pets_with" data-name="pets_with">
+            <button type="button" data-v="Yes">Yes</button><button type="button" data-v="No">No</button>
+          </div>
+        </div>
+      </div>
+      <div class="esc-q">
+        <span class="esc-label esc-bold" id="l_safe">6. Do you have a safe place to go tonight?</span>
+        <div class="rc-choice" role="radiogroup" aria-labelledby="l_safe" data-name="safe">
+          <button type="button" data-v="Yes">Yes</button><button type="button" data-v="No">No</button><button type="button" data-v="Not sure">Not sure</button>
+        </div>
+        <div class="rec-more" data-when="safe=Yes" hidden>
+          <label><span class="esc-cap rec-capl">Where? (optional)</span><input class="esc-in" id="r_safe_where" name="safe_where" autocomplete="off"></label>
+        </div>
+      </div>
+      <div class="esc-q">
+        <span class="esc-label esc-bold" id="l_shelter">7. If we open a shelter, would you stay there?</span>
+        <span class="esc-hint rec-say">Say: "If we open a shelter, it will likely be in a local high school gym with cots and relatively simple food for tonight. Do you think you would stay there if we opened it?"</span>
+        <div class="rc-choice" role="radiogroup" aria-labelledby="l_shelter" data-name="shelter">
+          <button type="button" data-v="Yes">Yes</button><button type="button" data-v="No">No</button><button type="button" data-v="Maybe">Maybe</button>
+        </div>
+      </div>
+      <div class="esc-q">
+        <label class="esc-label esc-bold" for="r_needs">8. Do you have any immediate needs? (e.g. medicines, diapers)</label>
+        <span class="esc-hint rec-warn">Basic needs only. Do not record diagnoses.</span>
+        <textarea class="esc-in" id="r_needs" name="needs" rows="2"></textarea>
+      </div>
+      <div class="esc-q">
+        <label class="esc-label esc-bold" for="r_concerns">9. Are there any other concerns or needs you'd like my leadership to know about that we haven't covered?</label>
+        <textarea class="esc-in" id="r_concerns" name="concerns" rows="3"></textarea>
+      </div>
+      <p class="form-error" id="rec-form-error" hidden></p>
+      <button class="primary-btn rec-save" type="submit" id="rec-save">Save and start the next intake</button>
+      <p class="rec-clear-line"><button type="button" class="link-btn" id="rec-blank">Clear this form without saving</button></p>
+    </form>
+
+    <p class="esc-bottom-links rec-leave"><button type="button" class="link-btn" id="rec-leave">Leave this reception center</button>
+      <span class="esc-new-ask" id="rec-leave-ask" hidden>Leave it on this phone? Intakes already sent stay with the center.
+        <button type="button" class="link-btn" id="rec-leave-yes">Yes, leave</button>
+        <button type="button" class="link-btn" id="rec-leave-no">Cancel</button>
+      </span>
+    </p>
+  </section>
+
+  <!-- 4. Summary (lead or HQ) -->
+  <section class="esc-tools" id="rec-view-tools" hidden>
+    <p class="esc-how"><strong>Read only.</strong> Every intake for this reception center. The page updates by itself every few seconds; new intakes flash yellow.</p>
+    <p class="esc-status" id="rec-view-status" role="status">Connecting...</p>
+    <p class="esc-how rec-keep" id="rec-keep" hidden></p>
+    <div class="esc-buttons" id="rec-view-buttons" hidden>
+      <button type="button" class="esc-btn" id="rec-download">Download for Excel</button>
+    </div>
+    <!-- HQ only: end of the event -->
+    <p class="esc-clear-line" id="rec-clear-line" hidden>
+      <button type="button" class="esc-btn esc-danger" id="rec-clear">Clear this reception center (end of event)</button>
+      <span class="esc-clear-ask" id="rec-clear-ask" hidden>Clear it? <strong>Every intake is deleted for good.</strong> Download a copy first if you need one. The responders' phones are told the center has closed.
+        <span class="esc-clear-buttons">
+          <button type="button" class="esc-btn esc-danger" id="rec-clear-yes">Yes, delete it</button>
+          <button type="button" class="esc-btn" id="rec-clear-no">Cancel</button>
+        </span>
+      </span>
+      <span class="form-error" id="rec-clear-error" hidden></span>
+    </p>
+  </section>
+  <section id="rec-summary" hidden>
+    <div class="rec-totals" id="rec-totals"></div>
+    <div class="rec-table-wrap"><table class="rec-table" id="rec-table"></table></div>
+  </section>
+
+  <!-- The HQ login (same user name and password as the Escalation Form live view) -->
+  <section class="esc-tools esc-login" id="esc-login" hidden>
+    <form id="esc-login-form" novalidate>
+      <h2 class="esc-login-title">HQ log in</h2>
+      <p class="esc-how">The summary is for the reception center's lead and Red Cross leadership. Log in to see it.</p>
+      <label class="field">User name
+        <input id="esc-user" name="username" autocomplete="username" autocapitalize="none" spellcheck="false">
+      </label>
+      <label class="field">Password
+        <input id="esc-pass" name="password" type="password" autocomplete="current-password">
+      </label>
+      <p class="form-error" id="esc-login-error" hidden></p>
+      <button class="primary-btn" id="esc-login-btn" type="submit">Log in</button>
+    </form>
+  </section>
+  <p class="esc-logout-line"><button type="button" class="link-btn" id="esc-logout" hidden>Log out</button></p>
+
+  <!-- 5. HQ: all open reception centers -->
+  <section class="esc-tools" id="rec-list-tools" hidden>
+    <p class="esc-status" id="rec-list-status" role="status">Loading...</p>
+    <div class="esc-list" id="rec-list"></div>
+  </section>
+
+  <p class="esc-bottom-links" id="rec-hq-link"><a href="reception.html?view=list" target="_blank" rel="noopener">HQ: all reception centers</a></p>
+
+</div>
+
+<script src="../js/config.js?v=0.21"></script>
+<script src="../js/reception.js?v=0.21"></script>
+<script src="../js/close-tab.js?v=0.21"></script>
+</body>
+</html>

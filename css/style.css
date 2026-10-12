@@ -748,6 +748,13 @@ body.no-scroll { overflow: hidden; }
   .quick-btn:last-child { margin-right: 0; }
 }
 @media (min-width: 1440px) { .quick-btn { padding: 0 15px; } }
+/* v0.21: an eleventh link (Reception Center). To keep all eleven on one line the words are a touch
+   smaller and closer together on narrower computer screens: 14px with 7px each side from 1,100 to
+   1,279 pixels wide, and 15px with 8px each side from 1,280 to 1,439. Checked every 20 pixels from
+   1,100 to 1,920 wide: never wider than the screen. If a link is removed, these lines can go. */
+@media (min-width: 1100px) and (max-width: 1279px) { .quick-btn { padding: 0 7px; font-size: 14px; } }
+@media (min-width: 1280px) and (max-width: 1439px) { .quick-btn { padding: 0 8px; font-size: 15px; } }
+@media (min-width: 1440px) and (max-width: 1599px) { .quick-btn { padding: 0 11px; } }
 /* ---------- end of QUICK LAUNCH: NINE LINKS, THINNER STRIP ---------- */
 
 /* ---------- STRONGER SEARCH BAR (homepage, v0.16.9) ----------
@@ -1079,3 +1086,65 @@ body:not(.esc-viewing) .esc-flash { animation-name: esc-flash-edit; }
 /* Shift sign-up page: the tabs run full width under the intro line, above Step One. */
 .shift-tabs { display: flex; margin-top: 18px; }
 .shift-tabs .cal-tab { flex: 1; font-size: 17px; padding: 11px 8px; }
+
+/* =========================================================
+   RECEPTION CENTER FORM (pages/reception.html, v0.21)
+   Built on the Escalation Form's look (pale blue boxes, navy buttons). Phone first.
+   Yes / No questions are big pill buttons; the chosen one turns navy.
+   The summary (?view=...) is wider than the form so the table of intakes has room.
+   ========================================================= */
+.rec-where { margin: 0; font-size: 15px; }
+.rec-where strong { font-size: 17px; }
+.rec-joinhint { margin-top: 6px; color: var(--ink-soft); }
+.rec-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.rec-pair-wide { grid-template-columns: 1fr 110px; }
+.rec-pair .esc-cap, .rec-capl { text-align: left; margin: 8px 0 0; font-size: 14px; }
+.rec-num { text-align: center; }
+.rec-total { margin: 6px 0 0; font-size: 15px; font-weight: 700; color: var(--navy); min-height: 1em; }
+.rec-total:empty { display: none; }
+.rc-choice { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.rc-choice button {
+  flex: 1 1 0; min-width: 84px; min-height: 46px; padding: 8px 12px; border-radius: 999px;
+  background: #eef3fb; border: 1.5px solid #8fa3c2; color: var(--ink);
+  font: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
+}
+.rc-choice button:hover { border-color: var(--navy); }
+.rc-choice button.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.rec-more { margin: 6px 0 0 12px; padding-left: 12px; border-left: 3px solid #c9d6e8; }
+.rec-more[hidden] { display: none; }
+.rec-say { margin-top: 4px; font-style: italic; }
+.rec-warn { margin-top: 2px; font-weight: 700; color: var(--red); }
+.rec-save { margin-top: 26px; background: var(--navy); }
+.rec-save:hover { background: #162844; }
+.rec-clear-line { margin: 12px 0 0; text-align: center; font-size: 15px; }
+.rec-saved {
+  margin: 16px 0 0; padding: 12px 14px; border-radius: 8px; background: #e9f5ee; border: 1px solid #b9dcc6;
+  color: #1f5c38; font-weight: 700; font-size: 16px;
+}
+.rec-saved[hidden] { display: none; }
+.rec-leave { margin-top: 26px; }
+.esc-new-ask[hidden] { display: none; }
+
+/* Summary: wider page, totals as tiles, then the table (scrolls sideways on a phone) */
+.rec-viewing .page-wrap { max-width: 1240px; }
+.rec-keep { margin-top: 10px; font-size: 14px; color: var(--ink-soft); }
+.rec-totals { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
+@media (min-width: 700px) { .rec-totals { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1100px) { .rec-totals { grid-template-columns: repeat(6, 1fr); } }
+.rec-tile { padding: 12px 14px; border-radius: 10px; background: #fff; border: 1.5px solid var(--line); }
+.rec-tile strong { display: block; font-size: 30px; line-height: 1.1; color: var(--navy); }
+.rec-tile span { display: block; margin-top: 2px; font-size: 14px; line-height: 1.3; color: var(--ink-soft); }
+.rec-tile.rec-hot { border-color: #e2b5bc; background: var(--red-tint); }
+.rec-tile.rec-hot strong { color: var(--red); }
+.rec-table-wrap { margin-top: 16px; overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.rec-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rec-table th, .rec-table td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.rec-table th { position: sticky; top: 0; background: #f4f7fc; font-size: 13px; white-space: nowrap; }
+.rec-table td { min-width: 70px; max-width: 260px; overflow-wrap: break-word; white-space: pre-wrap; }
+.rec-table td:nth-child(1), .rec-table td:nth-child(6) { white-space: nowrap; }      /* time, phone */
+.rec-table td:nth-child(3) { min-width: 120px; }                                      /* name */
+.rec-table td:nth-child(4), .rec-table td:nth-child(7) { min-width: 170px; }          /* address, alternate contact */
+.rec-table td:nth-child(15), .rec-table td:nth-child(16) { min-width: 200px; }        /* needs, concerns */
+.rec-table tr.esc-flash td { animation: rec-row-flash 4s ease-out 1; }
+@keyframes rec-row-flash { 0% { background: #ffe37a; } 100% { background: transparent; } }
+.rec-empty { color: var(--ink-soft); text-align: center !important; padding: 18px !important; }

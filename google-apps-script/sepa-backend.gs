@@ -1,7 +1,7 @@
 /**
  * SEPA Resource Library - Google Sheet backend
  * Powers: DAT shift signup calendars (Field Responders and Duty Officers) + Discussion Forums +
- *         Escalation Form (proof of concept)
+ *         Escalation Form (proof of concept) + Reception Center Form
  *
  * This code lives inside ONE Google Sheet (Extensions > Apps Script).
  * It is NOT part of the website itself. See "Admin Guides" folder, Guide 2.
@@ -24,6 +24,11 @@
  *   Escalations cleared - worksheets HQ cleared at the end of an event. Kept as a record; delete rows
  *               here to remove them for good.
  *   Settings also holds the HQ user name and password for the Escalation Form live view.
+ *   Reception Centers - one row per reception center (website v0.21). Appears by itself.
+ *   Reception Intakes - one row per family or person taken in at a reception center. These hold
+ *               client details: they are DELETED (not archived) when HQ clears the center, or
+ *               automatically 5 days after its last intake. See RECEPTION CENTER FORM below.
+ *   Reception cleared - just the code and time of each center that was cleared (no client details).
  */
 
 /* The Google Sheet this script saves to (the long code in the Sheet's web address,
@@ -159,7 +164,13 @@ function doPost(e) {
       escLogin: escLogin_,
       escGet: escGet_,
       escList: escList_,
-      escClear: escClear_
+      escClear: escClear_,
+      recStart: recStart_,
+      recPing: recPing_,
+      recAdd: recAdd_,
+      recGet: recGet_,
+      recList: recList_,
+      recClear: recClear_
     };
     var fn = actions[d.action || 'shiftSignup'];
     if (!fn) return json_({ ok: false, error: 'Unknown request.' });
@@ -312,6 +323,24 @@ function startDailyReport() {
   });
   ScriptApp.newTrigger('dailyReport').timeBased().everyDays(1).atHour(REPORT_HOUR).inTimezone(tz_()).create();
   Logger.log('Daily report scheduled for ' + REPORT_HOUR + ':00 (' + tz_() + ')');
+}
+
+/* RECEPTION CENTER FORM: the 5-day automatic delete, every morning, with NO email (v0.21).
+   Run startAutoDelete ONCE from the editor (pick it in the box next to Debug, then Run). Safe to run
+   again. This sends nothing to anyone; it only deletes reception centers 5 days after their last
+   intake. (The delete also happens whenever anyone uses the form, so this is the backstop for quiet
+   weeks.) It is separate from the daily signup report on purpose: Sean wants no reports yet. */
+function startAutoDelete() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'autoDelete') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('autoDelete').timeBased().everyDays(1).atHour(3).inTimezone(tz_()).create();
+  Logger.log('Automatic delete scheduled for 3:00 AM every day (' + tz_() + '). No emails are sent.');
+}
+function autoDelete() {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try { recPurge_(); } finally { lock.releaseLock(); }
 }
 
 /* Emails everything submitted since the last report. Runs automatically each morning. */
@@ -739,5 +768,188 @@ function escClear_(d) {
   var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0].map(function (v) { return v instanceof Date ? stamp_(v) : safe_(escText_(v)); });
   escClearedTab_().appendRow(r.concat([stamp_()]));
   sh.deleteRow(row);
+  return { ok: true, cleared: true };
+}
+
+/* =========================================================
+   RECEPTION CENTER FORM (pages/reception.html), added for website v0.21
+   Intake at a reception center: one short form per displaced person or family. Each finished intake
+   is sent here as one row, and the form clears itself for the next one.
+   HOW IT IS ORGANIZED
+     - The responder who STARTS a reception center on their phone is its lead. They type the center's
+       name or location and their own name. That makes one row in the tab "Reception Centers".
+     - "Add a responder" (lead only) sends a join link. Everyone who opens it does intakes for the same
+       center. Their phones do not need to talk to each other: every intake comes straight here.
+     - Every intake is one row in the tab "Reception Intakes", tagged with its center.
+     - THE SUMMARY (all intakes for one center, with totals) can be seen by two kinds of people only:
+       the lead (on the phone that started the center) and HQ (with the same HQ user name and password
+       as the Escalation Form live view). Responders who joined see only how many intakes they did.
+   TWO CODES PER CENTER. Both are made on the lead's phone and only scrambled forms are kept here.
+     - the join key, in the join link: lets a phone ADD intakes to that one center, nothing else.
+     - the lead key, which never leaves the lead's phone: lets that phone read the summary.
+   CLIENT DETAILS ARE DELETED, NOT ARCHIVED (Sean's decision, Oct 12, 2026).
+     - When HQ clears a center at the end of the event, its row and every intake row are deleted for
+       good. Only the center's code and the time it was cleared are noted in "Reception cleared" (no
+       names or other details), so the responders' phones can tell their center has ended.
+     - If nobody clears it, a center and its intakes are deleted automatically 5 days after its last
+       intake (or 5 days after it was started, if it never had one). This check runs whenever anyone
+       uses the form, and every night at 3 AM once startAutoDelete has been run (no email is sent).
+     - The form asks for basic needs only. Do not record diagnoses.
+   ========================================================= */
+var REC_CENTER_HEADERS = ['ID', 'Started', 'Last intake', 'Center name or location', 'Lead', 'Intakes', 'Last activity ms (do not edit)', 'Join check (do not edit)', 'Lead check (do not edit)'];
+var REC_INTAKE_HEADERS = ['Center ID', 'Intake ID', 'Saved', 'Responder', 'Name', 'Address', 'Unit', 'Phone', 'Alternate contact',
+  'Adults', 'Children', 'Pets', 'Pets with them', 'Safe place tonight', 'Where', 'Would stay in a shelter', 'Immediate needs', 'Other concerns or needs'];
+/* The intake boxes the website sends, in the same order as the columns after "Responder", with the
+   longest text each may hold. */
+var REC_FIELDS = [['name', 120], ['address', 200], ['unit', 40], ['phone', 60], ['alt', 200], ['adults', 4], ['children', 4],
+  ['pets', 200], ['pets_with', 20], ['safe', 20], ['safe_where', 200], ['shelter', 20], ['needs', 1000], ['concerns', 2000]];
+var REC_KEEP_DAYS = 5;
+
+function recCenters_() { makeTab_('Reception Centers', REC_CENTER_HEADERS); return tab_('Reception Centers'); }
+function recIntakes_() { makeTab_('Reception Intakes', REC_INTAKE_HEADERS); return tab_('Reception Intakes'); }
+function recClearedTab_() { makeTab_('Reception cleared', ['ID', 'Cleared', 'How']); return tab_('Reception cleared'); }
+function recIsCleared_(id) { return escFindRow_(recClearedTab_(), id) > 0; }
+function recMark_(kind, id, key) { return hash_('rec-' + kind + '|' + id, key).slice(0, 32); }
+function recNum_(v) { var n = parseInt(v, 10); return n >= 0 && n < 1000 ? n : 0; }
+
+/* Deletes a center and all its intakes, and notes the code in "Reception cleared". */
+function recDelete_(id, how) {
+  var ish = recIntakes_(), last = ish.getLastRow();
+  if (last >= 2) {
+    var ids = ish.getRange(2, 1, last - 1, 1).getValues();
+    for (var i = ids.length - 1; i >= 0; i--) if (String(ids[i][0]) === id) ish.deleteRow(i + 2);
+  }
+  var csh = recCenters_(), row = escFindRow_(csh, id);
+  if (row) csh.deleteRow(row);
+  if (!recIsCleared_(id)) recClearedTab_().appendRow([id, stamp_(), how]);
+}
+
+/* The 5-day automatic delete. Also removes intakes whose center is gone (a row deleted by hand). */
+function recPurge_() {
+  var csh = recCenters_(), last = csh.getLastRow(), cutoff = Date.now() - REC_KEEP_DAYS * 86400000, keep = {}, old = [];
+  if (last >= 2) {
+    csh.getRange(2, 1, last - 1, 7).getValues().forEach(function (r) {
+      if (!r[0]) return;
+      var ms = Number(escText_(r[6])) || 0;
+      if (ms && ms < cutoff) old.push(String(r[0])); else keep[String(r[0])] = true;
+    });
+  }
+  old.forEach(function (id) { recDelete_(id, 'Deleted automatically ' + REC_KEEP_DAYS + ' days after the last intake'); });
+  var ish = recIntakes_(), il = ish.getLastRow();
+  if (il >= 2) {
+    var ids = ish.getRange(2, 1, il - 1, 1).getValues();
+    for (var i = ids.length - 1; i >= 0; i--) if (!keep[String(ids[i][0])]) ish.deleteRow(i + 2);
+  }
+}
+
+/* Finds a center and checks a code against it. which = 'join' or 'lead'. */
+function recCenter_(id, key, which) {
+  var csh = recCenters_(), row = escFindRow_(csh, id);
+  if (!row) return null;
+  var r = csh.getRange(row, 1, 1, REC_CENTER_HEADERS.length).getValues()[0];
+  var mark = escText_(which === 'lead' ? r[8] : r[7]);
+  return { row: row, r: r, ok: !!key && mark === recMark_(which, id, key) };
+}
+
+// The lead starts a reception center (or starts it again: safe to repeat).
+function recStart_(d) {
+  recPurge_();
+  var id = escId_(d.id), key = escKey_(d.key), lead = escKey_(d.leadKey);
+  if (!id || !key || !lead) return { ok: false, error: 'This reception center could not be started.' };
+  if (recIsCleared_(id)) return { ok: true, cleared: true };
+  var c = recCenter_(id, key, 'join');
+  if (c) return c.ok ? { ok: true } : { ok: false, nokey: true, error: 'This link cannot open the reception center.' };
+  var now = new Date(), nowText = stamp_(now);
+  escLoginSettings_();                       // makes sure the HQ login rows exist in Settings
+  recCenters_().appendRow([id, nowText, '', safe_(clean_(d.center, 120)), safe_(clean_(d.lead, 100)), '0', String(now.getTime()),
+    recMark_('join', id, key), recMark_('lead', id, lead)]);
+  return { ok: true };
+}
+
+// A phone checks in: is its center still open? (Joined phones ask this now and then.)
+function recPing_(d) {
+  var id = escId_(d.id), key = escKey_(d.key);
+  if (!id) return { ok: false, error: 'Not a valid reception center.' };
+  if (recIsCleared_(id)) return { ok: true, cleared: true };
+  var c = recCenter_(id, key, 'join');
+  if (!c) return { ok: true, found: false };
+  if (!c.ok) return { ok: false, nokey: true, error: 'This link cannot open the reception center.' };
+  return { ok: true, found: true, center: escText_(c.r[3]), lead: escText_(c.r[4]) };
+}
+
+// One finished intake. The same intake sent twice (a phone that lost signal and tried again) is saved once.
+function recAdd_(d) {
+  var id = escId_(d.id), key = escKey_(d.key), it = (d.intake && typeof d.intake === 'object') ? d.intake : {};
+  if (!id || !key) return { ok: false, nokey: true, error: 'This link cannot open the reception center.' };
+  if (recIsCleared_(id)) return { ok: true, cleared: true };
+  var c = recCenter_(id, key, 'join');
+  if (!c) return { ok: false, missing: true, error: 'This reception center was not found.' };
+  if (!c.ok) return { ok: false, nokey: true, error: 'This link cannot open the reception center.' };
+  var iid = escId_(it.iid);
+  if (!iid) return { ok: false, error: 'This intake could not be saved.' };
+  if (!clean_(it.name, 120)) return { ok: false, error: 'Please enter a name.' };
+  var ish = recIntakes_(), last = ish.getLastRow();
+  if (last >= 2) {
+    var seen = ish.getRange(2, 1, last - 1, 2).getValues();
+    for (var i = 0; i < seen.length; i++) if (String(seen[i][0]) === id && String(seen[i][1]) === iid) return { ok: true, duplicate: true };
+  }
+  var now = new Date(), nowText = stamp_(now);
+  var row = [id, iid, nowText, safe_(clean_(d.by, 100))];
+  REC_FIELDS.forEach(function (f) { row.push(safe_(clean_(it[f[0]], f[1]))); });
+  ish.appendRow(row);
+  var n = (parseInt(escText_(c.r[5]), 10) || 0) + 1;
+  recCenters_().getRange(c.row, 3, 1, 5).setValues([[nowText, safe_(escText_(c.r[3])), safe_(escText_(c.r[4])), String(n), String(now.getTime())]]);
+  return { ok: true };
+}
+
+// The summary of one center: the lead (with the lead key) or HQ (logged in).
+function recGet_(d) {
+  recPurge_();
+  var id = escId_(d.id);
+  if (!id) return { ok: false, error: 'This reception center link is not valid.' };
+  var c = recCenter_(id, escKey_(d.leadKey), 'lead');
+  if (!(c && c.ok)) {
+    var denied = escDenied_(d);
+    if (denied) return denied;
+  }
+  var now = new Date().getTime();
+  if (!c) return { ok: true, found: false, cleared: recIsCleared_(id), now: now };
+  var ish = recIntakes_(), last = ish.getLastRow(), items = [];
+  if (last >= 2) {
+    ish.getRange(2, 1, last - 1, REC_INTAKE_HEADERS.length).getValues().forEach(function (r) {
+      if (String(r[0]) !== id) return;
+      var o = { iid: String(r[1]), saved: iso_(r[2]), by: escText_(r[3]) };
+      REC_FIELDS.forEach(function (f, j) { o[f[0]] = escText_(r[4 + j]); });
+      items.push(o);
+    });
+  }
+  return { ok: true, found: true, id: id, center: escText_(c.r[3]), lead: escText_(c.r[4]), started: iso_(c.r[1]),
+    ms: Number(escText_(c.r[6])) || 0, keepDays: REC_KEEP_DAYS, now: now, items: items };
+}
+
+// All open reception centers, newest activity first. HQ login needed.
+function recList_(d) {
+  var denied = escDenied_(d);
+  if (denied) return denied;
+  recPurge_();
+  var csh = recCenters_(), last = csh.getLastRow(), now = new Date().getTime(), items = [];
+  if (last >= 2) {
+    csh.getRange(2, 1, last - 1, 7).getValues().forEach(function (r, i) {
+      if (!r[0]) return;
+      items.push({ id: String(r[0]), started: iso_(r[1]), center: escText_(r[3]), lead: escText_(r[4]), count: parseInt(escText_(r[5]), 10) || 0, ms: Number(escText_(r[6])) || 0, row: i });
+    });
+  }
+  items.sort(function (a, b) { return (b.ms - a.ms) || (b.row - a.row); });
+  items.forEach(function (it) { delete it.row; });
+  return { ok: true, now: now, keepDays: REC_KEEP_DAYS, items: items };
+}
+
+// End of the event: HQ clears a center. HQ login needed. Everything about it is deleted for good.
+function recClear_(d) {
+  var denied = escDenied_(d);
+  if (denied) return denied;
+  var id = escId_(d.id);
+  if (!id) return { ok: false, error: 'This reception center link is not valid.' };
+  recDelete_(id, 'Cleared by HQ');
   return { ok: true, cleared: true };
 }

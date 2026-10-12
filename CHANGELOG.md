@@ -1,5 +1,42 @@
 # Changelog
 
+## v0.21
+- RECEPTION CENTER FORM (pages/reception.html, new Quick launch link "Reception Center", placed
+  after Escalation Form for now; Sean may move it later). Built from Sean's "Reception Center Form"
+  Word document: 9 intake questions, one form per displaced person or family
+  - Questions as typed boxes and big Yes/No buttons: name; address and unit; phone and an
+    alternate contact; adults and children (total shown); pets (what, and are they with you);
+    safe place tonight (Yes / No / Not sure, and where); would you stay in a shelter (the
+    high-school-gym wording is shown for the responder to read out; Yes / No / Maybe); immediate
+    needs, with "Basic needs only. Do not record diagnoses." (Sean: wording may change later);
+    other concerns. Only the name is required
+  - "Save and start the next intake" sends it and clears the form. No signal: finished intakes
+    wait on the phone and go out by themselves. A half-done intake survives a page reload
+  - The phone that starts a reception center (center name or location + the lead's name) is its
+    lead. "Add a responder" (lead only) sends a join link. Joined phones only send intakes; phones
+    do not sync with each other
+  - THE SUMMARY (reception.html?view=CODE): totals (households, people, no safe place tonight,
+    would stay in a shelter, households with pets, with immediate needs) and a table of every
+    intake, newest first, updating every few seconds with new rows flashing yellow. "Download for
+    Excel" saves a CSV. ONLY the lead's phone and HQ can open it (Sean's decision). The lead's
+    phone holds a second secret code for this; responders see only their own count
+  - HQ: same user name and password as the Escalation Form live view. reception.html?view=list
+    lists the open reception centers
+  - CLIENT DETAILS ARE DELETED, NOT ARCHIVED (Sean's decision). HQ's "Clear this reception center"
+    deletes the center and all its intakes for good (it asks first and suggests downloading).
+    If nobody clears it, it is deleted automatically 5 days after its last intake. Only the
+    center's code and time are noted in the "Reception cleared" tab, so joined phones can tell
+    their center has closed
+- GOOGLE SCRIPT CHANGED (Sean pastes and deploys it). New tabs appear by themselves: "Reception
+  Centers", "Reception Intakes", "Reception cleared". The 5-day delete runs whenever the form is
+  used, and every night at 3 AM once startAutoDelete has been run once in the script editor. That
+  nightly run sends no email. It is kept apart from the daily signup report on purpose: Sean does
+  not want any reports sent yet (Oct 12, 2026). Neither form sends emails
+- Quick launch: eleven links now. To keep them on one line the words are a touch smaller and
+  closer together between 1,100 and 1,599 pixels wide. Checked every 20 pixels from 1,100 to
+  1,920: one line, never wider than the screen
+- Version number is now ?v=0.21 on every page and the homepage footer reads v0.21
+
 ## v0.20
 - TWO SHIFT CALENDARS, ONE SPOT (Sean asked for this). The homepage calendar now has two tabs:
   "Field Responders" and "Duty Officers". Field Responders always shows when the page opens.
