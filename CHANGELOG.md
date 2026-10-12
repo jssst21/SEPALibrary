@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.22
+- ONBOARDING PAGE, Sean's changes (Oct 12, 2026):
+  - The welcome is bigger: "Welcome aboard, and thank you so much for joining us!" as a large
+    white heading, with the families-helped line under it in larger type
+  - The white box is now five numbered steps, in Sean's words lightly tightened: 1 Start with your
+    Team Leader (now three contacts: Debbie Tevlin, Marty Westermann and Michael Bradley, same as
+    on the Contacts page), 2 Receive a DAT Induction, 3 Get in the field (EDGE courses, RC Respond
+    Basics first, going On Call, requests on your phone), 4 Further course work (DAT Response
+    Fundamentals in person every month; "Find it here" opens the same Register for Classes and
+    Events link as the homepage button), 5 Your first time out. Then Sean's closing thank-you
+  - Guide names in the steps are links that jump down to that guide's card, which flashes yellow
+  - The guides are one group, "Resources and guides", with no sub-headings. Order: DAT Member
+    Expectations, How to Find Your Assigned Trainings, How to Use Volunteer Connection (video);
+    then What a Request Looks Like on Your Phone, How to Go On Call with the Noggin App on Your
+    Phone, How to Go On Call Through the Website; then the Pocket Guide, Your First Time to a Scene,
+    What Information to Collect at a Scene, Tips When Interacting with Clients, How to Log In to RC
+    Care
+  - The Norristown map card is removed (its file is still in documents/onboarding, unused)
+- "How to Go On Call Through the Website" (renamed from "...on the Volunteer Connection Website"):
+  the old steps 1 to 3 (Volunteer Connection, RC View, the RC Respond box) are gone. Step 1 is now
+  "Go to Noggin and log in" with the Noggin address from the Quick launch bar. Now 6 steps, 3 pages.
+  The Noggin app guide's title now ends "on Your Phone". Both PDFs are also updated in Library
+  assets/Onboarding Help (same file names)
+- Version number is now ?v=0.22 on every page and the homepage footer reads v0.22
+
 ## v0.21
 - RECEPTION CENTER FORM (pages/reception.html, new Quick launch link "Reception Center", placed
   after Escalation Form for now; Sean may move it later). Built from Sean's "Reception Center Form"
