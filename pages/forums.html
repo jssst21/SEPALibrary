@@ -7,81 +7,92 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.22">
+<link rel="stylesheet" href="../css/style.css?v=0.23">
 </head>
-<body class="home">
+<body class="home forum-page">
 
-<div class="page-wrap">
+<!-- DISCUSSION FORUMS (rebuilt in v0.23). A classic message board. js/forums.js draws everything.
+     forums.html              the six boards
+     forums.html?b=BOARD      one board's threads (add &p=2 for page 2)
+     forums.html?t=THREAD     one thread (20 posts a page; &p=2, or &p=last for the newest page)
+     forums.html?new=BOARD    start a new thread in that board
+     Reading needs no account. Posting needs a simple account (any email address). The boards'
+     names and descriptions are set in the Google script (FORUM_BOARDS), not here. -->
 
-  <header class="page-top">
+<div class="page-wrap forum-wrap">
+
+  <header class="page-top forum-top">
     <a href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
-    <a class="back-link" href="../index.html">&times; Close this tab</a>
+    <div class="forum-top-right">
+      <div class="f-acct" id="f-acct">
+        <button type="button" class="f-acct-btn" id="f-login-open">Log in / Register</button>
+        <span class="f-acct-me" id="f-acct-me" hidden>
+          <span class="f-acct-name" id="f-acct-name"></span>
+          <button type="button" class="link-btn" id="f-logout">Log out</button>
+        </span>
+      </div>
+      <a class="back-link" href="../index.html">&times; Close this tab</a>
+    </div>
   </header>
 
-  <h1 class="page-title">Discussion Forums</h1>
-  <p class="page-intro">Ask questions, share tips, and talk with fellow volunteers.</p>
+  <h1 class="page-title" id="f-title">Discussion Forums</h1>
+  <nav class="f-crumbs" id="f-crumbs" aria-label="Where you are" hidden></nav>
 
-  <p class="notice" id="notice" hidden></p>
+  <p class="notice f-welcome" id="f-welcome" hidden>You can read everything here without an account. To start a thread or reply,
+    make a simple account: <button type="button" class="link-btn" data-open="register">Register</button>. Any email address
+    will do; it does not have to be a Red Cross one. Only your display name is shown.</p>
+  <p class="notice" id="f-notice" hidden></p>
 
-  <!-- LIST OF DISCUSSIONS -->
-  <section id="view-list" hidden>
-    <button type="button" class="primary-btn forum-new-btn" id="start-btn">+ Start a new discussion</button>
-    <p class="forum-status" id="list-status"></p>
-    <div class="topic-list" id="topics"></div>
-  </section>
-
-  <!-- ONE DISCUSSION -->
-  <section id="view-topic" hidden>
-    <p><button type="button" class="link-btn" data-go="list">&larr; All discussions</button></p>
-    <article class="post post-main">
-      <h2 class="post-title" id="t-title"></h2>
-      <p class="post-meta" id="t-meta"></p>
-      <div class="post-body" id="t-body"></div>
-    </article>
-    <h3 class="replies-head" id="replies-head"></h3>
-    <div id="replies"></div>
-
-    <form class="forum-form" id="reply-form" novalidate>
-      <h3>Write a reply</h3>
-      <label class="field">Your name
-        <input name="name" autocomplete="name" maxlength="40">
-      </label>
-      <label class="field">Your reply
-        <textarea name="body" rows="4" maxlength="5000"></textarea>
-      </label>
-      <label class="trap" aria-hidden="true">Leave blank <input name="website" tabindex="-1" autocomplete="off"></label>
-      <p class="form-error" hidden></p>
-      <button class="primary-btn" type="submit">Post reply</button>
-    </form>
-  </section>
-
-  <!-- NEW DISCUSSION -->
-  <section id="view-new" hidden>
-    <p><button type="button" class="link-btn" data-go="list">&larr; All discussions</button></p>
-    <form class="forum-form" id="new-form" novalidate>
-      <h2>Start a new discussion</h2>
-      <label class="field">Your name
-        <input name="name" autocomplete="name" maxlength="40">
-      </label>
-      <label class="field">Title (what is it about?)
-        <input name="title" maxlength="120">
-      </label>
-      <label class="field">Your message
-        <textarea name="body" rows="6" maxlength="5000"></textarea>
-      </label>
-      <label class="trap" aria-hidden="true">Leave blank <input name="website" tabindex="-1" autocomplete="off"></label>
-      <p class="form-error" hidden></p>
-      <button class="primary-btn" type="submit">Post discussion</button>
-    </form>
-  </section>
-
-  <p class="forum-rules">Please be kind and keep it about volunteering. Never post client names,
-    addresses, or other personal details.</p>
+  <div id="f-main"></div>
 
 </div>
 
-<script src="../js/config.js?v=0.22"></script>
-<script src="../js/forums.js?v=0.22"></script>
-<script src="../js/close-tab.js?v=0.22"></script>
+<!-- Log in / Register / Forgot password (one box, three tabs) -->
+<div class="f-modal" id="f-modal" hidden>
+  <div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="f-modal-title">
+    <button type="button" class="f-modal-x" id="f-modal-x" aria-label="Close">&times;</button>
+    <h2 id="f-modal-title">Log in</h2>
+    <p class="f-modal-why" id="f-modal-why" hidden></p>
+    <div class="cal-tabs f-modal-tabs" role="tablist">
+      <button type="button" class="cal-tab on" data-mode="login" role="tab">Log in</button>
+      <button type="button" class="cal-tab" data-mode="register" role="tab">Register</button>
+    </div>
+
+    <form class="f-form" data-form="login" novalidate>
+      <label class="field">Email<input name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false"></label>
+      <label class="field">Password<input name="password" type="password" autocomplete="current-password"></label>
+      <p class="form-error" hidden></p>
+      <button class="primary-btn" type="submit">Log in</button>
+      <p class="f-modal-link"><button type="button" class="link-btn" data-mode-go="forgot">Forgot your password?</button></p>
+    </form>
+
+    <form class="f-form" data-form="register" novalidate hidden>
+      <p class="f-modal-note">Any email address will do. It is never shown to anyone; only your display name is.</p>
+      <label class="field">Email<input name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false"></label>
+      <label class="field">Display name (what others see, e.g. Sean S.)<input name="name" autocomplete="nickname" maxlength="40"></label>
+      <label class="field">Password (at least 6 characters)<input name="password" type="password" autocomplete="new-password"></label>
+      <p class="form-error" hidden></p>
+      <button class="primary-btn" type="submit">Create my account</button>
+    </form>
+
+    <form class="f-form" data-form="forgot" novalidate hidden>
+      <p class="f-modal-note">Type the email you registered with. We will email you a 6-digit code.</p>
+      <label class="field">Email<input name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false"></label>
+      <p class="form-error" hidden></p>
+      <button class="primary-btn" type="submit">Email me a code</button>
+      <div class="f-reset2" hidden>
+        <p class="f-modal-note f-ok">If there is an account with that email, a code is on its way. Check your inbox (and spam).</p>
+        <label class="field">6-digit code<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></label>
+        <label class="field">New password (at least 6 characters)<input name="newpass" type="password" autocomplete="new-password"></label>
+        <button class="primary-btn" type="button" data-reset-finish>Set my new password</button>
+      </div>
+      <p class="f-modal-link"><button type="button" class="link-btn" data-mode-go="login">Back to log in</button></p>
+    </form>
+  </div>
+</div>
+
+<script src="../js/config.js?v=0.23"></script>
+<script src="../js/forums.js?v=0.23"></script>
+<script src="../js/close-tab.js?v=0.23"></script>
 </body>
 </html>

@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.23
+- DISCUSSION FORUMS REBUILT as a classic message board, from Sean's "Forums" document:
+  - Six boards: New to the Red Cross? Ask your questions here / General Discussion / Help tackling
+    odd or unusual responses: Did I do this right? / Share your Photos, Stories and Shout Outs to
+    Inspire Others / Suggestions / RC Platform Help (RC Care, RC Respond/Noggin, Volunteer
+    Connection, SCIA, Sandboxes, etc.). Each shows its thread and message counts and latest post.
+    The boards' names and one-line descriptions are in the Google script (FORUM_BOARDS)
+  - Click a board: its threads, most recent activity first (25 a page), with page links on long
+    threads. Click a thread: posts in the order written, 20 a page (Sean: classic board, not Reddit)
+  - Anyone can read without an account. A notice says so on the front page. Posting needs a simple
+    account: email, display name, password. Any email works and only the display name is shown.
+    "Log in / Register" is at the top right of the Forums page, and Reply / Start a thread open
+    the same box for anyone not logged in (what they typed is kept)
+  - "Forgot your password?" emails a 6-digit code (good 30 minutes) from the script's Google
+    account, sepalibrary@gmail.com. That is the only email the forums send (no reply notifications)
+  - Photos: up to 4 per post, shrunk on the device first (longest side 1600 pixels), kept in a
+    Drive folder "SEPA Library Forum Photos". The Share your Photos board shows a red box with the
+    photo rules (no client faces or anything identifying, no house numbers or other location
+    details, nothing from a scene without permission); the other boards show them by the button
+  - Everyone can edit or delete their own posts. Moderators (YES in the new "Moderator" column of
+    the Forum Members tab) get Hide on every post. Removing a thread's first post removes the
+    thread. Removed posts stay in the Sheet marked Hidden, so they can be brought back
+  - Unsent writing is kept on the device if the page is closed by accident
+- GOOGLE SCRIPT CHANGED (Sean pastes and deploys it, then runs setupForum once). setupForum asks
+  Google for Drive and Mail permission, makes the tabs Forum Members / Forum Threads / Forum Posts /
+  Forum Photos and the Drive folder, and DELETES the old forum tabs Topics, Replies and Members
+  (Sean: start fresh). The old name-only forum code is gone
+- Version number is now ?v=0.23 on every page and the homepage footer reads v0.23
+
 ## v0.22
 - ONBOARDING PAGE, Sean's changes (Oct 12, 2026):
   - The welcome is bigger: "Welcome aboard, and thank you so much for joining us!" as a large

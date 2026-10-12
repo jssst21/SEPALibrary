@@ -14,10 +14,12 @@
  *   DO Recurring - the same as Recurring, for Duty Officers.
  *   Settings  - report email(s), how far ahead people can sign up, minimum hours for custom shifts
  *               (one row for Field Responders, and since v0.20 one row for Duty Officers, default 4)
- *   Members   - forum members (only used if logins are turned on). YES in "Blocked" blocks someone.
- *   Topics    - forum discussions. Type YES in "Hidden" to hide one.
- *   Replies   - forum replies. Type YES in "Hidden" to hide one.
- *   Sessions  - logins, only if turned on (leave alone; delete all rows to log everyone out)
+ *   Forum Members - forum accounts (website v0.23). YES in "Blocked" blocks someone, YES in
+ *               "Moderator" makes someone a moderator. See DISCUSSION FORUMS below.
+ *   Forum Threads - one row per thread. YES in "Hidden" hides it.
+ *   Forum Posts   - one row per post. YES in "Hidden" hides it.
+ *   Forum Photos  - one row per uploaded photo (the photos are in the Drive folder "SEPA Library Forum Photos").
+ *   Sessions  - logins (leave alone; delete all rows to log everyone out of the forums and HQ views)
  *   Escalations - one row per Escalation Form worksheet (proof of concept, website v0.17; since
  *               v0.18 several responders can type into one worksheet). The tab appears by itself
  *               the first time someone uses the form.
@@ -39,10 +41,6 @@ var DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 var SIGNUP_HEADERS = ['Submitted', 'Shift Date', 'Hours', 'Name', 'Phone', 'Email', 'Notes', 'Start hour (do not edit)', 'Length (do not edit)'];
 var RECURRING_HEADERS = ['Submitted', 'Every', 'Hours', 'Name', 'Phone', 'Email', 'Notes', 'Starting', 'Stopped (type YES)', 'Start hour (do not edit)', 'Length (do not edit)'];
 
-/* Forum logins. false = no sign-up: anyone can read and post by typing their name.
-   true  = members must join / log in (name + password). */
-var FORUM_REQUIRES_LOGIN = false;
-var SESSION_DAYS = 180;
 
 var REPORT_HOUR = 7;   // daily signup report goes out at 7 AM
 var SETTING_EMAIL_LABEL = 'Admin email(s) for the daily 7 AM signup report (separate several with commas; blank = no report)';
@@ -78,9 +76,10 @@ function setup() {
     ['Minimum hours for a custom shift', '6'],
     [SETTING_INSTANT_LABEL, 'NO']
   ]);
-  makeTab_('Members', ['Name', 'Joined', 'Blocked (type YES)', 'Password check (do not edit)', 'Salt (do not edit)']);
-  makeTab_('Topics', ['ID', 'Created', 'Author', 'Title', 'Message', 'Last Activity', 'Replies', 'Hidden (type YES)']);
-  makeTab_('Replies', ['ID', 'Topic ID', 'Created', 'Author', 'Message', 'Hidden (type YES)']);
+  makeTab_('Forum Members', FORUM_MEMBER_HEADERS);
+  makeTab_('Forum Threads', FORUM_THREAD_HEADERS);
+  makeTab_('Forum Posts', FORUM_POST_HEADERS);
+  makeTab_('Forum Photos', FORUM_PHOTO_HEADERS);
   makeTab_('Sessions', ['Token', 'Name', 'Created']);
   makeTab_('Escalations', ESC_HEADERS);
   makeTab_('Escalations cleared', ESC_HEADERS.concat(['Cleared']));
@@ -152,13 +151,20 @@ function doPost(e) {
     var actions = {
       shiftSignup: shiftSignup_,
       recurringSignup: recurringSignup_,
-      join: FORUM_REQUIRES_LOGIN ? join_ : null,
-      login: FORUM_REQUIRES_LOGIN ? login_ : null,
       logout: logout_,
-      topics: listTopics_,
-      topic: getTopic_,
-      newTopic: newTopic_,
-      reply: reply_,
+      fRegister: fRegister_,
+      fLogin: fLogin_,
+      fMe: fMeCall_,
+      fResetStart: fResetStart_,
+      fResetFinish: fResetFinish_,
+      fBoards: fBoards_,
+      fBoard: fBoardCall_,
+      fThread: fThreadCall_,
+      fUpload: fUpload_,
+      fNewThread: fNewThread_,
+      fReply: fReply_,
+      fEdit: fEdit_,
+      fRemove: fRemove_,
       escPing: escPing_,
       escSync: escSync_,
       escLogin: escLogin_,
@@ -390,47 +396,17 @@ function dailyReport() {
 }
 
 /* =========================================================
-   FORUM: accounts
+   LOGINS: shared helpers (used by the forums and by the HQ login of the Escalation and Reception forms)
    ========================================================= */
 function hash_(salt, password) {
   var bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + '|' + password, Utilities.Charset.UTF_8);
   return bytes.map(function (b) { return ('0' + (b & 255).toString(16)).slice(-2); }).join('');
 }
-
-function normName_(n) { return clean_(n, 40).replace(/\s+/g, ' '); }
-
-function findMember_(name) {
-  var key = name.toLowerCase();
-  var data = rows_('Members');
-  for (var i = 0; i < data.length; i++) {
-    if (String(data[i][0]).trim().toLowerCase() === key) {
-      return { row: i + 2, name: String(data[i][0]).trim(), blocked: isYes_(data[i][2]), hash: String(data[i][3]), salt: String(data[i][4]) };
-    }
-  }
-  return null;
-}
-
 function newSession_(name) {
   var token = Utilities.getUuid() + Utilities.getUuid();
   tab_('Sessions').appendRow([token, safe_(name), stamp_()]);
   return token;
 }
-
-/* Returns the member's name for a valid token, or null. */
-function who_(token) {
-  token = String(token || '');
-  if (token.length < 40) return null;
-  var data = rows_('Sessions');
-  for (var i = data.length - 1; i >= 0; i--) {
-    if (data[i][0] === token) {
-      if (iso_(data[i][2]) < stamp_(new Date(Date.now() - SESSION_DAYS * 86400000))) return null;
-      var m = findMember_(String(data[i][1]).replace(/^'/, ''));
-      return m && !m.blocked ? m.name : null;
-    }
-  }
-  return null;
-}
-
 function tooManyTries_(name) {
   var c = CacheService.getScriptCache(), k = 'fail_' + name.toLowerCase();
   return (parseInt(c.get(k), 10) || 0) >= 8;
@@ -439,112 +415,344 @@ function noteFail_(name) {
   var c = CacheService.getScriptCache(), k = 'fail_' + name.toLowerCase();
   c.put(k, String((parseInt(c.get(k), 10) || 0) + 1), 900);
 }
-
-function join_(d) {
-  var name = normName_(d.name), pw = String(d.password || '');
-  if (name.length < 2) return { ok: false, error: 'Please enter your name (at least 2 letters).' };
-  if (pw.length < 6) return { ok: false, error: 'Please choose a password with at least 6 characters.' };
-  if (findMember_(name)) return { ok: false, error: 'That name is already taken. Try adding a last initial.' };
-  var salt = Utilities.getUuid();
-  tab_('Members').appendRow([safe_(name), stamp_(), '', hash_(salt, pw), salt]);
-  return { ok: true, name: name, token: newSession_(name) };
-}
-
-function login_(d) {
-  var name = normName_(d.name), pw = String(d.password || '');
-  if (tooManyTries_(name)) return { ok: false, error: 'Too many tries. Please wait 15 minutes and try again.' };
-  var m = findMember_(name);
-  if (!m || hash_(m.salt, pw) !== m.hash) {
-    noteFail_(name);
-    return { ok: false, error: 'That name and password do not match. Check your spelling and try again.' };
-  }
-  if (m.blocked) return { ok: false, error: 'This account has been turned off. Please contact the site admin.' };
-  return { ok: true, name: m.name, token: newSession_(m.name) };
-}
-
 function logout_(d) {
-  var data = tab_('Sessions').getDataRange().getValues();
+  var sh = tab_('Sessions'), data = sh.getDataRange().getValues();
   for (var i = data.length - 1; i >= 1; i--) {
-    if (data[i][0] === d.token) tab_('Sessions').deleteRow(i + 1);
+    if (data[i][0] === d.token) sh.deleteRow(i + 1);
   }
   return { ok: true };
 }
 
 /* =========================================================
-   FORUM: topics and replies (members only)
+   DISCUSSION FORUMS (pages/forums.html), rebuilt for website v0.23
+   A classic message board: six boards; inside each board, threads; inside each thread, posts in the
+   order they were written, 20 to a page.
+   - Anyone can READ without an account.
+   - To START a thread or REPLY, people make a simple account: email, display name, password. Any
+     email address works (no confirmation). Only the display name is ever shown on the site.
+   - "Forgot your password?" emails a 6-digit code from the Google account that owns this script
+     (sepalibrary@gmail.com). That is the only email the forums send. No reply notifications.
+   - Photos: up to 4 per post, shrunk on the phone first (about 1600 pixels, a few hundred KB each),
+     saved in a Drive folder "SEPA Library Forum Photos" and shown on the site.
+   - Moderators: type YES in the "Moderator" column of the "Forum Members" tab. They get a Hide button
+     on every post. Everyone can edit or delete their own posts.
+   - Blocking someone: type YES in "Blocked". They are logged out and can no longer post.
+   TABS (made by setupForum, or by themselves the first time someone uses the forums)
+     Forum Members - one row per account.
+     Forum Threads - one row per thread. YES in "Hidden" hides the whole thread.
+     Forum Posts   - one row per post (a thread's first post is its opening message). YES in "Hidden"
+                     hides one post. "Removed by" says who hid it.
+     Forum Photos  - one row per uploaded photo (the file itself is in the Drive folder).
+   RUN setupForum ONCE from the editor after pasting this code (pick it in the box next to Debug,
+   then Run). It asks Google for permission to use Drive (photos) and Mail (password reset codes),
+   makes the tabs and the Drive folder, and deletes the old forum tabs (Topics, Replies, Members),
+   as Sean asked: the new forums start fresh.
    ========================================================= */
-var NOT_LOGGED_IN = { ok: false, error: 'Please log in again.', loggedOut: true };
+var FORUM_BOARDS = [
+  { id: 'new', title: 'New to the Red Cross? Ask your questions here', desc: 'No question is too small. Experienced responders are glad to help.' },
+  { id: 'general', title: 'General Discussion', desc: 'Anything DAT-related that does not fit one of the other boards.' },
+  { id: 'unusual', title: 'Help tackling odd or unusual responses: Did I do this right?', desc: 'Talk through a tricky call and learn from each other. Leave out client names and addresses.' },
+  { id: 'photos', title: 'Share your Photos, Stories and Shout Outs to Inspire Others', desc: 'Celebrate your teammates and the work we do.' },
+  { id: 'suggestions', title: 'Suggestions', desc: 'Ideas to make our team, our training or this site better.' },
+  { id: 'platforms', title: 'RC Platform Help: RC Care, RC Respond/Noggin, Volunteer Connection, SCIA, Sandboxes, etc.', desc: 'Stuck in one of our systems? Ask here.' }
+];
+var FORUM_MEMBER_HEADERS = ['Display name', 'Email', 'Joined', 'Blocked (type YES)', 'Moderator (type YES)', 'Password check (do not edit)', 'Salt (do not edit)', 'Reset code (do not edit)', 'Reset expires (do not edit)'];
+var FORUM_THREAD_HEADERS = ['ID', 'Board', 'Started', 'Title', 'Started by', 'Started by (email)', 'Last post', 'Last post by', 'Posts', 'Hidden (type YES)'];
+var FORUM_POST_HEADERS = ['ID', 'Thread ID', 'Posted', 'Author', 'Author (email)', 'Message', 'Photos (do not edit)', 'Edited', 'Hidden (type YES)', 'Removed by'];
+var FORUM_PHOTO_HEADERS = ['File ID', 'Uploaded', 'By (email)', 'Used in post'];
+var FORUM_PER_PAGE = 20;          // posts per page in a thread
+var FORUM_THREADS_PER_PAGE = 25;  // threads per page in a board
+var FORUM_MAX_PHOTOS = 4;
+var FORUM_PHOTO_MAX_BYTES = 1500000;   // the phone shrinks photos first; this is only a safety net
+var FORUM_FOLDER = 'SEPA Library Forum Photos';
+var FORUM_SESSION_DAYS = 180;
 
-/* Who is posting/reading. With logins off, any visitor can read, and the poster's typed name is used. */
-function reader_(d) { return FORUM_REQUIRES_LOGIN ? who_(d.token) : 'guest'; }
-function poster_(d) {
-  if (FORUM_REQUIRES_LOGIN) return who_(d.token);
-  if (d.website) return null;   // spam trap
-  var n = normName_(d.name);
-  return n.length >= 2 ? n : '';
-}
-function posterError_(d) {
-  if (FORUM_REQUIRES_LOGIN) return NOT_LOGGED_IN;
-  return { ok: false, error: 'Please enter your name (at least 2 letters).' };
-}
+function fMembers_() { makeTab_('Forum Members', FORUM_MEMBER_HEADERS); return tab_('Forum Members'); }
+function fThreads_() { makeTab_('Forum Threads', FORUM_THREAD_HEADERS); return tab_('Forum Threads'); }
+function fPosts_() { makeTab_('Forum Posts', FORUM_POST_HEADERS); return tab_('Forum Posts'); }
+function fPhotos_() { makeTab_('Forum Photos', FORUM_PHOTO_HEADERS); return tab_('Forum Photos'); }
+function fBoard_(id) { for (var i = 0; i < FORUM_BOARDS.length; i++) if (FORUM_BOARDS[i].id === id) return FORUM_BOARDS[i]; return null; }
+function fT_(v) { return escText_(v); }
+function fEmail_(v) { v = clean_(v, 120).toLowerCase(); return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? v : ''; }
+function fName_(v) { return clean_(v, 40).replace(/\s+/g, ' '); }
 
-function listTopics_(d) {
-  if (!reader_(d)) return NOT_LOGGED_IN;
-  var list = rows_('Topics').filter(function (r) { return r[0] && !isYes_(r[7]); }).map(function (r) {
-    return {
-      id: String(r[0]), created: iso_(r[1]), author: String(r[2]).replace(/^'/, ''),
-      title: String(r[3]).replace(/^'/, ''), preview: String(r[4]).replace(/^'/, '').slice(0, 160),
-      last: iso_(r[5]), replies: parseInt(r[6], 10) || 0
-    };
+/* Run once from the editor. Safe to run again. */
+function setupForum() {
+  fMembers_(); fThreads_(); fPosts_(); fPhotos_(); fFolder_();
+  var ss = ss_(), gone = [];
+  ['Topics', 'Replies', 'Members'].forEach(function (n) {
+    var sh = ss.getSheetByName(n);
+    if (sh) { ss.deleteSheet(sh); gone.push(n); }
   });
-  list.sort(function (a, b) { return a.last < b.last ? 1 : -1; });
-  return { ok: true, loginRequired: FORUM_REQUIRES_LOGIN, topics: list.slice(0, 200) };
+  MailApp.getRemainingDailyQuota();   // makes Google ask for permission to send the reset emails
+  Logger.log('Forums are set up. ' + (gone.length ? 'Deleted the old tabs: ' + gone.join(', ') + '.' : 'No old forum tabs to delete.'));
+}
+function fFolder_() {
+  var props = PropertiesService.getScriptProperties(), id = props.getProperty('forumFolder');
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
+  var f = DriveApp.createFolder(FORUM_FOLDER);
+  props.setProperty('forumFolder', f.getId());
+  return f;
 }
 
-function getTopic_(d) {
-  if (!reader_(d)) return NOT_LOGGED_IN;
-  var id = String(d.id || '');
-  var t = rows_('Topics').filter(function (r) { return String(r[0]) === id && !isYes_(r[7]); })[0];
-  if (!t) return { ok: false, error: 'That discussion could not be found. It may have been removed.' };
-  var replies = rows_('Replies').filter(function (r) { return String(r[1]) === id && !isYes_(r[5]); }).map(function (r) {
-    return { id: String(r[0]), created: iso_(r[2]), author: String(r[3]).replace(/^'/, ''), body: String(r[4]).replace(/^'/, '') };
-  });
-  replies.sort(function (a, b) { return a.created > b.created ? 1 : -1; });
-  return {
-    ok: true,
-    topic: { id: id, created: iso_(t[1]), author: String(t[2]).replace(/^'/, ''), title: String(t[3]).replace(/^'/, ''), body: String(t[4]).replace(/^'/, '') },
-    replies: replies
-  };
-}
-
-function newTopic_(d) {
-  var me = poster_(d);
-  if (me === null) return { ok: true, id: '' };
-  if (!me) return posterError_(d);
-  var title = clean_(d.title, 120), body = clean_(d.body, 5000);
-  if (!title) return { ok: false, error: 'Please give your discussion a title.' };
-  if (!body) return { ok: false, error: 'Please write a message.' };
-  var id = Utilities.getUuid().slice(0, 8), now = stamp_();
-  tab_('Topics').appendRow([id, now, safe_(me), safe_(title), safe_(body), now, '0', '']);
-  return { ok: true, id: id };
-}
-
-function reply_(d) {
-  var me = poster_(d);
-  if (me === null) return { ok: true };
-  if (!me) return posterError_(d);
-  var id = String(d.topicId || ''), body = clean_(d.body, 5000);
-  if (!body) return { ok: false, error: 'Please write a reply.' };
-  var sh = tab_('Topics'), data = sh.getDataRange().getValues();
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][0]) === id && !isYes_(data[i][7])) {
-      var now = stamp_();
-      tab_('Replies').appendRow([Utilities.getUuid().slice(0, 8), id, now, safe_(me), safe_(body), '']);
-      sh.getRange(i + 1, 6, 1, 2).setValues([[now, String((parseInt(data[i][6], 10) || 0) + 1)]]);
-      return { ok: true };
+/* ---------- accounts ---------- */
+function fFind_(email) {
+  var sh = fMembers_(), last = sh.getLastRow();
+  if (last < 2 || !email) return null;
+  var data = sh.getRange(2, 1, last - 1, FORUM_MEMBER_HEADERS.length).getValues();
+  for (var i = 0; i < data.length; i++) {
+    if (fT_(data[i][1]).toLowerCase() === email) {
+      return { row: i + 2, name: fT_(data[i][0]), email: email, blocked: isYes_(data[i][3]), mod: isYes_(data[i][4]),
+        hash: String(data[i][5]), salt: String(data[i][6]), code: String(data[i][7]), until: Number(data[i][8]) || 0 };
     }
   }
-  return { ok: false, error: 'That discussion could not be found. It may have been removed.' };
+  return null;
+}
+function fNameTaken_(name, exceptEmail) {
+  var sh = fMembers_(), last = sh.getLastRow(), key = name.toLowerCase();
+  if (last < 2) return false;
+  return sh.getRange(2, 1, last - 1, 2).getValues().some(function (r) { return fT_(r[0]).toLowerCase() === key && fT_(r[1]).toLowerCase() !== exceptEmail; });
+}
+/* The member behind a login token, or null. */
+function fWho_(token) {
+  token = String(token || '');
+  if (token.length < 40) return null;
+  var data = rows_('Sessions'), oldest = stamp_(new Date(Date.now() - FORUM_SESSION_DAYS * 86400000));
+  for (var i = data.length - 1; i >= 0; i--) {
+    if (data[i][0] === token) {
+      var key = fT_(data[i][1]);
+      if (key.indexOf('forum:') !== 0 || iso_(data[i][2]) < oldest) return null;
+      var m = fFind_(key.slice(6));
+      return m && !m.blocked ? m : null;
+    }
+  }
+  return null;
+}
+var F_LOGIN = { ok: false, login: true, error: 'Please log in to post.' };
+function fMe_(m) { return { name: m.name, email: m.email, mod: m.mod }; }
+
+function fRegister_(d) {
+  var email = fEmail_(d.email), name = fName_(d.name), pw = String(d.password || '');
+  if (!email) return { ok: false, error: 'Please enter a valid email address.' };
+  if (name.length < 2) return { ok: false, error: 'Please enter a display name (at least 2 letters).' };
+  if (pw.length < 6) return { ok: false, error: 'Please choose a password with at least 6 characters.' };
+  if (fFind_(email)) return { ok: false, error: 'There is already an account with that email. Log in instead, or use "Forgot your password?".' };
+  if (fNameTaken_(name, '')) return { ok: false, error: 'That display name is taken. Try adding a last initial.' };
+  var salt = Utilities.getUuid();
+  fMembers_().appendRow([safe_(name), email, stamp_(), '', '', hash_(salt, pw), salt, '', '']);
+  return { ok: true, token: newSession_('forum:' + email), me: { name: name, email: email, mod: false } };
+}
+function fLogin_(d) {
+  var email = fEmail_(d.email), pw = String(d.password || '');
+  if (!email) return { ok: false, error: 'Please enter your email address.' };
+  if (tooManyTries_('f-' + email)) return { ok: false, error: 'Too many tries. Please wait 15 minutes and try again.' };
+  var m = fFind_(email);
+  if (!m || hash_(m.salt, pw) !== m.hash) { noteFail_('f-' + email); return { ok: false, error: 'That email and password do not match.' }; }
+  if (m.blocked) return { ok: false, error: 'This account has been turned off. Please contact the site admin.' };
+  return { ok: true, token: newSession_('forum:' + email), me: fMe_(m) };
+}
+function fMeCall_(d) { var m = fWho_(d.token); return m ? { ok: true, me: fMe_(m) } : { ok: true, me: null }; }
+
+/* Forgot password, step 1: email a 6-digit code (good for 30 minutes). The answer is the same whether
+   or not the email has an account, so nobody can use this to find out who is a member. */
+function fResetStart_(d) {
+  var email = fEmail_(d.email);
+  if (!email) return { ok: false, error: 'Please enter a valid email address.' };
+  var c = CacheService.getScriptCache(), k = 'reset_' + email;
+  if (c.get(k)) return { ok: true };            // one code every 2 minutes at most
+  var m = fFind_(email);
+  if (m && !m.blocked) {
+    var code = String(Math.floor(100000 + Math.random() * 900000)), salt = Utilities.getUuid().slice(0, 8);
+    fMembers_().getRange(m.row, 8, 1, 2).setValues([[salt + ':' + hash_(salt, code), String(Date.now() + 30 * 60000)]]);
+    MailApp.sendEmail(email, 'Your SEPA Resource Library password reset code',
+      'Hi ' + m.name + ',\n\nYour code to reset your SEPA Resource Library forums password is: ' + code +
+      '\n\nIt works for 30 minutes. If you did not ask for this, you can ignore this email.\n\nSEPA Resource Library');
+    c.put(k, '1', 120);
+  }
+  return { ok: true };
+}
+// Forgot password, step 2: the code and a new password.
+function fResetFinish_(d) {
+  var email = fEmail_(d.email), code = String(d.code || '').replace(/\D/g, ''), pw = String(d.password || '');
+  if (!email || code.length !== 6) return { ok: false, error: 'Please enter your email and the 6-digit code.' };
+  if (pw.length < 6) return { ok: false, error: 'Please choose a password with at least 6 characters.' };
+  if (tooManyTries_('r-' + email)) return { ok: false, error: 'Too many tries. Please wait 15 minutes and ask for a new code.' };
+  var m = fFind_(email), parts = m ? m.code.split(':') : [];
+  if (!m || parts.length !== 2 || Date.now() > m.until || hash_(parts[0], code) !== parts[1]) {
+    noteFail_('r-' + email); return { ok: false, error: 'That code is not right, or it has run out. Ask for a new one.' };
+  }
+  if (m.blocked) return { ok: false, error: 'This account has been turned off. Please contact the site admin.' };
+  var salt = Utilities.getUuid();
+  fMembers_().getRange(m.row, 6, 1, 4).setValues([[hash_(salt, pw), salt, '', '']]);
+  return { ok: true, token: newSession_('forum:' + email), me: fMe_(m) };
+}
+
+/* ---------- reading ---------- */
+function fAllThreads_() {
+  var sh = fThreads_(), last = sh.getLastRow(), out = [];
+  if (last < 2) return out;
+  sh.getRange(2, 1, last - 1, FORUM_THREAD_HEADERS.length).getValues().forEach(function (r, i) {
+    if (!r[0] || isYes_(r[9])) return;
+    out.push({ id: String(r[0]), board: String(r[1]), started: iso_(r[2]), title: fT_(r[3]), by: fT_(r[4]), last: iso_(r[6]), lastBy: fT_(r[7]), posts: parseInt(r[8], 10) || 0, row: i + 2 });
+  });
+  return out;
+}
+// The board list with how many threads and posts each has, and its latest post.
+function fBoards_(d) {
+  var threads = fAllThreads_();
+  var boards = FORUM_BOARDS.map(function (b) {
+    var mine = threads.filter(function (t) { return t.board === b.id; });
+    var latest = mine.reduce(function (a, t) { return !a || t.last > a.last ? t : a; }, null);
+    return { id: b.id, title: b.title, desc: b.desc, threads: mine.length,
+      posts: mine.reduce(function (n, t) { return n + t.posts; }, 0),
+      latest: latest ? { id: latest.id, title: latest.title, by: latest.lastBy, at: latest.last } : null };
+  });
+  var m = fWho_(d.token);
+  return { ok: true, boards: boards, me: m ? fMe_(m) : null, perPage: FORUM_PER_PAGE };
+}
+// One board: its threads, most recent activity first.
+function fBoardCall_(d) {
+  var b = fBoard_(String(d.board || ''));
+  if (!b) return { ok: false, error: 'That board does not exist.' };
+  var list = fAllThreads_().filter(function (t) { return t.board === b.id; });
+  list.sort(function (x, y) { return x.last < y.last ? 1 : x.last > y.last ? -1 : y.row - x.row; });
+  var pages = Math.max(1, Math.ceil(list.length / FORUM_THREADS_PER_PAGE)), page = Math.min(pages, Math.max(1, parseInt(d.page, 10) || 1));
+  list = list.slice((page - 1) * FORUM_THREADS_PER_PAGE, page * FORUM_THREADS_PER_PAGE).map(function (t) { delete t.row; return t; });
+  var m = fWho_(d.token);
+  return { ok: true, board: { id: b.id, title: b.title, desc: b.desc }, threads: list, page: page, pages: pages, perPage: FORUM_PER_PAGE, me: m ? fMe_(m) : null };
+}
+function fPhotoUrl_(id) { return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w1600'; }
+// One thread, one page of posts.
+function fThreadCall_(d) {
+  var id = String(d.id || ''), t = fAllThreads_().filter(function (x) { return x.id === id; })[0];
+  if (!t) return { ok: false, error: 'That thread could not be found. It may have been removed.' };
+  var b = fBoard_(t.board) || { id: t.board, title: '' };
+  var sh = fPosts_(), last = sh.getLastRow(), posts = [], m = fWho_(d.token);
+  if (last >= 2) {
+    sh.getRange(2, 1, last - 1, FORUM_POST_HEADERS.length).getValues().forEach(function (r) {
+      if (String(r[1]) !== id || isYes_(r[8])) return;
+      var photos = String(r[6] || '').split(',').filter(String);
+      posts.push({ id: String(r[0]), at: iso_(r[2]), by: fT_(r[3]), body: fT_(r[5]), photos: photos.map(fPhotoUrl_),
+        edited: r[7] ? iso_(r[7]) : '', mine: !!(m && fT_(r[4]).toLowerCase() === m.email) });
+    });
+  }
+  var pages = Math.max(1, Math.ceil(posts.length / FORUM_PER_PAGE));
+  var page = d.page === 'last' ? pages : Math.min(pages, Math.max(1, parseInt(d.page, 10) || 1));
+  var first = posts[0] ? posts[0].id : '';
+  return { ok: true, thread: { id: t.id, title: t.title, by: t.by, started: t.started, posts: posts.length, firstPost: first },
+    board: { id: b.id, title: b.title }, page: page, pages: pages, perPage: FORUM_PER_PAGE,
+    posts: posts.slice((page - 1) * FORUM_PER_PAGE, page * FORUM_PER_PAGE), me: m ? fMe_(m) : null };
+}
+
+/* ---------- writing ---------- */
+// Slows down anyone posting very fast (a stuck button, or a spammer): 12 posts and 20 photos per 10 minutes.
+function fTooFast_(kind, email, max) {
+  var c = CacheService.getScriptCache(), k = 'rate_' + kind + '_' + email, n = (parseInt(c.get(k), 10) || 0) + 1;
+  c.put(k, String(n), 600);
+  return n > max;
+}
+// One photo at a time, as a JPEG the phone already shrank. Gives back its code for the post.
+function fUpload_(d) {
+  var m = fWho_(d.token);
+  if (!m) return F_LOGIN;
+  if (fTooFast_('photo', m.email, 20)) return { ok: false, error: 'That is a lot of photos in a short time. Please wait a few minutes.' };
+  var data = String(d.data || '').replace(/^data:image\/jpeg;base64,/, '');
+  if (!/^[A-Za-z0-9+\/=]+$/.test(data)) return { ok: false, error: 'That photo could not be read.' };
+  var bytes = Utilities.base64Decode(data);
+  if (bytes.length > FORUM_PHOTO_MAX_BYTES) return { ok: false, error: 'That photo is too large.' };
+  var file = fFolder_().createFile(Utilities.newBlob(bytes, 'image/jpeg', 'forum-' + stamp_().replace(/\D/g, '') + '.jpg'));
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  fPhotos_().appendRow([file.getId(), stamp_(), m.email, '']);
+  return { ok: true, photo: file.getId(), url: fPhotoUrl_(file.getId()) };
+}
+// Only photos this member uploaded and has not used yet can go into a post.
+function fClaimPhotos_(ids, email, postId) {
+  ids = (Array.isArray(ids) ? ids : []).map(String).filter(function (x, i, a) { return /^[A-Za-z0-9_-]{10,80}$/.test(x) && a.indexOf(x) === i; }).slice(0, FORUM_MAX_PHOTOS);
+  if (!ids.length) return [];
+  var sh = fPhotos_(), last = sh.getLastRow(), ok = [];
+  if (last < 2) return [];
+  var data = sh.getRange(2, 1, last - 1, 4).getValues();
+  data.forEach(function (r, i) {
+    var at = ids.indexOf(String(r[0]));
+    if (at >= 0 && fT_(r[2]).toLowerCase() === email && !r[3]) { sh.getRange(i + 2, 4).setValue(postId); ok.push(String(r[0])); }
+  });
+  return ids.filter(function (x) { return ok.indexOf(x) >= 0; });   // keep the order they were added
+}
+function fNewThread_(d) {
+  var m = fWho_(d.token);
+  if (!m) return F_LOGIN;
+  if (d.website) return { ok: true };
+  var b = fBoard_(String(d.board || ''));
+  if (!b) return { ok: false, error: 'Please choose a board.' };
+  var title = clean_(d.title, 120), body = clean_(d.body, 8000);
+  if (!title) return { ok: false, error: 'Please give your thread a title.' };
+  if (!body && !(d.photos || []).length) return { ok: false, error: 'Please write a message.' };
+  if (fTooFast_('post', m.email, 12)) return { ok: false, error: 'You are posting very quickly. Please wait a few minutes.' };
+  var tid = Utilities.getUuid().slice(0, 8), pid = Utilities.getUuid().slice(0, 10), now = stamp_();
+  var photos = fClaimPhotos_(d.photos, m.email, pid);
+  fThreads_().appendRow([tid, b.id, now, safe_(title), safe_(m.name), m.email, now, safe_(m.name), '1', '']);
+  fPosts_().appendRow([pid, tid, now, safe_(m.name), m.email, safe_(body), photos.join(','), '', '', '']);
+  return { ok: true, id: tid };
+}
+function fThreadRow_(id) { var sh = fThreads_(), row = escFindRow_(sh, id); return row ? { sh: sh, row: row, r: sh.getRange(row, 1, 1, FORUM_THREAD_HEADERS.length).getValues()[0] } : null; }
+function fReply_(d) {
+  var m = fWho_(d.token);
+  if (!m) return F_LOGIN;
+  if (d.website) return { ok: true };
+  var t = fThreadRow_(String(d.thread || ''));
+  if (!t || isYes_(t.r[9])) return { ok: false, error: 'That thread could not be found. It may have been removed.' };
+  var body = clean_(d.body, 8000);
+  if (!body && !(d.photos || []).length) return { ok: false, error: 'Please write a reply.' };
+  if (fTooFast_('post', m.email, 12)) return { ok: false, error: 'You are posting very quickly. Please wait a few minutes.' };
+  var pid = Utilities.getUuid().slice(0, 10), now = stamp_(), photos = fClaimPhotos_(d.photos, m.email, pid);
+  fPosts_().appendRow([pid, String(t.r[0]), now, safe_(m.name), m.email, safe_(body), photos.join(','), '', '', '']);
+  t.sh.getRange(t.row, 7, 1, 3).setValues([[now, safe_(m.name), String((parseInt(t.r[8], 10) || 0) + 1)]]);
+  return { ok: true };
+}
+function fPostRow_(id) {
+  var sh = fPosts_(), last = sh.getLastRow();
+  if (last < 2) return null;
+  var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) if (String(ids[i][0]) === id) return { sh: sh, row: i + 2, r: sh.getRange(i + 2, 1, 1, FORUM_POST_HEADERS.length).getValues()[0] };
+  return null;
+}
+// Edit your own post (the message only; photos stay as they are).
+function fEdit_(d) {
+  var m = fWho_(d.token);
+  if (!m) return F_LOGIN;
+  var p = fPostRow_(String(d.post || ''));
+  if (!p || isYes_(p.r[8])) return { ok: false, error: 'That post could not be found.' };
+  if (fT_(p.r[4]).toLowerCase() !== m.email) return { ok: false, error: 'You can only edit your own posts.' };
+  var body = clean_(d.body, 8000);
+  if (!body && !String(p.r[6] || '')) return { ok: false, error: 'The message cannot be empty.' };
+  p.sh.getRange(p.row, 6).setValue(safe_(body));
+  p.sh.getRange(p.row, 8).setValue(stamp_());
+  return { ok: true };
+}
+/* Delete your own post, or (moderators) hide anyone's. The row stays in the Sheet, marked Hidden, so
+   the admin can bring it back by clearing "Hidden". Removing a thread's first post removes the thread. */
+function fRemove_(d) {
+  var m = fWho_(d.token);
+  if (!m) return F_LOGIN;
+  var p = fPostRow_(String(d.post || ''));
+  if (!p || isYes_(p.r[8])) return { ok: true };
+  var own = fT_(p.r[4]).toLowerCase() === m.email;
+  if (!own && !m.mod) return { ok: false, error: 'You can only delete your own posts.' };
+  p.sh.getRange(p.row, 9, 1, 2).setValues([['YES', own ? 'Author' : 'Moderator: ' + safe_(m.name)]]);
+  var tid = String(p.r[1]), t = fThreadRow_(tid);
+  if (!t) return { ok: true };
+  var sh = p.sh, last = sh.getLastRow(), left = [];
+  sh.getRange(2, 1, last - 1, FORUM_POST_HEADERS.length).getValues().forEach(function (r) { if (String(r[1]) === tid && !isYes_(r[8])) left.push(r); });
+  // Was this the opening post? Then the whole thread goes.
+  var firstId = '';
+  sh.getRange(2, 1, last - 1, 2).getValues().some(function (r) { if (String(r[1]) === tid) { firstId = String(r[0]); return true; } return false; });
+  if (firstId === String(p.r[0]) || !left.length) {
+    t.sh.getRange(t.row, 10).setValue('YES');
+    return { ok: true, threadGone: true, board: String(t.r[1]) };
+  }
+  var lastPost = left[left.length - 1];
+  t.sh.getRange(t.row, 7, 1, 3).setValues([[iso_(lastPost[2]), safe_(fT_(lastPost[3])), String(left.length)]]);
+  return { ok: true };
 }
 
 /* =========================================================
