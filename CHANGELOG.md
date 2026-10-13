@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.27.5 (Oct 13, 2026)
+- Homepage: the QR card under the photos is gone. In its place, a new red-panel button right above Browse Library: "Get the SEPA Tools App for your phone!"
+- New page get-app/: "Launch any tool from one App", three selling points, a picture of the app on a phone, and two buttons: Install for Android (left) and Install for iPhone (right).
+- New pages get-app/iphone.html and get-app/android.html with the install steps. Step 1 is a QR code on computers; on phones it is an "Open SEPA Tools" button instead (you cannot scan your own screen). The iPhone page has pictures for each tap: ••• then Share then View More then Add to Home Screen.
+- Styles for these pages live in css/get-app.css.
+- App page (app/): iPhone steps updated to the same four taps, with a link to the step-by-step page. App cache bumped to sepa-tools-3 so phones pick up the change.
+
 ## v0.27.4
 - SEPA TOOLS APP (new folder app/, address sepalibrary.org/app). A one-screen "app" people add to their
   phone's home screen: a red SEPA Tools icon that opens to a grid of nine buttons, in this order:

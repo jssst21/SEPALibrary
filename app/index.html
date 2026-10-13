@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<!-- SEPA TOOLS (website v0.27.4). A one-screen "app" people add to their phone's home screen
+<!-- SEPA TOOLS (website v0.27.5). A one-screen "app" people add to their phone's home screen
      (sepalibrary.org/app). It is only a set of buttons: each opens that tool's own site. It logs in to
      nothing and stores nothing. To change a button, edit its line in the grid below (the address is in
      href="..."). The buttons appear in the order they are listed.
@@ -67,6 +67,7 @@
   .inst li b { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--red); color: #fff; font-size: 15px; }
   .inst .ico { display: inline-block; width: 22px; height: 22px; margin-left: 4px; vertical-align: -5px; fill: none; stroke: #1a73e8; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .inst .ico circle { fill: #1a73e8; stroke: none; }
+  .inst-more { margin: 0 0 10px; font-size: 14px; } .inst-more a { color: var(--red); font-weight: 700; }
   .inst-done { margin: 0; padding: 10px 16px 14px; background: #fdf3f4; font-size: 15px; }
   .inst-qr { display: none; align-items: center; gap: 16px; padding: 14px 16px; border-top: 1px solid #eee3d0; }
   .inst-qr p { margin: 0; font-size: 15px; }
@@ -85,10 +86,12 @@
       <div class="inst-col">
         <p class="inst-os">iPhone</p>
         <ol>
-          <li><b>1</b><span>Open this page in <strong>Safari</strong></span></li>
-          <li><b>2</b><span>Tap the <strong>Share</strong> button <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg></span></li>
-          <li><b>3</b><span>Tap <strong>Add to Home Screen</strong> <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg></span></li>
+          <li><b>1</b><span>In <strong>Safari</strong>, tap <strong>&bull;&bull;&bull;</strong> at the bottom right</span></li>
+          <li><b>2</b><span>Tap <strong>Share</strong> <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg></span></li>
+          <li><b>3</b><span>Tap <strong>View More</strong> &#8964;</span></li>
+          <li><b>4</b><span>Scroll down, tap <strong>Add to Home Screen</strong> <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg>, then <strong>Add</strong></span></li>
         </ol>
+        <p class="inst-more"><a href="../get-app/iphone.html">Step-by-step with pictures</a></p>
       </div>
       <div class="inst-col">
         <p class="inst-os">Android</p>
