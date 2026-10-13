@@ -321,6 +321,20 @@
     });
     $('rec-blank').addEventListener('click', function () { blank(); $('rec-form-error').hidden = true; });
 
+    // ---- join requests from responders who asked in the app (v0.27.2), checked every 10 seconds
+    if (lead && typeof SEPAAskLead !== 'undefined') {
+      var showAsks = function (list) {
+        SEPAAskLead.render($('rec-asks'), list, function (rid, yes) {
+          call({ action: 'askAnswer', form: 'rec', id: id, key: key, leadKey: leadKey, rid: rid, yes: yes }).then(function (r) { if (r && r.ok) showAsks(r.asks || []); });
+        });
+      };
+      var pollAsks = function () {
+        if (!document.hidden) call({ action: 'recAsks', id: id, leadKey: leadKey }).then(function (r) { if (r && r.ok) showAsks(r.asks || []); });
+        setTimeout(pollAsks, 10000);
+      };
+      pollAsks();
+    }
+
     // ---- lead tools: add a responder, see the summary, send HQ the summary link
     var summaryUrl = pageLink('view=' + id);
     $('rec-open-summary').href = summaryUrl;

@@ -311,12 +311,14 @@
       names.forEach(function (k) { sent[k] = cur(k); });
       var req = { action: 'escSync', id: id, key: key, since: meta.rev, changes: sent };
       if (claiming) req.claim = true;
+      if (lead) req.asks = true;          // the lead's phone also collects join requests (v0.27.2)
       call(req).then(function (r) {
         busy = false;
         if (r && r.ok && r.cleared) return cleared();
         if (r && r.ok) {
           live = 'on'; problem = '';
           if (claiming) claim = false;
+          if (lead && r.asks) showAsks(r.asks);
           if ((r.rev || 0) < meta.rev) {
             meta = { rev: 0, base: {} }; again = true;      // Google holds less than this phone thought (a row was removed by hand): send everything again
           } else {
@@ -351,6 +353,15 @@
       });
     }
     function queue(ms) { clearTimeout(timer); timer = setTimeout(sync, ms); }
+    // Join requests from responders who asked in the app (v0.27.2). Approve hands them the join link.
+    function showAsks(list) {
+      if (typeof SEPAAskLead === 'undefined') return;
+      SEPAAskLead.render($('esc-asks'), list, function (rid, yes) {
+        call({ action: 'askAnswer', form: 'esc', id: id, key: key, rid: rid, yes: yes }).then(function (r) {
+          if (r && r.ok) showAsks(r.asks || []); else sync();
+        });
+      });
+    }
 
     function status() {
       var s = $('esc-status'), t;

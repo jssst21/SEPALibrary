@@ -180,6 +180,11 @@ function doPost(e) {
       fRemove: fRemove_,
       escPing: escPing_,
       escStart: escStart_,
+      askList: askList_,
+      askJoin: askJoin_,
+      askStatus: askStatus_,
+      askAnswer: askAnswer_,
+      recAsks: recAsks_,
       escSync: escSync_,
       escLogin: escLogin_,
       escGet: escGet_,
@@ -948,7 +953,9 @@ function escSync_(d) {
 
   var out = {};
   Object.keys(w.meta.f).forEach(function (k) { if (w.meta.f[k] > since) out[k] = w.data[k] || ''; });
-  return { ok: true, rev: w.meta.r, changed: out, now: now.getTime() };
+  var res = { ok: true, rev: w.meta.r, changed: out, now: now.getTime() };
+  if (d.asks) res.asks = askWaiting_('esc', id);      // the lead's phone asks for join requests (website v0.27.2)
+  return res;
 }
 
 // START a worksheet (website v0.27.1). Only someone with the HQ login can start one and so become its
@@ -1445,3 +1452,107 @@ function libSearch_(raw) {
   try { c.put(key, JSON.stringify(out), LIB_SEARCH_SECS); } catch (e) {}
   return out;
 }
+
+
+/* =========================================================
+   ASK TO JOIN (website v0.27.2): Escalation Form and Reception Center Form
+   A responder who does not know who the lead is (or whose lead is busy, or a training exercise run
+   remotely) picks the event from a list of open ones and asks to join. The lead's phone shows
+   "Bob Jones is asking to join" with Approve and Decline. Approve hands the join link to the
+   responder's page, which joins by itself. Nobody sees anything inside an event until approved.
+   The list of open events shows only when it started, the lead's name and (Reception) the center
+   name: never addresses or anything typed into the forms.
+   Requests are kept for 6 hours in the script's short-term memory (not in the Sheet), then vanish.
+   ========================================================= */
+var ASK_SECS = 21600, ASK_MAX = 30, ASK_OPEN_DAYS = 2;
+function askForm_(f) { return f === 'esc' || f === 'rec' ? f : ''; }
+function askCacheKey_(form, id) { return 'ask:' + form + ':' + id; }
+function askGet_(form, id) {
+  try { return JSON.parse(CacheService.getScriptCache().get(askCacheKey_(form, id)) || '[]') || []; } catch (e) { return []; }
+}
+function askPut_(form, id, list) { CacheService.getScriptCache().put(askCacheKey_(form, id), JSON.stringify(list), ASK_SECS); }
+// What the lead's phone sees: requests still waiting (no tickets, no keys).
+function askWaiting_(form, id) {
+  return askGet_(form, id).filter(function (a) { return a.status === 'waiting'; })
+    .map(function (a) { return { rid: a.rid, name: a.name, phone: a.phone, at: a.at }; });
+}
+
+// PUBLIC: the open events a responder can ask to join.
+function askList_(d) {
+  var form = askForm_(d.form), cutoff = Date.now() - ASK_OPEN_DAYS * 86400000, out = [];
+  if (form === 'esc') {
+    var sh = escTab_(), last = sh.getLastRow();
+    if (last >= 2) sh.getRange(2, 1, last - 1, 7).getValues().forEach(function (r) {
+      var id = escId_(r[0]), ms = Number(escText_(r[5])) || 0;
+      if (!id || ms < cutoff) return;
+      var w = escOpen_(r[6]);
+      if (!w.meta.k) return;
+      out.push({ id: id, started: iso_(r[1]), lead: clean_(String(w.data.leaders_arc_lead_1 || '').split('\n')[0], 60), ms: ms });
+    });
+  } else if (form === 'rec') {
+    recPurge_();
+    var csh = recCenters_(), lastc = csh.getLastRow();
+    if (lastc >= 2) csh.getRange(2, 1, lastc - 1, 7).getValues().forEach(function (r) {
+      var id = escId_(r[0]), ms = Number(escText_(r[6])) || 0;
+      if (!id || ms < cutoff) return;
+      out.push({ id: id, started: iso_(r[1]), lead: escText_(r[4]), center: escText_(r[3]), ms: ms });
+    });
+  } else return { ok: false, error: 'Unknown form.' };
+  out.sort(function (a, b) { return b.ms - a.ms; });
+  out.forEach(function (o) { delete o.ms; });
+  return { ok: true, items: out.slice(0, 25) };
+}
+
+// PUBLIC: a responder asks to join. d.ticket is a secret their own page made, used to collect the answer.
+function askJoin_(d) {
+  var form = askForm_(d.form), id = escId_(d.id), ticket = escKey_(d.ticket);
+  var name = clean_(d.name, 60).replace(/\s+/g, ' '), phone = clean_(d.phone, 30);
+  if (!form || !id || !ticket) return { ok: false, error: 'This request could not be sent.' };
+  if (!name) return { ok: false, error: 'Please enter your name.' };
+  var open = form === 'esc' ? escFindRow_(escTab_(), id) && !escIsCleared_(id) : escFindRow_(recCenters_(), id) && !recIsCleared_(id);
+  if (!open) return { ok: false, gone: true, error: 'That event is no longer open. Pick another, or ask your lead for the link.' };
+  var list = askGet_(form, id);
+  if (list.filter(function (a) { return a.status === 'waiting'; }).length >= ASK_MAX) return { ok: false, error: 'Too many requests are waiting. Please ask your lead directly.' };
+  var rid = Utilities.getUuid().replace(/-/g, '').slice(0, 12);
+  list.push({ rid: rid, ticket: hash_('ask', ticket), name: safe_(name), phone: safe_(phone), at: Date.now(), status: 'waiting', key: '' });
+  askPut_(form, id, list);
+  return { ok: true, rid: rid };
+}
+
+// PUBLIC (with the ticket): has the lead answered?
+function askStatus_(d) {
+  var form = askForm_(d.form), id = escId_(d.id), ticket = escKey_(d.ticket), rid = String(d.rid || '');
+  if (!form || !id || !ticket) return { ok: false, error: 'Bad request.' };
+  var a = askGet_(form, id).filter(function (x) { return x.rid === rid && x.ticket === hash_('ask', ticket); })[0];
+  if (!a) return { ok: true, status: 'gone' };
+  return a.status === 'approved' ? { ok: true, status: 'approved', key: a.key } : { ok: true, status: a.status };
+}
+
+// THE LEAD answers: d.yes true = approve (hands over the join key), false = decline.
+// Escalation: proven with the worksheet's edit key. Reception: proven with the lead key, plus the join key to hand over.
+function askAnswer_(d) {
+  var form = askForm_(d.form), id = escId_(d.id), rid = String(d.rid || ''), give = '';
+  if (form === 'esc') {
+    var key = escKey_(d.key), sh = escTab_(), row = escFindRow_(sh, id);
+    if (!row || !key) return { ok: false, error: 'Not allowed.' };
+    var w = escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]);
+    if (w.meta.k !== escKeyMark_(id, key)) return { ok: false, error: 'Not allowed.' };
+    give = key;
+  } else if (form === 'rec') {
+    var lead = recCenter_(id, escKey_(d.leadKey), 'lead'), join = recCenter_(id, escKey_(d.key), 'join');
+    if (!lead || !lead.ok || !join || !join.ok) return { ok: false, error: 'Only the lead can answer requests.' };
+    give = escKey_(d.key);
+  } else return { ok: false, error: 'Unknown form.' };
+  var list = askGet_(form, id), found = false;
+  list.forEach(function (a) { if (a.rid === rid && a.status === 'waiting') { found = true; a.status = d.yes ? 'approved' : 'declined'; a.key = d.yes ? give : ''; } });
+  askPut_(form, id, list);
+  return { ok: true, found: found, asks: askWaiting_(form, id) };
+}
+
+// Reception lead's phone checks for requests (proven with the lead key).
+function recAsks_(d) {
+  var id = escId_(d.id), c = recCenter_(id, escKey_(d.leadKey), 'lead');
+  if (!c || !c.ok) return { ok: false, error: 'Only the lead can see requests.' };
+  return { ok: true, asks: askWaiting_('rec', id) };
+}
+

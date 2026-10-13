@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.27.2
+- ASK TO JOIN (Escalation Form and Reception Center Form, js/ask-lead.js). On the Start screen a
+  responder who is en route, whose lead is busy elsewhere, who does not know who the lead is, or who is
+  in a remote training exercise taps "Ask to join", picks the event from a list of open ones (only its
+  start time, the lead's name and, for Reception, the center name; no addresses, nothing typed in the
+  forms), and enters their name (phone optional). The lead's phone shows "Bob Jones is asking to join"
+  (it buzzes on phones that allow it, and the tab title shows the count) with Approve and Decline.
+  Approve adds them: the responder's page joins by itself within a few seconds. Decline tells them.
+  The request survives closing and reopening the page. Requests last 6 hours, kept in the script's
+  short-term memory, not the Sheet.
+- "Text the lead yourself" opens a text message with the request already written (for when they know
+  the lead). Nothing is sent by the website.
+- HQ: a line on the Start screen links to the HQ list, so HQ never has to wait for a lead to send a link.
+- Google script: new askList, askJoin, askStatus, askAnswer, recAsks; escSync hands the lead's phone
+  its waiting requests. Needs the script pasted and deployed (no new permissions).
+
 ## v0.27.1
 - ESCALATION FORM: becoming the lead now needs the HQ user name and password, the same as the
   Reception Center Form. Opening the form with no worksheet shows "Start a worksheet"; tapping it opens

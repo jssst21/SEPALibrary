@@ -7,9 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.1">
+<link rel="stylesheet" href="../css/style.css?v=0.27.2">
 </head>
-<body class="home">
+<body class="home" data-ask-form="escalation">
 
 <!-- ESCALATION FORM (proof of concept, v0.17; shared worksheets added in v0.18)
      The DAT Response Lead Incident Reporting Worksheet (edition 2026.2.8) as a page that can be filled
@@ -43,6 +43,37 @@
     <p class="esc-how">Were you sent a link by your lead? Open that link instead.</p>
     <p class="form-error" id="esc-start-error" hidden></p>
     <button type="button" class="primary-btn" id="esc-start-btn">Start a worksheet</button>
+    <!-- Waiting for a link from the lead? (v0.27.2, js/ask-lead.js) -->
+    <div class="ask-lead">
+      <p class="esc-group">Waiting for a link from the lead?</p>
+      <div class="esc-buttons">
+        <button type="button" class="primary-btn" data-ask-app>Ask to join (the lead gets a notice)</button>
+        <button type="button" class="esc-btn" data-ask-text>Text the lead yourself</button>
+      </div>
+      <p class="esc-group-how">Ask to join if you do not know who the lead is, they are busy, or you are joining remotely. The lead taps Approve and this page joins by itself.</p>
+      <div class="ask-app" hidden>
+        <p class="esc-group-how"><strong>1. Tap your event</strong></p>
+        <div class="ask-events"></div>
+        <label class="field">2. Your name
+          <input class="ask-name" autocomplete="name" maxlength="60">
+        </label>
+        <label class="field">Your phone (optional, so the lead knows it is you)
+          <input class="ask-phone" type="tel" autocomplete="tel" maxlength="30">
+        </label>
+        <p class="form-error ask-error" hidden></p>
+        <button type="button" class="primary-btn ask-send">Send request</button>
+      </div>
+      <div class="ask-wait" hidden>
+        <p class="esc-status ask-wait-msg" role="status"></p>
+        <button type="button" class="link-btn ask-cancel">Cancel request</button>
+      </div>
+      <div class="ask-fallback" hidden>
+        <p class="esc-group-how">Copy this and send it to the lead:</p>
+        <textarea class="ask-text" rows="4" readonly></textarea>
+        <button type="button" class="esc-btn ask-copy">Copy</button>
+      </div>
+      <p class="esc-group-how ask-hq">HQ: the lead does not need to send you anything. <a href="escalation.html?view=list" target="_blank" rel="noopener">Open all recent worksheets</a> (HQ log in).</p>
+    </div>
   </section>
 
   <!-- Pop-up: the HQ user name and password, to become the lead. Typing them here starts the worksheet;
@@ -69,6 +100,8 @@
   <!-- Shown while filling in -->
   <section class="esc-tools" id="esc-edit-tools" hidden>
     <p class="esc-status esc-warn esc-cleared-note" id="esc-cleared-note" role="status" hidden></p>
+    <!-- Join requests from responders (lead's phone only, v0.27.2) -->
+    <div class="ask-requests" id="esc-asks" role="status" hidden></div>
     <p class="esc-how">Tap a box and type. There is no Save button: everything saves by itself.</p>
     <p class="esc-status" id="esc-status" role="status">Saved on this device.</p>
     <!-- Two groups of buttons. The first lets teammates on scene type into this same worksheet.
@@ -167,8 +200,9 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.1"></script>
-<script src="../js/escalation.js?v=0.27.1"></script>
-<script src="../js/close-tab.js?v=0.27.1"></script>
+<script src="../js/config.js?v=0.27.2"></script>
+<script src="../js/ask-lead.js?v=0.27.2"></script>
+<script src="../js/escalation.js?v=0.27.2"></script>
+<script src="../js/close-tab.js?v=0.27.2"></script>
 </body>
 </html>
