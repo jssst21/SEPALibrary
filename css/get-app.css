@@ -1,4 +1,4 @@
-/* SEPA Tools app pages (v0.27.5): get-app/index.html (the landing page with the phone picture),
+/* SEPA Tools app pages (v0.27.6): get-app/index.html (the landing page with the phone picture),
    get-app/iphone.html and get-app/android.html (the install steps).
    Step 1 shows a QR code on computers. On phones (you cannot scan your own screen) it shows a button instead. */
 .ga-hero { text-align: center; }

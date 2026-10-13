@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.6 (Oct 13, 2026)
+- Homepage: the "Get the SEPA Tools App for your phone!" button is now a navy card with a white border, right above the photo gallery, instead of a plain button in the list. It has a small phone picture, a yellow NEW tag and the same one-time gleam as the shift sign-up bar. It opens get-app/.
+- To remove the NEW tag later: delete the side-app-new line in index.html.
+
 ## v0.27.5 (Oct 13, 2026)
 - Homepage: the QR card under the photos is gone. In its place, a new red-panel button right above Browse Library: "Get the SEPA Tools App for your phone!"
 - New page get-app/: "Launch any tool from one App", three selling points, a picture of the app on a phone, and two buttons: Install for Android (left) and Install for iPhone (right).
