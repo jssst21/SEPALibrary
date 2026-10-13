@@ -312,6 +312,7 @@
       var req = { action: 'escSync', id: id, key: key, since: meta.rev, changes: sent };
       if (claiming) req.claim = true;
       if (lead) req.asks = true;          // the lead's phone also collects join requests (v0.27.2)
+      req.dev = myDev(); req.who = myName(); if (lead) req.lead = true;   // who is on this worksheet (v0.27.3)
       call(req).then(function (r) {
         busy = false;
         if (r && r.ok && r.cleared) return cleared();
@@ -319,6 +320,8 @@
           live = 'on'; problem = '';
           if (claiming) claim = false;
           if (lead && r.asks) showAsks(r.asks);
+          if (lead && r.roster && typeof SEPAAskLead !== 'undefined') SEPAAskLead.roster($('esc-roster'), r.roster, removeOne, 'worksheet');
+          if (r.removed) { removedSignal(r.where); }
           if ((r.rev || 0) < meta.rev) {
             meta = { rev: 0, base: {} }; again = true;      // Google holds less than this phone thought (a row was removed by hand): send everything again
           } else {
@@ -342,7 +345,7 @@
           // A worksheet begun on this phone before v0.27.1 that Google never received: it needs the
           // HQ log in to be started. What is typed stays on this phone meanwhile.
           live = 'nostart';
-          startAsLead(id, key, function (bad) { if (bad === null) { lead = true; live = 'unknown'; $('esc-add-how').hidden = false; $('esc-joined-how').hidden = true; Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.hidden = false; }); sync(); } });
+          startAsLead(id, key, function (bad) { if (bad === null) { lead = true; live = 'unknown'; $('esc-add-how').hidden = false; $('esc-joined-how').hidden = true; Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.hidden = false; }); leadOnly(); sync(); } });
         }
         else if (r && r.toolong) { live = 'on'; problem = r.error || 'This worksheet is too long to save.'; }
         else if (r && !r.offline && /unknown request/i.test(r.error || '')) live = 'off';
@@ -353,6 +356,28 @@
       });
     }
     function queue(ms) { clearTimeout(timer); timer = setTimeout(sync, ms); }
+    // ---- who is on this worksheet (v0.27.3): this phone's code and its person's name
+    function myDev() { return typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('esc', id) : ''; }
+    function myName() {
+      var v = ($('esc-myname').value || '').trim();
+      if (!v && lead) v = cur('leaders_arc_lead_1').split('\n')[0];
+      return v;
+    }
+    $('esc-myname').value = lsGet('sepaEscName') || lsGet('sepaAskName') || '';
+    $('esc-myname').addEventListener('change', function () { lsSet('sepaEscName', this.value.trim()); sync(); });
+    function removeOne(d, done) {
+      call({ action: 'rosterRemove', form: 'esc', id: id, key: key, dev: d }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
+    }
+    // The lead or HQ removed this phone. Everything typed here has been sent first; then it leaves.
+    var removing = false;
+    function removedSignal(where) {
+      if (changedHere().length && !removing) { removing = true; queue(200); return; }
+      lsSet('sepaEsc:' + id, ''); lsSet('sepaEscSync:' + id, ''); lsSet('sepaEscKey:' + id, ''); lsSet('sepaEscLead:' + id, '');
+      if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.forgetDevice('esc', id);
+      lsSet('sepaEscCurrent', newId());
+      lsSet('sepaEscRemoved', 'You have been removed from the worksheet' + (where ? ' for ' + where : '') + '. Thank you so much for your help!');
+      location.replace(pageLink(''));
+    }
     // Join requests from responders who asked in the app (v0.27.2). Approve hands them the join link.
     function showAsks(list) {
       if (typeof SEPAAskLead === 'undefined') return;
@@ -386,6 +411,12 @@
       $('esc-joined-how').textContent = 'You joined this worksheet' + (name ? '. Lead: ' + name : '') + '. Only the lead, who started it, can add responders.';
     }
     Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.hidden = !lead; });
+    // v0.27.3: buttons a responder cannot use are not shown to them (Scene Summary, the HQ list).
+    function leadOnly() {
+      Array.prototype.forEach.call(document.querySelectorAll('[data-esc="share"]'), function (b) { b.hidden = !lead; });
+      $('esc-hq-tools').hidden = !lead; $('esc-recent-link').hidden = !lead;
+    }
+    leadOnly();
     $('esc-add-how').hidden = !lead; $('esc-joined-how').hidden = lead;
 
     root.addEventListener('input', function () {
@@ -418,7 +449,7 @@
     var viewUrl = pageLink('view=' + id);
     function joinUrl() { return pageLink('id=' + id) + '#k=' + key; }
     function note(msg) { var n = $('esc-share-note'); n.textContent = msg; n.hidden = !msg; }
-    function showLink(url, label) { var b = $('esc-link-box'); b.hidden = false; $('esc-link-label').textContent = label || 'Live view link'; $('esc-link').value = url || viewUrl; }
+    function showLink(url, label) { var b = $('esc-link-box'); b.hidden = false; $('esc-link-label').textContent = label || 'Scene Summary link'; $('esc-link').value = url || viewUrl; }
     function copy(text, done, url, label) {
       var hold = function () { showLink(url, label); note('Press and hold the link below to copy it.'); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, hold);
@@ -433,9 +464,9 @@
         return;
       }
       claim = true; sync();              // make sure Google knows this worksheet before the link goes out
-      var msg = { title: 'DAT escalation form (live)', text: 'Live view of the DAT escalation form' + where() + '. It updates as it is filled in.', url: viewUrl };
+      var msg = { title: 'DAT Scene Summary', text: 'Scene Summary of the DAT escalation form' + where() + '. It updates as it is filled in. HQ log in needed.', url: viewUrl };
       if (navigator.share) navigator.share(msg).catch(function () {});
-      else copy(viewUrl, function () { showLink(); note('The live view link was copied. Paste it into a message or email.'); });
+      else copy(viewUrl, function () { showLink(); note('The Scene Summary link was copied. Paste it into a message or email.'); });
     }
     function add() {
       if (live === 'off' || !URL) { note('A responder cannot be added yet: live sharing is not switched on.'); return; }
@@ -468,13 +499,20 @@
     root.hidden = true; sec.hidden = false;
     var carried = lsGet('sepaEscNote');
     if (carried) { notice = carried; lsSet('sepaEscNote', ''); lsSet('sepaEscNoteOk', ''); }
+    var gone = lsGet('sepaEscRemoved');      // removed by the lead or HQ (v0.27.3): say so, then offer a new one
+    if (gone) {
+      lsSet('sepaEscRemoved', '');
+      $('esc-removed').hidden = false; $('esc-removed-msg').textContent = gone; $('esc-start-body').hidden = true;
+      $('esc-removed-yes').onclick = function () { $('esc-removed').hidden = true; $('esc-start-body').hidden = false; };
+      $('esc-removed-no').onclick = function () { $('esc-removed-done').hidden = false; this.parentNode.hidden = true; this.parentNode.previousElementSibling.hidden = true; };
+    }
     if (notice) { var n = $('esc-start-note'); n.textContent = notice; n.hidden = false; }
     try { history.replaceState(null, '', pageLink('')); } catch (e) {}
     btn.onclick = function () {
       err.hidden = true; btn.disabled = true; btn.textContent = 'Starting...';
       var key = newKey();
       startAsLead(id, key, function (problem) {
-        btn.disabled = false; btn.textContent = 'Start a worksheet';
+        btn.disabled = false; btn.textContent = 'Leads: Click Here to Start an Escalation Worksheet';
         if (problem === '') return;                                   // closed the pop-up
         if (problem) { err.textContent = problem; err.hidden = false; return; }
         lsSet('sepaEscKey:' + id, key); lsSet('sepaEscCurrent', id); lsSet('sepaEscSeen:' + id, '1');
@@ -557,12 +595,12 @@
     out.onclick = function () { var t = token(); lsSet('sepaEscHQ', ''); call({ action: 'logout', token: t }).then(function () { location.reload(); }); };
   }
 
-  // ================================================================ LIVE VIEW (read only)
+  // ================================================================ SCENE SUMMARY (read only; called the live view before v0.27.3)
   function viewMode(id) {
     readOnly = true;
     document.body.classList.add('esc-viewing');
     $('esc-view-tools').hidden = false;
-    $('esc-title').textContent = 'Escalation Form: live view';
+    $('esc-title').textContent = 'Escalation Form: Scene Summary';
     draw(); root.hidden = true;      // nothing is shown until the HQ login has been checked
     var s = $('esc-view-status'), base = null, at = 0, first = true, lastText = '', waiting = false, done = false;
     function tick() {
@@ -582,6 +620,9 @@
         }
         if (r && r.ok && r.found) {
           $('esc-clear-line').hidden = false;
+          if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.roster($('esc-view-roster'), r.roster || [], function (d, cb) {
+            call({ action: 'rosterRemove', form: 'esc', id: id, dev: d, token: token() }).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
+          }, 'worksheet');
           var text = JSON.stringify(r.data);
           fill(r.data, !first && text !== lastText);
           first = false; lastText = text;
@@ -590,7 +631,7 @@
         } else if (r && r.ok) {
           s.className = 'esc-status'; s.textContent = 'Waiting for the first entry. This page checks every few seconds.';
         } else if (r && /unknown request/i.test(r.error || '')) {
-          s.className = 'esc-status esc-warn'; s.textContent = 'The live view is not switched on yet (the Google script needs its update).';
+          s.className = 'esc-status esc-warn'; s.textContent = 'The Scene Summary is not switched on yet (the Google script needs its update).';
         } else {
           s.className = 'esc-status esc-warn'; s.textContent = 'Could not connect. Trying again in a few seconds.';
         }
@@ -626,7 +667,7 @@
       call({ action: 'escList', token: token() }).then(function (r) {
         if (r && r.login) { waiting = true; box.innerHTML = ''; s.textContent = 'Log in to see the worksheets.'; needLogin(r, function () { waiting = false; load(); }); return; }
         if (r && r.ok) loggedIn(false);
-        if (!(r && r.ok)) { s.textContent = /unknown request/i.test((r && r.error) || '') ? 'The live view is not switched on yet (the Google script needs its update).' : 'Could not connect. Trying again shortly.'; return; }
+        if (!(r && r.ok)) { s.textContent = /unknown request/i.test((r && r.error) || '') ? 'The Scene Summary is not switched on yet (the Google script needs its update).' : 'Could not connect. Trying again shortly.'; return; }
         s.textContent = r.items.length ? 'Newest first. This list refreshes by itself.' : 'No worksheets yet.';
         box.innerHTML = '';
         r.items.forEach(function (it) {

@@ -1,4 +1,6 @@
 // SEPA Resource Library - Reception Center Form (pages/reception.html), v0.21
+// v0.27.3: each phone checks in with its name; the lead and HQ see who is on the center and can Remove
+// someone (their intakes stay). See WHO IS ON AN EVENT in the Google script.
 //
 // One short intake per displaced person or family, done on a phone at a reception center.
 //   - The phone that STARTS a reception center is its lead. Since v0.27 starting one needs the HQ user
@@ -70,7 +72,6 @@
 
   // ---------------------------------------------------------------- which mode?
   var view = param('view');
-  $('rec-hq-link').hidden = !!view;
   if (view === 'list') return listMode();
   if (view) return viewMode(goodId(view));
   formMode();
@@ -101,6 +102,14 @@
     $('rec-start').hidden = false;
     var carried = lsGet('sepaRecNote');
     if (carried) { notice(carried + ' Its intakes were deleted.'); lsSet('sepaRecNote', ''); }
+    // Removed by the lead or HQ (v0.27.3): say so first, then offer to start a new one.
+    var gone = lsGet('sepaRecRemoved');
+    if (gone) {
+      lsSet('sepaRecRemoved', '');
+      $('rec-removed').hidden = false; $('rec-removed-msg').textContent = gone; $('rec-start-body').hidden = true;
+      $('rec-removed-yes').onclick = function () { $('rec-removed').hidden = true; $('rec-start-body').hidden = false; $('rec-center').focus(); };
+      $('rec-removed-no').onclick = function () { $('rec-removed-done').hidden = false; this.parentNode.hidden = true; this.parentNode.previousElementSibling.hidden = true; };
+    }
     var me = lsGet('sepaRecName'); if (me) $('rec-lead-name').value = me;
     $('rec-start-form').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -114,7 +123,7 @@
         Object.keys(extra).forEach(function (k) { data[k] = extra[k]; });
         btn.disabled = true; btn.textContent = 'Starting...';
         call(data).then(function (r) {
-          btn.disabled = false; btn.textContent = 'Start';
+          btn.disabled = false; btn.textContent = 'Leads: Click Here to Start a Reception Center Intake';
           if (oldScript(r) || !URL) { err.textContent = 'The Reception Center Form is not switched on yet. The site admin needs to update the Google script.'; err.hidden = false; return done && done(); }
           if (r && r.leadLogin) return askLead(r);
           if (!(r && r.ok)) { err.textContent = r && r.offline ? 'No connection. Starting a reception center needs a signal once; after that, intakes can be done offline.' : ((r && r.error) || 'Could not start. Please try again.'); err.hidden = false; return done && done(); }
@@ -259,15 +268,35 @@
       lsSet('sepaRecNote', 'Your last reception center (' + was + ') was closed.');
       location.replace(pageLink(''));
     }
+    // The lead or HQ removed this phone (v0.27.3). Intakes it already sent stay with the center. If an
+    // intake is half done, it can still be finished and saved first.
+    function removed() {
+      var was = centerName();
+      ['sepaRecKey:', 'sepaRecLead:', 'sepaRecCenter:', 'sepaRecCount:', 'sepaRecDraft:', 'sepaRecJoined:'].forEach(function (p) { lsSet(p + id, ''); });
+      if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.forgetDevice('rec', id);
+      lsSet('sepaRecCurrent', '');
+      lsSet('sepaRecRemoved', 'You have been removed from ' + was + '. Thank you so much for your help!');
+      location.replace(pageLink(''));
+    }
+    function removedSignal() {
+      var draft = lsGet('sepaRecDraft:' + id);
+      if (draft || queue().some(function (q) { return q.id === id; })) {
+        notice('You have been removed from ' + centerName() + '. Finish and save this intake; then this phone leaves the reception center.');
+        return;
+      }
+      removed();
+    }
+    function dev() { return typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('rec', id) : ''; }
     function flush() {
       if (busy || state === 'off' || state === 'nokey') return;
       var q = queue(), item = null;
       for (var i = 0; i < q.length; i++) if (q[i].id === id) { item = q[i]; break; }
       if (!item) {                 // nothing to send: just check the center is still open
         busy = true;
-        call({ action: 'recPing', id: id, key: key }).then(function (r) {
+        call({ action: 'recPing', id: id, key: key, dev: dev(), who: lsGet('sepaRecName') || me, leadKey: lead ? leadKey : '' }).then(function (r) {
           busy = false;
           if (r && r.ok && r.cleared) return closed();
+          if (r && r.ok && r.removed) return removedSignal();
           if (r && r.ok) {
             state = 'on';
             if (r.center && r.center !== lsGet('sepaRecCenter:' + id)) { lsSet('sepaRecCenter:' + id, r.center); header(); }
@@ -280,13 +309,14 @@
         return;
       }
       busy = true;
-      call({ action: 'recAdd', id: id, key: item.key, by: item.by, intake: item.intake }).then(function (r) {
+      call({ action: 'recAdd', id: id, key: item.key, by: item.by, intake: item.intake, dev: dev(), who: lsGet('sepaRecName') || me }).then(function (r) {
         busy = false;
         if (r && r.ok && r.cleared) return closed();
         if (r && r.ok) {
           state = 'on';
           setQueue(queue().filter(function (x) { return x.intake.iid !== item.intake.iid; }));
           status();
+          if (r.removed && !queue().some(function (q) { return q.id === id; })) return removedSignal();
           return flush();          // send the next one, if any
         }
         if (r && r.nokey) state = 'nokey';
@@ -328,8 +358,13 @@
           call({ action: 'askAnswer', form: 'rec', id: id, key: key, leadKey: leadKey, rid: rid, yes: yes }).then(function (r) { if (r && r.ok) showAsks(r.asks || []); });
         });
       };
+      var removeOne = function (d, done) {
+        call({ action: 'rosterRemove', form: 'rec', id: id, dev: d, leadKey: leadKey }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
+      };
       var pollAsks = function () {
-        if (!document.hidden) call({ action: 'recAsks', id: id, leadKey: leadKey }).then(function (r) { if (r && r.ok) showAsks(r.asks || []); });
+        if (!document.hidden) call({ action: 'recAsks', id: id, leadKey: leadKey }).then(function (r) {
+          if (r && r.ok) { showAsks(r.asks || []); SEPAAskLead.roster($('rec-roster'), r.roster || [], removeOne, 'reception center'); }
+        });
         setTimeout(pollAsks, 10000);
       };
       pollAsks();
@@ -466,6 +501,9 @@
           return;
         }
         last = r;
+        if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.roster($('rec-view-roster'), r.roster || [], function (d, cb) {
+          call({ action: 'rosterRemove', form: 'rec', id: id, dev: d, leadKey: leadKey, token: token() }).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
+        }, 'reception center');
         $('rec-title').textContent = 'Reception Center: ' + (r.center || 'summary');
         $('rec-intro').textContent = 'Lead: ' + (r.lead || '') + '. Every intake for this reception center.';
         $('rec-clear-line').hidden = !!leadKey && !token();     // HQ only (a lead who is also logged in as HQ sees it too)

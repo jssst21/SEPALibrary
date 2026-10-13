@@ -77,6 +77,47 @@ var SEPAAskLead = (function () {
     });
   }
 
+  // ---------------------------------------------------------------- WHO IS ON THIS EVENT (v0.27.3)
+  // Each phone gets its own code for each event it is on, so the lead and HQ can remove one person.
+  function device(form, id) {
+    var k = 'sepaDev:' + form + ':' + id, v = lsGet(k);
+    if (!/^[A-Za-z0-9]{12,40}$/.test(v || '')) { v = secret().slice(0, 24); lsSet(k, v); }
+    return v;
+  }
+  function forgetDevice(form, id) { lsSet('sepaDev:' + form + ':' + id, ''); }
+  // The list the lead and HQ see, with Remove (asks first, on the page). list: [{dev, name, role, lastMs}].
+  // remove(dev, done) must call done(newList) when removed, or done(null, 'error message').
+  function roster(box, list, remove, what) {
+    if (!box) return;
+    list = list || [];
+    if (box.querySelector('.rost-confirm:not([hidden])') || box.getAttribute('data-busy')) return;   // do not redraw under someone's finger
+    if (!list.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = '<p class="rost-head">Who is on this ' + what + ' (' + list.length + ')</p>' + list.map(function (x) {
+      var nm = x.name || 'Name not given';
+      return '<div class="rost-row" data-dev="' + esc(x.dev) + '"><p class="rost-who"><strong>' + esc(nm) + '</strong>' + (x.role === 'lead' ? ' (lead)' : '') +
+        (x.lastMs ? ' <span class="ask-req-when">seen ' + ago(x.lastMs) + '</span>' : '') + '</p>' +
+        (x.role === 'lead' ? '' : '<button type="button" class="esc-btn rost-rm">Remove</button>' +
+          '<p class="rost-confirm" hidden>Remove ' + esc(nm) + '? What they entered stays here. ' +
+          '<button type="button" class="esc-btn esc-danger rost-yes">Yes, remove</button> <button type="button" class="link-btn rost-no">Cancel</button></p>') + '</div>';
+    }).join('') + '<p class="rost-err form-error" hidden></p><p class="esc-group-how">Remove takes someone off this ' + what +
+      ', for example to free them to start a second one. What they already entered stays here. Their phone leaves within about a minute.</p>';
+    Array.prototype.forEach.call(box.querySelectorAll('.rost-row'), function (row) {
+      var rm = row.querySelector('.rost-rm'), cf = row.querySelector('.rost-confirm');
+      if (!rm) return;
+      rm.addEventListener('click', function () { rm.hidden = true; cf.hidden = false; });
+      row.querySelector('.rost-no').addEventListener('click', function () { cf.hidden = true; rm.hidden = false; });
+      row.querySelector('.rost-yes').addEventListener('click', function () {
+        var y = this; y.disabled = true; box.setAttribute('data-busy', '1');
+        remove(row.getAttribute('data-dev'), function (newList, err) {
+          box.removeAttribute('data-busy'); y.disabled = false;
+          if (newList) { cf.hidden = true; roster(box, newList, remove, what); return; }
+          var e = box.querySelector('.rost-err'); e.textContent = err || 'Could not remove. Please try again.'; e.hidden = false;
+        });
+      });
+    });
+  }
+
   // ---------------------------------------------------------------- the RESPONDER's Start screen
   function responder(box) {
     var app = $q(box, '.ask-app'), wait = $q(box, '.ask-wait'), err = $q(box, '.ask-error'), list = $q(box, '.ask-events');
@@ -185,5 +226,5 @@ var SEPAAskLead = (function () {
   }
 
   if (F) Array.prototype.forEach.call(document.querySelectorAll('.ask-lead'), function (box) { responder(box); texter(box); });
-  return { render: render };
+  return { render: render, roster: roster, device: device, forgetDevice: forgetDevice };
 })();

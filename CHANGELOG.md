@@ -1,5 +1,41 @@
 # Changelog
 
+## v0.27.3
+- REMOVE A RESPONDER (Escalation Form and Reception Center Form). Sean's "three supervisors" case: on a
+  big scene, the lead (or HQ) takes one responder off the event so they can go start a second
+  reception center or worksheet as its own lead.
+  - The lead's form and HQ's summary / live view now show "Who is on this ..." (name, lead marked,
+    last seen) with a Remove button that asks first. The lead cannot be removed.
+  - What the removed person already entered STAYS in the event. A half-done intake can be finished
+    and saved first; their phone then leaves (within about a minute).
+  - Their phone shows "You have been removed from [center name]. Thank you so much for your help!"
+    (Escalation: "from the worksheet for [address]") and "Do you wish to start a new reception center /
+    worksheet?" with a Yes button that opens the normal Start screen (starting still needs the HQ
+    user name and password).
+  - They can be let back in later with a new join link or Ask to join.
+  - Escalation Form: a "Your name" box, so the lead knows who is on the worksheet (the lead's own name
+    comes from "ARC DAT Event Lead" if left blank).
+- ESCALATION FORM: "live view" is now called the SCENE SUMMARY everywhere on the page (buttons, titles,
+  messages). Only the lead and HQ can open it, with the HQ log in.
+- ESCALATION FORM: buttons a responder cannot use are hidden on responders' phones: the whole "For HQ"
+  group (Share / Copy / Open the Scene Summary), the Share button at the bottom, and "See recent
+  worksheets". (The Reception form already hid its lead tools from responders.)
+- START SCREENS (both forms): three distinct blocks, same look on both forms.
+  1. Leads (pale blue): the red button now reads "Leads: Click Here to Start a Reception Center Intake"
+     (Escalation: "Leads: Click Here to Start an Escalation Worksheet").
+  2. "Not the lead?" (blue-grey, navy line): "Choose one of the options below or wait for a link from
+     the lead", then Ask to join and Text the lead yourself.
+  3. HQ (tan, bronze line): "Log in here to view the data summaries for every open ...", with
+     "HQ: Log In to View Data Summaries" (opens the HQ list).
+  The old HQ lines (inside the responder part, and "HQ: all reception centers" at the bottom of the
+  Reception page) are replaced by the HQ block.
+- PHONE NUMBERS (js/phone-format.js): phone boxes on the Escalation Form, Reception Center Form and
+  shift signup tidy themselves when you leave the box: 2674323792, (267) 432 3792 or 1-267-432-3792
+  become 267-432-3792. Anything else (an extension, words, two numbers) is left as typed.
+- Google script: new tab "Responders" (one row per phone per event; YES in "Removed" removes someone by
+  hand; rows deleted when the event is cleared) and action rosterRemove. Needs the script pasted and
+  deployed (no new permissions).
+
 ## v0.27.2
 - ASK TO JOIN (Escalation Form and Reception Center Form, js/ask-lead.js). On the Start screen a
   responder who is en route, whose lead is busy elsewhere, who does not know who the lead is, or who is

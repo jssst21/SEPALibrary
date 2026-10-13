@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.2">
+<link rel="stylesheet" href="../css/style.css?v=0.27.3">
 </head>
 <body class="home" data-ask-form="reception">
 
@@ -37,9 +37,19 @@
 
   <!-- 1. No reception center on this phone yet: start one (this phone becomes the lead) -->
   <section class="esc-tools" id="rec-start" hidden>
+    <!-- Shown after the lead or HQ removed this phone (v0.27.3) -->
+    <div class="rost-removed" id="rec-removed" hidden>
+      <p class="esc-status esc-warn" id="rec-removed-msg" role="status"></p>
+      <p class="esc-how">Do you wish to start a new reception center?</p>
+      <div class="esc-buttons rost-yesno">
+        <button type="button" class="primary-btn" id="rec-removed-yes">Yes, start a new reception center</button>
+        <button type="button" class="esc-btn" id="rec-removed-no">No, I'm done</button>
+      </div>
+      <p class="esc-status esc-ok" id="rec-removed-done" role="status" hidden>No problem. You can close this page now. If a lead sends you a join link, just open it.</p>
+    </div>
+    <div id="rec-start-body">
     <h2 class="esc-login-title">Start a reception center</h2>
     <p class="esc-how">The person who starts it is the <strong>lead</strong>. You can then add responders, and you and HQ can see every intake as it comes in. Starting one needs the HQ user name and password.</p>
-    <p class="esc-how rec-joinhint">Were you sent a link by your lead? Open that link instead.</p>
     <form id="rec-start-form" novalidate>
       <label class="field">Reception center name or location
         <input id="rec-center" autocomplete="off" placeholder="e.g. Pottstown Middle School">
@@ -48,11 +58,12 @@
         <input id="rec-lead-name" autocomplete="name">
       </label>
       <p class="form-error" id="rec-start-error" hidden></p>
-      <button class="primary-btn" type="submit" id="rec-start-btn">Start</button>
+      <button class="primary-btn role-lead-btn" type="submit" id="rec-start-btn">Leads: Click Here to Start a Reception Center Intake</button>
     </form>
     <!-- Waiting for a link from the lead? (v0.27.2, js/ask-lead.js) -->
     <div class="ask-lead">
-      <p class="esc-group">Waiting for a link from the lead?</p>
+      <h2 class="role-head">Not the lead?</h2>
+      <p class="role-sub">Choose one of the options below or wait for a link from the lead.</p>
       <div class="esc-buttons">
         <button type="button" class="primary-btn" data-ask-app>Ask to join (the lead gets a notice)</button>
         <button type="button" class="esc-btn" data-ask-text>Text the lead yourself</button>
@@ -79,7 +90,13 @@
         <textarea class="ask-text" rows="4" readonly></textarea>
         <button type="button" class="esc-btn ask-copy">Copy</button>
       </div>
-      <p class="esc-group-how ask-hq">HQ: the lead does not need to send you anything. <a href="reception.html?view=list" target="_blank" rel="noopener">Open all reception centers</a> (HQ log in).</p>
+    </div>
+    <!-- HQ block (v0.27.3): third of the three Start-screen blocks (leads / not the lead / HQ). -->
+    <div class="role-hq">
+      <h2 class="role-head">HQ</h2>
+      <p class="role-sub">Log in here to view the data summaries for every open reception center.</p>
+      <a class="primary-btn role-hq-btn" href="reception.html?view=list" target="_blank" rel="noopener">HQ: Log In to View Data Summaries</a>
+    </div>
     </div>
   </section>
 
@@ -105,6 +122,8 @@
       <div id="rec-lead-tools" hidden>
         <!-- Join requests from responders (lead's phone only, v0.27.2) -->
         <div class="ask-requests" id="rec-asks" role="status" hidden></div>
+        <!-- Who is on this reception center, with Remove (lead, v0.27.3) -->
+        <div class="rost-box" id="rec-roster" hidden></div>
         <p class="esc-group">For your team</p>
         <div class="esc-buttons">
           <button type="button" class="primary-btn" id="rec-add">Add a responder</button>
@@ -206,6 +225,8 @@
     <p class="esc-how"><strong>Read only.</strong> Every intake for this reception center. The page updates by itself every few seconds; new intakes flash yellow.</p>
     <p class="esc-status" id="rec-view-status" role="status">Connecting...</p>
     <p class="esc-how rec-keep" id="rec-keep" hidden></p>
+    <!-- Who is on this reception center, with Remove (lead and HQ, v0.27.3) -->
+    <div class="rost-box" id="rec-view-roster" hidden></div>
     <div class="esc-buttons" id="rec-view-buttons" hidden>
       <button type="button" class="esc-btn" id="rec-download">Download for Excel</button>
     </div>
@@ -270,13 +291,13 @@
     <div class="esc-list" id="rec-list"></div>
   </section>
 
-  <p class="esc-bottom-links" id="rec-hq-link"><a href="reception.html?view=list" target="_blank" rel="noopener">HQ: all reception centers</a></p>
 
 </div>
 
-<script src="../js/config.js?v=0.27.2"></script>
-<script src="../js/ask-lead.js?v=0.27.2"></script>
-<script src="../js/reception.js?v=0.27.2"></script>
-<script src="../js/close-tab.js?v=0.27.2"></script>
+<script src="../js/config.js?v=0.27.3"></script>
+<script src="../js/ask-lead.js?v=0.27.3"></script>
+<script src="../js/phone-format.js?v=0.27.3"></script>
+<script src="../js/reception.js?v=0.27.3"></script>
+<script src="../js/close-tab.js?v=0.27.3"></script>
 </body>
 </html>

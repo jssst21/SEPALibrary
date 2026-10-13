@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.2">
+<link rel="stylesheet" href="../css/style.css?v=0.27.3">
 </head>
 <body class="home" data-ask-form="escalation">
 
@@ -16,7 +16,7 @@
      in on a phone or a laptop. js/escalation.js draws the boxes and does the saving and sharing.
      Three ways this one page is used:
        escalation.html              fill-in mode (what the Quick launch link opens)
-       escalation.html?view=CODE    live view of one worksheet, read only, updates by itself
+       escalation.html?view=CODE    Scene Summary of one worksheet (was "live view"), read only, updates by itself
        escalation.html?view=list    the most recent worksheets
      Filling in needs no login. The live view and the list need the HQ user name and password, which
      are set in the Google Sheet (Settings tab), never in these website files.
@@ -37,15 +37,26 @@
   <!-- No worksheet on this device yet (v0.27.1): start one. Starting needs the HQ user name and password
        (asked in a pop-up), and whoever starts it is the lead. Responders join with the lead's link instead. -->
   <section class="esc-tools" id="esc-start" hidden>
+    <!-- Shown after the lead or HQ removed this phone (v0.27.3) -->
+    <div class="rost-removed" id="esc-removed" hidden>
+      <p class="esc-status esc-warn" id="esc-removed-msg" role="status"></p>
+      <p class="esc-how">Do you wish to start a new worksheet?</p>
+      <div class="esc-buttons rost-yesno">
+        <button type="button" class="primary-btn" id="esc-removed-yes">Yes, start a new worksheet</button>
+        <button type="button" class="esc-btn" id="esc-removed-no">No, I'm done</button>
+      </div>
+      <p class="esc-status esc-ok" id="esc-removed-done" role="status" hidden>No problem. You can close this page now. If a lead sends you a join link, just open it.</p>
+    </div>
+    <div id="esc-start-body">
     <p class="esc-status esc-warn" id="esc-start-note" role="status" hidden></p>
     <h2 class="esc-login-title">Start a worksheet</h2>
-    <p class="esc-how">The person who starts it is the <strong>lead</strong>. You can then add responders, who type into the same worksheet, and share the live view with HQ. Starting one needs the HQ user name and password.</p>
-    <p class="esc-how">Were you sent a link by your lead? Open that link instead.</p>
+    <p class="esc-how">The person who starts it is the <strong>lead</strong>. You can then add responders, who type into the same worksheet, and share the Scene Summary with HQ. Starting one needs the HQ user name and password.</p>
     <p class="form-error" id="esc-start-error" hidden></p>
-    <button type="button" class="primary-btn" id="esc-start-btn">Start a worksheet</button>
+    <button type="button" class="primary-btn role-lead-btn" id="esc-start-btn">Leads: Click Here to Start an Escalation Worksheet</button>
     <!-- Waiting for a link from the lead? (v0.27.2, js/ask-lead.js) -->
     <div class="ask-lead">
-      <p class="esc-group">Waiting for a link from the lead?</p>
+      <h2 class="role-head">Not the lead?</h2>
+      <p class="role-sub">Choose one of the options below or wait for a link from the lead.</p>
       <div class="esc-buttons">
         <button type="button" class="primary-btn" data-ask-app>Ask to join (the lead gets a notice)</button>
         <button type="button" class="esc-btn" data-ask-text>Text the lead yourself</button>
@@ -72,7 +83,13 @@
         <textarea class="ask-text" rows="4" readonly></textarea>
         <button type="button" class="esc-btn ask-copy">Copy</button>
       </div>
-      <p class="esc-group-how ask-hq">HQ: the lead does not need to send you anything. <a href="escalation.html?view=list" target="_blank" rel="noopener">Open all recent worksheets</a> (HQ log in).</p>
+    </div>
+    <!-- HQ block (v0.27.3): third of the three Start-screen blocks (leads / not the lead / HQ). -->
+    <div class="role-hq">
+      <h2 class="role-head">HQ</h2>
+      <p class="role-sub">Log in here to view the data summaries for every open worksheet.</p>
+      <a class="primary-btn role-hq-btn" href="escalation.html?view=list" target="_blank" rel="noopener">HQ: Log In to View Data Summaries</a>
+    </div>
     </div>
   </section>
 
@@ -102,10 +119,16 @@
     <p class="esc-status esc-warn esc-cleared-note" id="esc-cleared-note" role="status" hidden></p>
     <!-- Join requests from responders (lead's phone only, v0.27.2) -->
     <div class="ask-requests" id="esc-asks" role="status" hidden></div>
+    <!-- Who is on this worksheet, with Remove (lead, v0.27.3) -->
+    <div class="rost-box" id="esc-roster" hidden></div>
     <p class="esc-how">Tap a box and type. There is no Save button: everything saves by itself.</p>
     <p class="esc-status" id="esc-status" role="status">Saved on this device.</p>
+    <label class="field esc-myname">Your name (so the lead knows who is on this worksheet)
+      <input id="esc-myname" autocomplete="name" maxlength="60">
+    </label>
     <!-- Two groups of buttons. The first lets teammates on scene type into this same worksheet.
-         The second sends HQ the read-only live view. -->
+         The second sends HQ the read-only Scene Summary (called the "live view" before v0.27.3).
+         Since v0.27.3 the "For HQ" group shows only on the lead's phone: responders cannot use it. -->
     <p class="esc-group">For your team on scene</p>
     <div class="esc-buttons">
       <button type="button" class="primary-btn esc-add" data-esc="add">Add a responder</button>
@@ -114,16 +137,19 @@
          gets the second line instead, filled in by js/escalation.js. -->
     <p class="esc-group-how" id="esc-add-how">You started this worksheet, so you are its lead. This sends a link. Whoever opens it types into this same worksheet with you.</p>
     <p class="esc-group-how" id="esc-joined-how" hidden></p>
+    <div id="esc-hq-tools">
     <p class="esc-group">For HQ</p>
     <div class="esc-buttons">
-      <button type="button" class="primary-btn esc-share" data-esc="share">Share the live view</button>
+      <button type="button" class="primary-btn esc-share" data-esc="share">Share the Scene Summary</button>
       <button type="button" class="esc-btn" id="esc-copy">Copy the link</button>
-      <a class="esc-btn" id="esc-open-view" href="#" target="_blank" rel="noopener">Open the live view</a>
+      <a class="esc-btn" id="esc-open-view" href="#" target="_blank" rel="noopener">Open the Scene Summary</a>
     </div>
+    <p class="esc-group-how">The Scene Summary is the whole worksheet, read only, updating by itself. Only the lead and HQ can open it, with the HQ log in.</p>
     <p class="esc-note" id="esc-share-note" role="status" hidden></p>
-    <label class="esc-link-box" id="esc-link-box" hidden><span id="esc-link-label">Live view link</span>
+    <label class="esc-link-box" id="esc-link-box" hidden><span id="esc-link-label">Scene Summary link</span>
       <input id="esc-link" readonly>
     </label>
+    </div>
   </section>
 
   <!-- Shown when a join link is opened on a phone that already has its own worksheet with entries -->
@@ -136,14 +162,16 @@
     </div>
   </section>
 
-  <!-- Shown in the live view -->
+  <!-- Shown in the Scene Summary -->
   <section class="esc-tools" id="esc-view-tools" hidden>
     <p class="esc-how"><strong>Read only.</strong> This page shows the worksheet as it is being filled in and updates by itself every few seconds. Boxes that just changed flash yellow.</p>
     <p class="esc-status" id="esc-view-status" role="status">Connecting...</p>
+    <!-- Who is on this worksheet, with Remove (HQ, v0.27.3) -->
+    <div class="rost-box" id="esc-view-roster" hidden></div>
     <!-- End of the event: HQ clears the worksheet. It asks first. -->
     <p class="esc-clear-line" id="esc-clear-line" hidden>
       <button type="button" class="esc-btn esc-danger" id="esc-clear">Clear this worksheet (end of event)</button>
-      <span class="esc-clear-ask" id="esc-clear-ask" hidden>Clear this worksheet? It disappears from the live view, and the responder's page starts a new blank one. A copy is kept in the Google Sheet.
+      <span class="esc-clear-ask" id="esc-clear-ask" hidden>Clear this worksheet? It disappears from the Scene Summary and the list, and phones on it go back to the Start screen. A copy is kept in the Google Sheet.
         <span class="esc-clear-buttons">
           <button type="button" class="esc-btn esc-danger" id="esc-clear-yes">Yes, clear it</button>
           <button type="button" class="esc-btn" id="esc-clear-no">Cancel</button>
@@ -157,7 +185,7 @@
   <section class="esc-tools esc-login" id="esc-login" hidden>
     <form id="esc-login-form" novalidate>
       <h2 class="esc-login-title">HQ log in</h2>
-      <p class="esc-how">The live view is for Red Cross leadership. Log in to see it.</p>
+      <p class="esc-how">The Scene Summary is for the lead and Red Cross leadership. Log in with the HQ user name and password to see it.</p>
       <label class="field">User name
         <input id="esc-user" name="username" autocomplete="username" autocapitalize="none" spellcheck="false">
       </label>
@@ -168,7 +196,7 @@
       <button class="primary-btn" id="esc-login-btn" type="submit">Log in</button>
     </form>
   </section>
-  <p class="esc-logout-line"><button type="button" class="link-btn" id="esc-logout" hidden>Log out of the live view</button></p>
+  <p class="esc-logout-line"><button type="button" class="link-btn" id="esc-logout" hidden>Log out</button></p>
 
   <!-- Shown in the list of recent worksheets -->
   <section class="esc-tools" id="esc-list-tools" hidden>
@@ -182,7 +210,7 @@
   <section class="esc-bottom" id="esc-bottom" hidden>
     <div class="esc-buttons">
       <button type="button" class="primary-btn esc-add" data-esc="add">Add a responder</button>
-      <button type="button" class="primary-btn esc-share" data-esc="share">Share the live view</button>
+      <button type="button" class="primary-btn esc-share" data-esc="share">Share the Scene Summary</button>
     </div>
     <p class="esc-bottom-links">
       <button type="button" class="link-btn" id="esc-new">Start a new blank worksheet</button>
@@ -191,7 +219,7 @@
         <button type="button" class="link-btn" id="esc-new-no">Cancel</button>
       </span>
     </p>
-    <p class="esc-bottom-links"><a href="escalation.html?view=list" target="_blank" rel="noopener">See recent worksheets</a> &nbsp;|&nbsp;
+    <p class="esc-bottom-links"><span id="esc-recent-link"><a href="escalation.html?view=list" target="_blank" rel="noopener">See recent worksheets</a> &nbsp;|&nbsp;</span>
       <a href="../documents/DAT-Response-Lead-Incident-Reporting-Worksheet-fillable-2026.2.8.pdf" target="_blank" rel="noopener">Printable PDF of this worksheet</a> &nbsp;|&nbsp;
       <a href="../documents/DAT-Response-Lead-Incident-Reporting-Worksheet-fillable-2026.2.8.pdf" download="DAT Response Lead Incident Reporting Worksheet.pdf">Download the PDF</a></p>
   </section>
@@ -200,9 +228,10 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.2"></script>
-<script src="../js/ask-lead.js?v=0.27.2"></script>
-<script src="../js/escalation.js?v=0.27.2"></script>
-<script src="../js/close-tab.js?v=0.27.2"></script>
+<script src="../js/config.js?v=0.27.3"></script>
+<script src="../js/ask-lead.js?v=0.27.3"></script>
+<script src="../js/phone-format.js?v=0.27.3"></script>
+<script src="../js/escalation.js?v=0.27.3"></script>
+<script src="../js/close-tab.js?v=0.27.3"></script>
 </body>
 </html>

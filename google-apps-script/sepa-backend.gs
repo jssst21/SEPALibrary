@@ -32,6 +32,8 @@
  *               client details: they are DELETED (not archived) when HQ clears the center, or
  *               automatically 5 days after its last intake. See RECEPTION CENTER FORM below.
  *   Reception cleared - just the code and time of each center that was cleared (no client details).
+ *   Responders - who is on each worksheet and reception center (website v0.27.3). YES in "Removed"
+ *               removes someone. See WHO IS ON AN EVENT at the end.
  *
  * Since website v0.27 the website's DOCUMENTS are not in the Sheet or on GitHub: they are in the Google
  * Drive folder "SEPA Library Files". See LIBRARY FILES at the end of this script.
@@ -185,6 +187,7 @@ function doPost(e) {
       askStatus: askStatus_,
       askAnswer: askAnswer_,
       recAsks: recAsks_,
+      rosterRemove: rosterRemove_,
       escSync: escSync_,
       escLogin: escLogin_,
       escGet: escGet_,
@@ -847,7 +850,7 @@ function escPing_(d) {
 
 function escLogin_(d) {
   var s = escLoginSettings_();
-  if (!s.user || !s.pass) return { ok: false, login: true, locked: true, error: 'The live view has not been given a user name and password yet. The site admin sets them in the Google Sheet.' };
+  if (!s.user || !s.pass) return { ok: false, login: true, locked: true, error: 'The HQ user name and password have not been set yet. The site admin sets them in the Google Sheet.' };
   var user = clean_(d.user, 60), pw = String(d.password || '');
   if (tooManyTries_('esc-hq')) return { ok: false, login: true, error: 'Too many tries. Please wait 15 minutes and try again.' };
   if (user.toLowerCase() !== s.user.toLowerCase() || pw !== s.pass) {
@@ -860,7 +863,7 @@ function escLogin_(d) {
 /* Is this a current HQ login? Returns null when it is, or the "please log in" answer when it is not. */
 function escDenied_(d) {
   var s = escLoginSettings_();
-  if (!s.user || !s.pass) return { ok: false, login: true, locked: true, error: 'The live view has not been given a user name and password yet. The site admin sets them in the Google Sheet.' };
+  if (!s.user || !s.pass) return { ok: false, login: true, locked: true, error: 'The HQ user name and password have not been set yet. The site admin sets them in the Google Sheet.' };
   var token = String(d.token || ''), mark = escMark_(s);
   if (token.length >= 40) {
     var data = rows_('Sessions'), oldest = stamp_(new Date(Date.now() - ESC_SESSION_DAYS * 86400000));
@@ -954,7 +957,10 @@ function escSync_(d) {
   var out = {};
   Object.keys(w.meta.f).forEach(function (k) { if (w.meta.f[k] > since) out[k] = w.data[k] || ''; });
   var res = { ok: true, rev: w.meta.r, changed: out, now: now.getTime() };
-  if (d.asks) res.asks = askWaiting_('esc', id);      // the lead's phone asks for join requests (website v0.27.2)
+  // Who is on this worksheet (website v0.27.3). What this phone typed was saved above even if it was removed.
+  var me = rosterCheckIn_('esc', id, d, d.lead ? 'lead' : '');
+  if (me && me.removed) { res.removed = true; res.where = clean_(String(w.data.incident_addresses || '').split('\n')[0], 80); }
+  if (d.asks) { res.asks = askWaiting_('esc', id); res.roster = rosterPublic_('esc', id); }
   return res;
 }
 
@@ -987,7 +993,8 @@ function escGet_(d) {
   var sh = escTab_(), row = escFindRow_(sh, id), now = new Date().getTime();
   if (!row) return { ok: true, found: false, cleared: escIsCleared_(id), now: now };
   var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0];
-  return { ok: true, found: true, id: id, started: iso_(r[1]), updated: iso_(r[2]), ms: Number(escText_(r[5])) || 0, now: now, data: escOpen_(r[6]).data };
+  return { ok: true, found: true, id: id, started: iso_(r[1]), updated: iso_(r[2]), ms: Number(escText_(r[5])) || 0, now: now, data: escOpen_(r[6]).data,
+    roster: rosterPublic_('esc', id) };
 }
 
 // The most recent worksheets, newest first. HQ login needed.
@@ -1019,6 +1026,7 @@ function escClear_(d) {
   var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0].map(function (v) { return v instanceof Date ? stamp_(v) : safe_(escText_(v)); });
   escClearedTab_().appendRow(r.concat([stamp_()]));
   sh.deleteRow(row);
+  rosterDelete_('esc', id);
   return { ok: true, cleared: true };
 }
 
@@ -1073,6 +1081,7 @@ function recDelete_(id, how) {
   var csh = recCenters_(), row = escFindRow_(csh, id);
   if (row) csh.deleteRow(row);
   if (!recIsCleared_(id)) recClearedTab_().appendRow([id, stamp_(), how]);
+  rosterDelete_('rec', id);
 }
 
 /* The 5-day automatic delete. Also removes intakes whose center is gone (a row deleted by hand). */
@@ -1144,7 +1153,9 @@ function recPing_(d) {
   var c = recCenter_(id, key, 'join');
   if (!c) return { ok: true, found: false };
   if (!c.ok) return { ok: false, nokey: true, error: 'This link cannot open the reception center.' };
-  return { ok: true, found: true, center: escText_(c.r[3]), lead: escText_(c.r[4]) };
+  var lc = d.leadKey ? recCenter_(id, escKey_(d.leadKey), 'lead') : null;
+  var me = rosterCheckIn_('rec', id, d, lc && lc.ok ? 'lead' : '');
+  return { ok: true, found: true, center: escText_(c.r[3]), lead: escText_(c.r[4]), removed: !!(me && me.removed) };
 }
 
 // One finished intake. The same intake sent twice (a phone that lost signal and tried again) is saved once.
@@ -1169,7 +1180,8 @@ function recAdd_(d) {
   ish.appendRow(row);
   var n = (parseInt(escText_(c.r[5]), 10) || 0) + 1;
   recCenters_().getRange(c.row, 3, 1, 5).setValues([[nowText, safe_(escText_(c.r[3])), safe_(escText_(c.r[4])), String(n), String(now.getTime())]]);
-  return { ok: true };
+  var me = rosterCheckIn_('rec', id, d, '');      // a removed phone's last intakes are still kept (website v0.27.3)
+  return { ok: true, removed: !!(me && me.removed) };
 }
 
 // The summary of one center: the lead (with the lead key) or HQ (logged in).
@@ -1194,7 +1206,7 @@ function recGet_(d) {
     });
   }
   return { ok: true, found: true, id: id, center: escText_(c.r[3]), lead: escText_(c.r[4]), started: iso_(c.r[1]),
-    ms: Number(escText_(c.r[6])) || 0, keepDays: REC_KEEP_DAYS, now: now, items: items };
+    ms: Number(escText_(c.r[6])) || 0, keepDays: REC_KEEP_DAYS, now: now, items: items, roster: rosterPublic_('rec', id) };
 }
 
 // All open reception centers, newest activity first. HQ login needed.
@@ -1553,6 +1565,105 @@ function askAnswer_(d) {
 function recAsks_(d) {
   var id = escId_(d.id), c = recCenter_(id, escKey_(d.leadKey), 'lead');
   if (!c || !c.ok) return { ok: false, error: 'Only the lead can see requests.' };
-  return { ok: true, asks: askWaiting_('rec', id) };
+  return { ok: true, asks: askWaiting_('rec', id), roster: rosterPublic_('rec', id) };
+}
+
+
+/* =========================================================
+   WHO IS ON AN EVENT, AND REMOVING A RESPONDER (website v0.27.3)
+   Both forms. Every phone on a worksheet or reception center checks in with a name now and then,
+   so the lead and HQ see who is on it and can REMOVE someone: for example, on a big scene, to free a
+   supervisor to go start a second reception center. What the removed person already entered STAYS.
+   Their phone finishes sending anything it was holding, then says "You have been removed from ..."
+   and offers to start a new one. They can be let back in later (a new join link, or Ask to join).
+   Tab "Responders": one row per phone per event. Typing YES in "Removed" removes someone by hand.
+   Rows are deleted when the event is cleared.
+   ========================================================= */
+var ROSTER_HEADERS = ['Form', 'Event ID', 'Device (do not edit)', 'Name', 'Role', 'First seen', 'Last seen', 'Removed (type YES)', 'Removed by'];
+var ROSTER_CACHE_SECS = 60;     // hand edits in the tab show within a minute
+var ROSTER_SEEN_SECS = 120;     // "last seen" is written at most every 2 minutes per phone
+function rosterTab_() { makeTab_('Responders', ROSTER_HEADERS); return tab_('Responders'); }
+function rosterDev_(v) { v = String(v || ''); return /^[A-Za-z0-9]{12,40}$/.test(v) ? v : ''; }
+function rosterMs_(v) {
+  if (v instanceof Date) return v.getTime();
+  var m = /^(\d{4})-(\d\d)-(\d\d)[ T](\d\d):(\d\d):?(\d\d)?/.exec(String(v || ''));
+  return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)).getTime() : 0;
+}
+function rosterRows_(form, id) {
+  var sh = rosterTab_(), last = sh.getLastRow(), out = [];
+  if (last >= 2) sh.getRange(2, 1, last - 1, ROSTER_HEADERS.length).getValues().forEach(function (r, i) {
+    if (String(r[0]) !== form || String(r[1]) !== id) return;
+    out.push({ row: i + 2, dev: String(r[2]), name: escText_(r[3]), role: escText_(r[4]), lastMs: rosterMs_(r[6]), removed: isYes_(r[7]) });
+  });
+  return out;
+}
+function rosterKey_(form, id) { return 'ros:' + form + ':' + id; }
+function rosterGet_(form, id) {
+  var c = CacheService.getScriptCache(), hit = c.get(rosterKey_(form, id));
+  if (hit) { try { return JSON.parse(hit); } catch (e) {} }
+  var list = rosterRows_(form, id);
+  try { c.put(rosterKey_(form, id), JSON.stringify(list), ROSTER_CACHE_SECS); } catch (e) {}
+  return list;
+}
+function rosterForget_(form, id) { CacheService.getScriptCache().remove(rosterKey_(form, id)); }
+// A phone checks in. d.dev = its code for this event, d.who = its person's name. Returns that person's
+// entry (with .removed), or null when the phone sent no code (an older page).
+function rosterCheckIn_(form, id, d, role) {
+  var dev = rosterDev_(d.dev);
+  if (!dev) return null;
+  var list = rosterGet_(form, id), me = null, name = clean_(d.who, 60).replace(/\s+/g, ' ');
+  list.forEach(function (x) { if (x.dev === dev) me = x; });
+  if (me && me.removed) return me;
+  var cache = CacheService.getScriptCache(), seenKey = 'seen:' + form + ':' + dev, nowText = stamp_();
+  if (!me) {
+    rosterTab_().appendRow([form, id, dev, safe_(name), role || '', nowText, nowText, '', '']);
+    rosterForget_(form, id);
+    cache.put(seenKey, '1', ROSTER_SEEN_SECS);
+    return { dev: dev, name: name, role: role || '', removed: false };
+  }
+  if (!cache.get(seenKey) || (name && name !== me.name) || (role && role !== me.role)) {
+    var sh = rosterTab_();
+    if (String(sh.getRange(me.row, 3).getValue()) === dev) {
+      sh.getRange(me.row, 4, 1, 4).setValues([[safe_(name || me.name), role || me.role, sh.getRange(me.row, 6).getValue(), nowText]]);
+    }
+    rosterForget_(form, id);
+    cache.put(seenKey, '1', ROSTER_SEEN_SECS);
+  }
+  return me;
+}
+// What the lead and HQ see: everyone not removed, lead first, then by name.
+function rosterPublic_(form, id) {
+  return rosterGet_(form, id).filter(function (x) { return !x.removed; })
+    .sort(function (a, b) { return (a.role === 'lead' ? 0 : 1) - (b.role === 'lead' ? 0 : 1) || a.name.localeCompare(b.name); })
+    .map(function (x) { return { dev: x.dev, name: x.name, role: x.role, lastMs: x.lastMs }; });
+}
+// Remove a responder. The lead (Escalation: the worksheet's edit key; Reception: the lead key) or HQ (logged in).
+function rosterRemove_(d) {
+  var form = askForm_(d.form), id = escId_(d.id), dev = rosterDev_(d.dev), by = '';
+  if (!form || !id || !dev) return { ok: false, error: 'Bad request.' };
+  if (form === 'esc') {
+    var key = escKey_(d.key), sh = escTab_(), row = escFindRow_(sh, id);
+    if (row && key && escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta.k === escKeyMark_(id, key)) by = 'Lead';
+  } else {
+    var lc = recCenter_(id, escKey_(d.leadKey), 'lead');
+    if (lc && lc.ok) by = 'Lead';
+  }
+  if (!by && d.token && !escDenied_(d)) by = 'HQ';
+  if (!by) return { ok: false, login: true, error: 'Only the lead or HQ can remove a responder.' };
+  var me = null;
+  rosterRows_(form, id).forEach(function (x) { if (x.dev === dev) me = x; });
+  if (!me) return { ok: false, error: 'That person is not on this event any more.' };
+  if (me.role === 'lead') return { ok: false, error: 'The lead cannot be removed.' };
+  rosterTab_().getRange(me.row, 8, 1, 2).setValues([['YES', by + ' ' + stamp_()]]);
+  rosterForget_(form, id);
+  return { ok: true, roster: rosterPublic_(form, id) };
+}
+function rosterDelete_(form, id) {
+  var sh = rosterTab_(), last = sh.getLastRow();
+  if (last >= 2) {
+    var v = sh.getRange(2, 1, last - 1, 2).getValues();
+    for (var i = v.length - 1; i >= 0; i--) if (String(v[i][0]) === form && String(v[i][1]) === id) sh.deleteRow(i + 2);
+  }
+  rosterForget_(form, id);
 }
 
