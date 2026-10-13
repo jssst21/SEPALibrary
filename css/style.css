@@ -1545,3 +1545,15 @@ a.f-page:hover { border-color: var(--red); color: var(--red); }
 .role-lead-btn { line-height: 1.25; }
 .role-hq-btn { display: block; text-align: center; text-decoration: none; background: #5e4626; }
 .role-hq-btn:hover, .role-hq-btn:focus-visible { background: #4a371e; }
+
+/* ---------- SEPA TOOLS APP CARD on the homepage, under the gallery (v0.27.4) ---------- */
+.side-app { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 10px; background: #fff; color: var(--ink); text-decoration: none; box-shadow: 0 2px 6px rgba(60, 8, 16, .35); border-left: 6px solid #ffd54a; }
+@media (min-width: 900px) { .side-app { flex: none; } .side-gallery { min-height: 100px; } }
+.side-app:hover .side-app-txt strong { text-decoration: underline; }
+.side-app:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.side-app-qr { flex: none; width: 72px; height: 72px; }
+.side-app-txt { display: flex; flex-direction: column; gap: 4px; }
+.side-app-txt strong { color: var(--red); font-size: 15.5px; line-height: 1.2; }
+.side-app-cap { font-size: 12.5px; color: var(--ink-soft); }
+.side-app-btn { display: none; align-self: flex-start; margin-top: 4px; padding: 9px 18px; border-radius: 999px; background: var(--red); color: #fff; font-weight: 700; }
+@media (max-width: 899px) { .side-app-qr, .side-app-cap { display: none; } .side-app-btn { display: inline-block; } .side-app { padding: 14px 16px; } .side-app-txt strong { font-size: 18px; } }

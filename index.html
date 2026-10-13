@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=0.27.3">
+<link rel="stylesheet" href="css/style.css?v=0.27.4">
 </head>
 <!-- "home-red" in the line below is the switch for the all-red homepage (v0.16.13): the logo red behind
      the whole page, with the buttons, search bar and calendar floating on it as white cards.
@@ -90,10 +90,16 @@
            stand-ins cropped from the old button pictures. To swap one, replace the file in the
            images/gallery folder with a new photo of the same name (wide photos work best). -->
       <div class="side-gallery" aria-hidden="true">
-        <img src="images/gallery/photo-1.jpg?v=0.27.3" alt="">
-        <img src="images/gallery/photo-2.jpg?v=0.27.3" alt="">
-        <img src="images/gallery/photo-3.jpg?v=0.27.3" alt="">
+        <img src="images/gallery/photo-1.jpg?v=0.27.4" alt="">
+        <img src="images/gallery/photo-2.jpg?v=0.27.4" alt="">
+        <img src="images/gallery/photo-3.jpg?v=0.27.4" alt="">
       </div>
+      <!-- SEPA Tools app card (v0.27.4), under the gallery. Computers: QR code for sepalibrary.org/app.
+           Phones: a "Get the app" button instead (you cannot scan your own screen). -->
+      <a class="side-app" href="app/" target="_blank" rel="noopener">
+        <img class="side-app-qr" src="app/qr.svg" alt="QR code for sepalibrary.org/app" width="72" height="72">
+        <span class="side-app-txt"><strong>Get the SEPA Tools app for your phone!</strong><span class="side-app-cap">Scan with your phone's camera</span><span class="side-app-btn">Get the app</span></span>
+      </a>
     </div>
 
     <!-- DAT shift calendar (js/home-calendar.js fills it in) -->
@@ -137,15 +143,15 @@
 
   </div>
 
-  <footer class="home-footer">SEPA Resource Library v0.27.3</footer>
+  <footer class="home-footer">SEPA Resource Library v0.27.4</footer>
 
 </div>
 
-<script src="js/config.js?v=0.27.3"></script>
-<script src="js/library.js?v=0.27.3"></script>
-<script src="js/search-data.js?v=0.27.3"></script>
-<script src="js/search.js?v=0.27.3"></script>
-<script src="js/script.js?v=0.27.3"></script>
-<script src="js/home-calendar.js?v=0.27.3"></script>
+<script src="js/config.js?v=0.27.4"></script>
+<script src="js/library.js?v=0.27.4"></script>
+<script src="js/search-data.js?v=0.27.4"></script>
+<script src="js/search.js?v=0.27.4"></script>
+<script src="js/script.js?v=0.27.4"></script>
+<script src="js/home-calendar.js?v=0.27.4"></script>
 </body>
 </html>

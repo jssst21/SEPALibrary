@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SEPA Tools</title>
+<meta name="description" content="One place for the Red Cross SEPA DAT tools.">
+<meta name="theme-color" content="#ae273a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SEPA Tools">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<!-- SEPA TOOLS (website v0.27.4). A one-screen "app" people add to their phone's home screen
+     (sepalibrary.org/app). It is only a set of buttons: each opens that tool's own site. It logs in to
+     nothing and stores nothing. To change a button, edit its line in the grid below (the address is in
+     href="..."). The buttons appear in the order they are listed.
+     The yellow "To put the SEPA Tools App on your phone:" card shows only in a browser, not once the
+     app is on the home screen. Its QR code (qr.svg, for sepalibrary.org/app) shows only on computers. -->
+<style>
+  :root { --red: #ae273a; --red-dark: #8c1f2f; --ink: #2a2420; --navy: #1f3556; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--red); color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 18px);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  h1 { margin: 6px 0 2px; font-size: 30px; letter-spacing: .02em; text-align: center; }
+  .sub { margin: 0 0 20px; text-align: center; font-size: 15px; opacity: .9; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .tile {
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    aspect-ratio: 1 / 1; padding: 10px 6px; border-radius: 18px;
+    background: #fff; color: var(--ink); text-decoration: none; text-align: center;
+    box-shadow: 0 3px 8px rgba(60, 8, 16, .35);
+    transition: transform .1s;
+  }
+  .tile:active { transform: scale(.96); }
+  .tile:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .tile svg { width: 38px; height: 38px; fill: none; stroke: var(--red); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .tile span { font-size: 14.5px; font-weight: 700; line-height: 1.15; }
+  .tile.practice { background: #fdf3f4; }
+  .tile.practice svg { stroke: var(--navy); }
+  .tile.practice em { position: absolute; top: 7px; right: 7px; padding: 1px 6px; border-radius: 999px; background: var(--navy); color: #fff; font-size: 10px; font-style: normal; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .note { margin: 18px 0 0; font-size: 13.5px; text-align: center; opacity: .9; }
+  .install { margin: 22px 0 0; padding: 14px 16px; border-radius: 14px; background: rgba(0, 0, 0, .18); font-size: 15px; line-height: 1.45; }
+  .install h2 { margin: 0 0 6px; font-size: 17px; }
+  .install p { margin: 6px 0 0; }
+  @media (display-mode: standalone) { .install { display: none; } }
+  .foot { margin: 18px 0 0; text-align: center; font-size: 13px; }
+  .foot a { color: #fff; }
+  @media (max-width: 340px) { .tile span { font-size: 13px; } .tile svg { width: 32px; height: 32px; } }
+  @media (prefers-reduced-motion: reduce) { .tile { transition: none; } }
+  .inst { margin: 0 0 20px; border-radius: 16px; background: #fff; color: var(--ink); overflow: hidden; box-shadow: 0 6px 16px rgba(40, 6, 12, .45); border: 3px solid #ffd54a; }
+  .inst-head { margin: 0; padding: 14px 16px; background: #ffd54a; color: #2a2420; font-size: 19px; line-height: 1.25; }
+  .inst-cols { display: grid; grid-template-columns: 1fr; }
+  .inst-col { padding: 12px 16px 4px; }
+  .inst-col + .inst-col { border-top: 1px solid #eee3d0; }
+  .inst-os { margin: 0 0 6px; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--red); }
+  .inst ol { list-style: none; margin: 0; padding: 0; }
+  .inst li { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 16px; line-height: 1.3; }
+  .inst li b { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--red); color: #fff; font-size: 15px; }
+  .inst .ico { display: inline-block; width: 22px; height: 22px; margin-left: 4px; vertical-align: -5px; fill: none; stroke: #1a73e8; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .inst .ico circle { fill: #1a73e8; stroke: none; }
+  .inst-done { margin: 0; padding: 10px 16px 14px; background: #fdf3f4; font-size: 15px; }
+  .inst-qr { display: none; align-items: center; gap: 16px; padding: 14px 16px; border-top: 1px solid #eee3d0; }
+  .inst-qr p { margin: 0; font-size: 15px; }
+  @media (min-width: 700px) { .inst-cols { grid-template-columns: 1fr 1fr; } .inst-col + .inst-col { border-top: 0; border-left: 1px solid #eee3d0; } .inst-qr { display: flex; } }
+  @media (display-mode: standalone) { .inst { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>SEPA Tools</h1>
+  <p class="sub">Red Cross SEPA Disaster Action Team</p>
+
+  <section class="inst">
+    <h2 class="inst-head">To put the SEPA Tools App on your phone:</h2>
+    <div class="inst-cols">
+      <div class="inst-col">
+        <p class="inst-os">iPhone</p>
+        <ol>
+          <li><b>1</b><span>Open this page in <strong>Safari</strong></span></li>
+          <li><b>2</b><span>Tap the <strong>Share</strong> button <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg></span></li>
+          <li><b>3</b><span>Tap <strong>Add to Home Screen</strong> <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg></span></li>
+        </ol>
+      </div>
+      <div class="inst-col">
+        <p class="inst-os">Android</p>
+        <ol>
+          <li><b>1</b><span>Open this page in <strong>Chrome</strong></span></li>
+          <li><b>2</b><span>Tap the <strong>menu</strong> <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></span></li>
+          <li><b>3</b><span>Tap <strong>Add to Home screen</strong> or <strong>Install app</strong></span></li>
+        </ol>
+      </div>
+    </div>
+    <p class="inst-done">Then tap the red <strong>SEPA Tools</strong> icon on your home screen any time.</p>
+    <div class="inst-qr">
+      <img src="qr.svg" alt="QR code for sepalibrary.org/app" width="132" height="132">
+      <p><strong>On a computer?</strong> Point your phone's camera at this code to open SEPA Tools on your phone, or go to <strong>sepalibrary.org/app</strong>.</p>
+    </div>
+  </section>
+
+  <nav class="grid" aria-label="Tools">
+    <a class="tile" href="https://rccare.my.site.com/RCCare/login?ec=302&amp;startURL=%2FRCCare%2Fs%2F">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 14h7M8.5 18h4"/></svg><span>RC Care</span></a>
+    <a class="tile" href="https://ops-rcview-redcross.nogginapp.io/signin">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2zM10 20a2 2 0 0 0 4 0"/></svg><span>Noggin</span></a>
+    <a class="tile" href="/pages/shifts.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8.5 14.5l2 2 4-4"/></svg><span>Shift Sign Up</span></a>
+    <a class="tile" href="https://www.redcross.org/scia">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span>SCIA</span></a>
+    <a class="tile" href="/pages/escalation.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9.5 17h-19L12 3z"/><path d="M12 10v4.5M12 17.5v.01"/></svg><span>Escalation</span></a>
+    <a class="tile" href="/pages/reception.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3.5 19c.5-3.5 3-5.5 5.5-5.5s5 2 5.5 5.5M14.5 14.5c.8-.6 1.6-.9 2.5-.9 2 0 3.6 1.5 4 5.4"/></svg><span>Reception Center</span></a>
+    <a class="tile practice" href="https://rccare--training3.sandbox.my.site.com/RCCare/login?ec=302&amp;startURL=%2FRCCare%2Fs%2F"><em>Practice</em>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 14h7M8.5 18h4"/></svg><span>Practice RC Care</span></a>
+    <a class="tile practice" href="https://www.redcross.org/scia-training"><em>Practice</em>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span>Practice SCIA</span></a>
+    <a class="tile" href="https://auth.agilquest.com/eas-saml/saml/web/auth/americanredcross">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2.5"/></svg><span>RC Reserve</span></a>
+  </nav>
+
+  <p class="note">Each button opens that tool's own site. You sign in there, as usual.</p>
+
+
+
+  <p class="foot"><a href="/index.html">SEPA Resource Library website</a></p>
+</div>
+<script>
+  // Lets the button screen open even with a weak signal (see sw.js). Harmless if the phone does not support it.
+  if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('sw.js'); } catch (e) {} }
+</script>
+</body>
+</html>

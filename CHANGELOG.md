@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.27.4
+- SEPA TOOLS APP (new folder app/, address sepalibrary.org/app). A one-screen "app" people add to their
+  phone's home screen: a red SEPA Tools icon that opens to a grid of nine buttons, in this order:
+  RC Care, Noggin, Shift Sign Up (opens only the shift calendar page), SCIA, Escalation, Reception
+  Center, Practice RC Care, Practice SCIA, RC Reserve. Each opens that tool's own site; the app logs in
+  to nothing and stores nothing. The two practice buttons are marked "Practice".
+  - iPhone: open sepalibrary.org/app in Safari > Share > Add to Home Screen. Android: Chrome > menu >
+    Add to Home screen / Install app. The page shows these steps until it is installed.
+  - Files: index.html (the buttons; edit a line to change one), manifest.webmanifest (name, colors,
+    icon), sw.js (keeps the button screen on the phone for weak signal), icons.
+  - The app page opens with a bright yellow-topped card, "To put the SEPA Tools App on your phone:",
+    with three numbered steps each for iPhone and Android (with small pictures of the buttons to tap).
+    It hides once the app is opened from the home screen. On computers it also shows a QR code.
+- HOMEPAGE: a "Get the SEPA Tools app for your phone!" card under the photo gallery (which stays, a
+  little shorter). Computers: a QR code to scan with a phone. Phones: a "Get the app" button.
+
 ## v0.27.3
 - REMOVE A RESPONDER (Escalation Form and Reception Center Form). Sean's "three supervisors" case: on a
   big scene, the lead (or HQ) takes one responder off the event so they can go start a second

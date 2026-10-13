@@ -1,0 +1,15 @@
+{
+  "name": "SEPA Tools",
+  "short_name": "SEPA Tools",
+  "description": "One place for the Red Cross SEPA DAT tools: RC Care, Noggin, shift sign-up, SCIA, the Escalation and Reception Center forms, practice sites and RC Reserve.",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "background_color": "#ae273a",
+  "theme_color": "#ae273a",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
