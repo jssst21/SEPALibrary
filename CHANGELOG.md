@@ -1,5 +1,51 @@
 # Changelog
 
+## v0.27
+- DOCUMENTS MOVED TO GOOGLE DRIVE. Every document now lives in the Drive folder "SEPA Library Files"
+  (sepalibrary account), not on GitHub. documents/library, documents/masscare and documents/onboarding
+  were removed from the website folder (the escalation worksheet PDF stays). v0.26's Browse Library was
+  never pushed, so its 194 MB never reached GitHub.
+- ADMIN-FRIENDLY: Browse Library, the Mass Care list and the Onboarding cards are drawn live from that
+  folder (js/library.js). Add, remove or rename a file in Drive and the site catches up within about
+  10 minutes. Each folder is a group; folders inside it are subheadings; the title is the file name.
+  New folders appear at the end of Browse Library. The Onboarding cards find their files by name
+  (data-doc in pages/new.html).
+- GOOGLE SCRIPT: new LIBRARY FILES section. ...exec?lib=1 lists the folder, ...exec?find=... searches the
+  text inside the documents. setupLibrary (run once) makes the folder viewable by link and starts a
+  10-minute refresh. Leftover ".tmp.pdf" copies are ignored.
+- SITE SEARCH (js/search.js): one search on the homepage, Browse Library and Mass Care. It shows this
+  site's pages and Quick launch links, documents by title, documents that mention the words inside
+  them, and GAP codes. Abbreviations work both ways (from Sean's answers, js/search-data.js); form
+  numbers find their forms (6409 -> F6409, F6409B, Disaster Requisition); IS-100 style course numbers;
+  "pets" finds "Pet"; "shelter" finds "Sheltering". No snippets or page numbers yet (later).
+- Homepage: results take the calendar's place while searching; Esc or clearing the box brings it back.
+- RECEPTION CENTER FORM: becoming the lead now needs the HQ user name and password (the same login as
+  the Escalation Form live view, kept only in the Sheet's Settings tab). Tapping Start opens a pop-up
+  asking for them; a phone already logged in as HQ skips it. The pop-up does not log the phone in as
+  HQ, so a lead still cannot clear centers or see the HQ list. The Google script checks this too, so it
+  cannot be skipped. Responders still join with the lead's link, no password.
+
+## v0.26
+- BROWSE LIBRARY FILLED (pages/library.html, the homepage's Browse Library button). It was two
+  "coming soon" buttons (FAQs and Common Documents, Training Center; those pages still exist but are
+  no longer linked from here). Now a red page with 202 items from Library assets, a search box, and
+  jump buttons to each group: Getting started, Response guides and forms, Duty Officer resources,
+  Individual Disaster Care (IDC), Mass Care, Volunteer leadership tools, Training presentations,
+  DAT Chats and events, Videos. Groups follow Sean's folders for now (Sean: organization comes later);
+  sub-folders show as small headings. Every file opens in a new tab and has a Download button
+- New files are in documents/library (202 MB). Files already on the site (Onboarding, Mass Care) are
+  reused, not copied twice, and exact duplicates are stored once
+- HELD BACK (listed with reasons in "Library assets/Held back from the website.xlsx", nothing deleted):
+  the 3 "(FOUO)" Philadelphia shelter plans (never public); the Mass Care planning archive (county
+  plans, OEM reviews, vendor MOUs and lists, IAPs, surveys, simulation modules); Tools for Instructors
+  (instructor manuals and course decks, 576 MB); videos (6.8 GB, too big for the host; planned for
+  YouTube); spreadsheets; meeting minutes; the roleplay photo decks; the PA tax-exempt certificate;
+  a performance evaluation form; Language Line info and county fire verification numbers; the DHS
+  Fundamentals deck (over GitHub's 100 MB limit); Archived, Restricted and Photo Gallery folders
+- The homepage search bar is NOT connected to the library yet (it still only filters the homepage
+  buttons). The library page has its own search box. One shared site search is the next step
+- Version number is now ?v=0.26 on every page and the homepage footer reads v0.26
+
 ## v0.25
 - MASS CARE PAGE BUILT (pages/masscare.html, the homepage's Mass Care button). It was a "coming
   soon" filler. Now a red page like the others with:

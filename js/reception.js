@@ -1,8 +1,10 @@
 // SEPA Resource Library - Reception Center Form (pages/reception.html), v0.21
 //
 // One short intake per displaced person or family, done on a phone at a reception center.
-//   - The phone that STARTS a reception center is its lead. "Add a responder" (lead only) sends a join
-//     link; whoever opens it does intakes for the same center.
+//   - The phone that STARTS a reception center is its lead. Since v0.27 starting one needs the HQ user
+//     name and password (asked in a pop-up; a phone already logged in as HQ skips it). The pop-up does
+//     not log the phone in as HQ. "Add a responder" (lead only) sends a join link; whoever opens it
+//     does intakes for the same center.
 //   - "Save and start the next intake" sends the intake to the Google Sheet and clears the form.
 //     With no signal, finished intakes wait on the phone and go out by themselves later.
 //   - Phones do not sync with each other. Every intake goes straight to one list per center.
@@ -107,16 +109,41 @@
       if (!name) { err.textContent = 'Please enter your name.'; err.hidden = false; return; }
       err.hidden = true;
       var id = newId(), key = newKey(), lead = newKey(), btn = $('rec-start-btn');
-      btn.disabled = true; btn.textContent = 'Starting...';
-      call({ action: 'recStart', id: id, key: key, leadKey: lead, center: center, lead: name }).then(function (r) {
-        btn.disabled = false; btn.textContent = 'Start';
-        if (oldScript(r) || !URL) { err.textContent = 'The Reception Center Form is not switched on yet. The site admin needs to update the Google script.'; err.hidden = false; return; }
-        if (!(r && r.ok)) { err.textContent = r && r.offline ? 'No connection. Starting a reception center needs a signal once; after that, intakes can be done offline.' : ((r && r.error) || 'Could not start. Please try again.'); err.hidden = false; return; }
-        lsSet('sepaRecName', name);
-        lsSet('sepaRecKey:' + id, key); lsSet('sepaRecLead:' + id, lead); lsSet('sepaRecCenter:' + id, center);
-        lsSet('sepaRecCurrent', id);
-        location.replace(pageLink('id=' + id));
-      });
+      function begin(extra, done) {
+        var data = { action: 'recStart', id: id, key: key, leadKey: lead, center: center, lead: name };
+        Object.keys(extra).forEach(function (k) { data[k] = extra[k]; });
+        btn.disabled = true; btn.textContent = 'Starting...';
+        call(data).then(function (r) {
+          btn.disabled = false; btn.textContent = 'Start';
+          if (oldScript(r) || !URL) { err.textContent = 'The Reception Center Form is not switched on yet. The site admin needs to update the Google script.'; err.hidden = false; return done && done(); }
+          if (r && r.leadLogin) return askLead(r);
+          if (!(r && r.ok)) { err.textContent = r && r.offline ? 'No connection. Starting a reception center needs a signal once; after that, intakes can be done offline.' : ((r && r.error) || 'Could not start. Please try again.'); err.hidden = false; return done && done(); }
+          $('rec-lead-modal').hidden = true;
+          lsSet('sepaRecName', name);
+          lsSet('sepaRecKey:' + id, key); lsSet('sepaRecLead:' + id, lead); lsSet('sepaRecCenter:' + id, center);
+          lsSet('sepaRecCurrent', id);
+          location.replace(pageLink('id=' + id));
+        });
+      }
+      // The pop-up: HQ user name and password. Asked only when the script says they are needed.
+      function askLead(r) {
+        var m = $('rec-lead-modal'), lerr = $('rec-lead-error'), lbtn = $('rec-lead-btn');
+        m.hidden = false; lbtn.disabled = false;
+        lerr.textContent = r.error || ''; lerr.hidden = !lerr.textContent;
+        if (r.locked) lbtn.disabled = true;
+        $('rec-lead-pass').value = '';
+        setTimeout(function () { ($('rec-lead-user').value ? $('rec-lead-pass') : $('rec-lead-user')).focus(); }, 50);
+        $('rec-lead-x').onclick = function () { m.hidden = true; };
+        m.onclick = function (ev) { if (ev.target === m) m.hidden = true; };
+        $('rec-lead-form').onsubmit = function (ev) {
+          ev.preventDefault();
+          var u = $('rec-lead-user').value.trim(), pw = $('rec-lead-pass').value;
+          if (!u || !pw) { lerr.textContent = 'Please enter the user name and password.'; lerr.hidden = false; return; }
+          lbtn.disabled = true; lerr.hidden = true;
+          begin({ user: u, password: pw }, function () { m.hidden = true; });
+        };
+      }
+      begin(token() ? { token: token() } : {});
     });
   }
 

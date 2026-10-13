@@ -1446,3 +1446,58 @@ a.f-page:hover { border-color: var(--red); color: var(--red); }
 @media (max-width: 640px) {
   .mc-item { grid-template-columns: 1fr auto; grid-template-areas: "type dl" "title title" "meta meta"; row-gap: 4px; }
 }
+
+/* =========================================================
+   BROWSE LIBRARY (pages/library.html, v0.26)
+   Uses the Mass Care page's file lines and search box. Adds jump buttons to each group and small
+   sub-group headings (Sean's sub-folders).
+   ========================================================= */
+.lib-head { margin-top: 16px; }
+.lib-head .mc-search { max-width: 640px; flex-basis: 100%; }
+.lib-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.lib-jump[hidden] { display: none; }
+.lib-jump a { padding: 7px 14px; border-radius: 999px; background: #fff; color: var(--navy); font-size: 15px; font-weight: 700; text-decoration: none; box-shadow: 0 1px 4px rgba(60, 8, 16, .3); }
+.lib-jump a span { margin-left: 4px; color: var(--ink-soft); font-weight: 600; }
+.lib-jump a:hover { background: #f3f5f9; }
+.lib-resources { margin-top: 6px; }
+.lib-sub { margin: 18px 0 0; font-family: 'Public Sans', Arial, sans-serif; font-size: 15px; font-weight: 700; letter-spacing: .02em; color: #fff; opacity: .95; }
+.lib-sub[hidden], .mc-list[hidden] { display: none; }
+.lib-note { margin: 10px 0 0; color: #fff; font-size: 15px; }
+.mc-section { scroll-margin-top: 16px; }
+
+/* ---------- SITE SEARCH RESULTS (v0.27, js/search.js) ----------
+   The same results box on the homepage, Browse Library and Mass Care. Document rows reuse the
+   Mass Care list style (mc-item). */
+.mc-xls { background: #1d6f42; }
+.mc-img { background: #6b4f8a; }
+.ss-panel { margin-top: 16px; padding: 18px 20px 20px; border-radius: 14px; background: rgba(255, 255, 255, .14); }
+.ss-panel[hidden] { display: none; }
+.ss-sec + .ss-sec { margin-top: 18px; }
+.ss-h { display: flex; align-items: center; gap: 10px; margin: 0; font-family: 'Public Sans', Arial, sans-serif; font-size: 17px; font-weight: 700; color: #fff; }
+.ss-note { margin: 8px 0 0; color: #fff; font-size: 15px; }
+.ss-note a { color: #fff; font-weight: 700; }
+.ss-wait::after { content: ""; display: inline-block; width: 12px; height: 12px; margin-left: 8px; border: 2px solid rgba(255,255,255,.5); border-top-color: #fff; border-radius: 50%; vertical-align: -1px; animation: ss-spin .8s linear infinite; }
+@keyframes ss-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ss-wait::after { animation: none; } }
+.ss-none { margin: 0; color: #fff; }
+.ss-panel .mc-list { margin-top: 10px; }
+.ss-panel .mc-item[hidden] { display: none; }
+.ss-more { margin-top: 10px; padding: 8px 16px; border: 0; border-radius: 999px; background: #fff; color: var(--navy); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 4px rgba(60, 8, 16, .3); }
+.ss-more:hover { background: #f3f5f9; }
+.ss-pages { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.ss-pages a { display: flex; flex-direction: column; gap: 2px; height: 100%; padding: 10px 14px; border-radius: 10px; background: #fff; color: var(--ink); text-decoration: none; box-shadow: 0 2px 6px rgba(60, 8, 16, .35); }
+.ss-pages a strong { color: var(--navy); font-size: 16px; }
+.ss-pages a span { font-size: 13.5px; color: var(--ink-soft); }
+.ss-pages a:hover strong { color: var(--red); text-decoration: underline; }
+.ss-gap { list-style: none; margin: 10px 0 0; padding: 8px 16px; border-radius: 12px; background: #fff; box-shadow: 0 2px 6px rgba(60, 8, 16, .35); }
+.ss-gap li { padding: 6px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.ss-gap li:first-child { border-top: 0; }
+.ss-gap code { display: inline-block; min-width: 108px; font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; color: var(--navy); }
+/* Homepage: the results sit where the calendar was. On a computer that is the right-hand column. */
+@media (min-width: 900px) {
+  .home-nav > .ss-home { grid-column: 2; grid-row: 4 / span 2; margin-top: 18px; }
+}
+@media (max-width: 899px) {
+  .home-nav > .ss-home { order: 3; background: var(--red); }
+}
+.home-red .ss-home { background: var(--red-dark); }

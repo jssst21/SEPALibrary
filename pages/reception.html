@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.25">
+<link rel="stylesheet" href="../css/style.css?v=0.27">
 </head>
 <body class="home">
 
@@ -38,7 +38,7 @@
   <!-- 1. No reception center on this phone yet: start one (this phone becomes the lead) -->
   <section class="esc-tools" id="rec-start" hidden>
     <h2 class="esc-login-title">Start a reception center</h2>
-    <p class="esc-how">The person who starts it is the <strong>lead</strong>. You can then add responders, and you and HQ can see every intake as it comes in.</p>
+    <p class="esc-how">The person who starts it is the <strong>lead</strong>. You can then add responders, and you and HQ can see every intake as it comes in. Starting one needs the HQ user name and password.</p>
     <p class="esc-how rec-joinhint">Were you sent a link by your lead? Open that link instead.</p>
     <form id="rec-start-form" novalidate>
       <label class="field">Reception center name or location
@@ -193,6 +193,27 @@
     <div class="rec-table-wrap"><table class="rec-table" id="rec-table"></table></div>
   </section>
 
+  <!-- Pop-up when starting a reception center (v0.27): only someone with the HQ user name and password
+       can become a lead. Typing them here starts the center; it does not log this phone in as HQ. -->
+  <div class="f-modal" id="rec-lead-modal" hidden>
+    <div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="rec-lead-modal-title">
+      <button type="button" class="f-modal-x" id="rec-lead-x" aria-label="Close">&times;</button>
+      <h2 id="rec-lead-modal-title">Become the lead</h2>
+      <p class="f-modal-note">Only Red Cross leadership can start a reception center. Enter the HQ user name and password.
+        Responders: ask your lead for a join link instead.</p>
+      <form id="rec-lead-form" novalidate>
+        <label class="field">User name
+          <input id="rec-lead-user" autocomplete="username" autocapitalize="none" spellcheck="false">
+        </label>
+        <label class="field">Password
+          <input id="rec-lead-pass" type="password" autocomplete="current-password">
+        </label>
+        <p class="form-error" id="rec-lead-error" hidden></p>
+        <button class="primary-btn" type="submit" id="rec-lead-btn">Start as lead</button>
+      </form>
+    </div>
+  </div>
+
   <!-- The HQ login (same user name and password as the Escalation Form live view) -->
   <section class="esc-tools esc-login" id="esc-login" hidden>
     <form id="esc-login-form" novalidate>
@@ -220,8 +241,8 @@
 
 </div>
 
-<script src="../js/config.js?v=0.25"></script>
-<script src="../js/reception.js?v=0.25"></script>
-<script src="../js/close-tab.js?v=0.25"></script>
+<script src="../js/config.js?v=0.27"></script>
+<script src="../js/reception.js?v=0.27"></script>
+<script src="../js/close-tab.js?v=0.27"></script>
 </body>
 </html>

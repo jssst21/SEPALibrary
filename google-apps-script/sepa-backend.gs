@@ -1,7 +1,8 @@
 /**
  * SEPA Resource Library - Google Sheet backend
  * Powers: DAT shift signup calendars (Field Responders and Duty Officers) + Discussion Forums +
- *         Escalation Form (proof of concept) + Reception Center Form
+ *         Escalation Form (proof of concept) + Reception Center Form +
+ *         the list of library documents and the search inside them (website v0.27, from Google Drive)
  *
  * This code lives inside ONE Google Sheet (Extensions > Apps Script).
  * It is NOT part of the website itself. See "Admin Guides" folder, Guide 2.
@@ -31,6 +32,9 @@
  *               client details: they are DELETED (not archived) when HQ clears the center, or
  *               automatically 5 days after its last intake. See RECEPTION CENTER FORM below.
  *   Reception cleared - just the code and time of each center that was cleared (no client details).
+ *
+ * Since website v0.27 the website's DOCUMENTS are not in the Sheet or on GitHub: they are in the Google
+ * Drive folder "SEPA Library Files". See LIBRARY FILES at the end of this script.
  */
 
 /* The Google Sheet this script saves to (the long code in the Sheet's web address,
@@ -138,8 +142,17 @@ function json_(obj) {
 
 // GET = shift calendar data (public: counts only, never names).
 // ...exec?team=do gives the Duty Officers calendar; anything else gives Field Responders.
+// ...exec?lib=1 gives the list of library documents (website v0.27), and ...exec?find=[...] searches
+// inside them. See LIBRARY FILES at the end.
 function doGet(e) {
-  return json_(shiftData_(e && e.parameter && e.parameter.team));
+  var p = (e && e.parameter) || {};
+  try {
+    if (p.lib) return json_(libPublic_(libList_(false)));
+    if (p.find) return json_(libSearch_(p.find));
+  } catch (err) {
+    return json_({ ok: false, error: 'The library is not answering right now.' });
+  }
+  return json_(shiftData_(p.team));
 }
 
 // POST = everything else. Body is JSON with an "action".
@@ -1067,11 +1080,28 @@ function recStart_(d) {
   if (recIsCleared_(id)) return { ok: true, cleared: true };
   var c = recCenter_(id, key, 'join');
   if (c) return c.ok ? { ok: true } : { ok: false, nokey: true, error: 'This link cannot open the reception center.' };
+  // Only someone with the HQ login can become a lead (website v0.27): either a phone already logged in
+  // as HQ, or the HQ user name and password typed into the pop-up when starting. Typing them here does
+  // NOT log the phone in as HQ; it only starts this one center.
+  var denied = recLeadDenied_(d);
+  if (denied) return denied;
   var now = new Date(), nowText = stamp_(now);
-  escLoginSettings_();                       // makes sure the HQ login rows exist in Settings
   recCenters_().appendRow([id, nowText, '', safe_(clean_(d.center, 120)), safe_(clean_(d.lead, 100)), '0', String(now.getTime()),
     recMark_('join', id, key), recMark_('lead', id, lead)]);
   return { ok: true };
+}
+
+function recLeadDenied_(d) {
+  if (d.token && !escDenied_(d)) return null;
+  var s = escLoginSettings_();                // also makes sure the HQ login rows exist in Settings
+  if (!s.user || !s.pass) return { ok: false, leadLogin: true, locked: true, error: 'The HQ user name and password have not been set yet. The site admin sets them in the Google Sheet.' };
+  if (d.user == null && d.password == null) return { ok: false, leadLogin: true, error: '' };
+  if (tooManyTries_('esc-hq')) return { ok: false, leadLogin: true, error: 'Too many tries. Please wait 15 minutes and try again.' };
+  if (clean_(d.user, 60).toLowerCase() !== s.user.toLowerCase() || String(d.password || '') !== s.pass) {
+    noteFail_('esc-hq');
+    return { ok: false, leadLogin: true, error: 'That user name and password do not match.' };
+  }
+  return null;
 }
 
 // A phone checks in: is its center still open? (Joined phones ask this now and then.)
@@ -1160,4 +1190,233 @@ function recClear_(d) {
   if (!id) return { ok: false, error: 'This reception center link is not valid.' };
   recDelete_(id, 'Cleared by HQ');
   return { ok: true, cleared: true };
+}
+
+
+/* =========================================================
+   LIBRARY FILES (website v0.27)
+   The website's documents live in Google Drive, in the folder "SEPA Library Files" (in the
+   sepalibrary Google account). The website asks this script what is in that folder and shows it.
+   So to ADD a document: drop it into the right folder in Drive. To REMOVE one: delete it in Drive.
+   To RENAME one: rename it in Drive (the name, without .pdf etc., is the title people see).
+   The website catches up within about 10 minutes.
+     - Each folder directly inside "SEPA Library Files" is a group on Browse Library.
+     - Folders inside those become subheadings.
+     - "Mass Care Resources" is also the list on the Mass Care page.
+     - "Getting Started" also feeds the cards on the Onboarding page (matched by file name, so
+       keep those names the same, or tell whoever edits the website).
+   ONE-TIME SETUP: run setupLibrary once from the editor (pick it in the box next to Debug, then Run).
+   It makes the folder viewable by anyone with the link (the website needs that), checks every file,
+   and starts the 10-minute refresh. Safe to run again any time.
+   ========================================================= */
+var LIB_FOLDER_NAMES = ['SEPA Library Files', 'SEPA Library Files - upload to Drive'];
+var LIB_SKIP = /(\.tmp\.pdf$)|(^~\$)|(^\.)|(^desktop\.ini$)/i;   // leftovers that never show on the website
+var LIB_CACHE_SECS = 21600;        // the refresh rewrites this every 10 minutes anyway
+var LIB_SEARCH_SECS = 900;         // a search result is reused for 15 minutes
+
+function libFolder_() {
+  var props = PropertiesService.getScriptProperties(), id = props.getProperty('libFolder');
+  if (id) { try { var f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) {} }
+  for (var i = 0; i < LIB_FOLDER_NAMES.length; i++) {
+    var it = DriveApp.getFoldersByName(LIB_FOLDER_NAMES[i]);
+    while (it.hasNext()) {
+      var g = it.next();
+      if (!g.isTrashed()) { props.setProperty('libFolder', g.getId()); return g; }
+    }
+  }
+  return null;
+}
+
+/* Big values are split into pieces, because one cache entry holds at most 100 KB. */
+function libCachePut_(key, text, secs) {
+  var c = CacheService.getScriptCache(), n = Math.ceil(text.length / 90000) || 1, all = {};
+  for (var i = 0; i < n; i++) all[key + ':' + i] = text.slice(i * 90000, (i + 1) * 90000);
+  all[key] = String(n);
+  c.putAll(all, secs);
+}
+function libCacheGet_(key) {
+  var c = CacheService.getScriptCache(), n = parseInt(c.get(key), 10);
+  if (!n) return null;
+  var keys = [];
+  for (var i = 0; i < n; i++) keys.push(key + ':' + i);
+  var got = c.getAll(keys), out = '';
+  for (i = 0; i < n; i++) { if (got[keys[i]] == null) return null; out += got[keys[i]]; }
+  return out;
+}
+
+/* Every file the account can see, in a few quick calls (the Drive web service, using this script's
+   own permission). Returns null if that fails, and the slower folder-by-folder walk is used instead. */
+function libAllFromApi_() {
+  try {
+    var token = ScriptApp.getOAuthToken(), out = [], page = '';
+    for (var guard = 0; guard < 40; guard++) {
+      var url = 'https://www.googleapis.com/drive/v3/files?pageSize=1000&q=' + encodeURIComponent('trashed = false') +
+        '&fields=' + encodeURIComponent('nextPageToken,files(id,name,mimeType,size,modifiedTime,parents,permissionIds,webViewLink,shortcutDetails)') +
+        (page ? '&pageToken=' + encodeURIComponent(page) : '');
+      var res = UrlFetchApp.fetch(url, { headers: { Authorization: 'Bearer ' + token }, muteHttpExceptions: true });
+      if (res.getResponseCode() !== 200) return null;
+      var body = JSON.parse(res.getContentText());
+      out = out.concat(body.files || []);
+      page = body.nextPageToken;
+      if (!page) return out;
+    }
+    return out;
+  } catch (e) { return null; }
+}
+
+/* Builds the list the website shows: { paths: ['Getting Started', ...], files: [[id, name, path#, bytes, modified, kind, link, shared]] } */
+function libBuild_() {
+  var root = libFolder_();
+  if (!root) return { ok: false, error: 'The Drive folder "SEPA Library Files" was not found.' };
+  var rootId = root.getId(), paths = [], pathIx = {}, files = [], skipped = [];
+  function pathNo(p) { if (!(p in pathIx)) { pathIx[p] = paths.length; paths.push(p); } return pathIx[p]; }
+  function add(f) {
+    if (LIB_SKIP.test(f.name)) { skipped.push((f.path ? f.path + '/' : '') + f.name); return; }
+    var mime = f.mime, id = f.id;
+    if (mime === 'application/vnd.google-apps.shortcut' && f.target) { id = f.target; mime = f.targetMime || ''; }
+    if (mime === 'application/vnd.google-apps.folder') return;
+    var kind = /^application\/vnd\.google-apps\./.test(mime) ? mime.split('.').pop() : '';
+    files.push([id, f.name, pathNo(f.path), f.size || 0, f.modified || '', kind, kind ? (f.link || '') : '', f.shared ? 1 : 0]);
+  }
+  var all = libAllFromApi_();
+  if (all) {
+    var byId = {};
+    all.forEach(function (f) { byId[f.id] = f; });
+    var folderPath = {};   // folder id -> its path under the root ('' for the root), or false if outside
+    folderPath[rootId] = '';
+    var where = function (fid, depth) {
+      if (fid in folderPath) return folderPath[fid];
+      var f = byId[fid];
+      if (!f || depth > 12 || !f.parents || !f.parents.length) return (folderPath[fid] = false);
+      var up = where(f.parents[0], depth + 1);
+      return (folderPath[fid] = up === false ? false : (up ? up + '/' : '') + f.name);
+    };
+    all.forEach(function (f) {
+      if (f.mimeType === 'application/vnd.google-apps.folder' || !f.parents) return;
+      var p = where(f.parents[0], 0);
+      if (p === false) return;
+      add({ id: f.id, name: f.name, path: p, mime: f.mimeType, size: +f.size || 0, modified: String(f.modifiedTime || '').slice(0, 10),
+            link: f.webViewLink, shared: (f.permissionIds || []).indexOf('anyoneWithLink') >= 0,
+            target: f.shortcutDetails && f.shortcutDetails.targetId, targetMime: f.shortcutDetails && f.shortcutDetails.targetMimeType });
+    });
+  } else {
+    // Slower way: walk the folders one by one.
+    var walk = function (folder, path, depth) {
+      var it = folder.getFiles();
+      while (it.hasNext()) {
+        var f = it.next(), mime = f.getMimeType(), target = '', shared = true;
+        try { if (mime === 'application/vnd.google-apps.shortcut') target = f.getTargetId(); } catch (e) {}
+        try { shared = f.getSharingAccess() === DriveApp.Access.ANYONE_WITH_LINK || f.getSharingAccess() === DriveApp.Access.ANYONE; } catch (e) {}
+        add({ id: f.getId(), name: f.getName(), path: path, mime: mime, size: f.getSize(), link: f.getUrl(), shared: shared, target: target,
+              modified: Utilities.formatDate(f.getLastUpdated(), tz_(), 'yyyy-MM-dd') });
+      }
+      if (depth > 10) return;
+      var sub = folder.getFolders();
+      while (sub.hasNext()) { var s = sub.next(); walk(s, (path ? path + '/' : '') + s.getName(), depth + 1); }
+    };
+    walk(root, '', 0);
+  }
+  var groups = {};
+  paths.forEach(function (p) { if (p) groups[p.split('/')[0]] = 1; });
+  return { ok: true, at: Date.now(), root: rootId, groups: Object.keys(groups).sort(), paths: paths, files: files, skipped: skipped };
+}
+
+/* Makes sure the website can open each file: anyone with the link may VIEW (not edit). */
+function libShare_(list, max) {
+  var fixed = 0;
+  list.files.forEach(function (f) {
+    if (f[7] || fixed >= max) return;
+    try { DriveApp.getFileById(f[0]).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); f[7] = 1; fixed++; } catch (e) {}
+  });
+  return fixed;
+}
+
+/* The list, from the cache when possible. */
+function libList_(fresh) {
+  if (!fresh) {
+    var hit = libCacheGet_('libList');
+    if (hit) return JSON.parse(hit);
+  }
+  var list = libBuild_();
+  if (list.ok) {
+    libShare_(list, 25);
+    libCachePut_('libList', JSON.stringify(list), LIB_CACHE_SECS);
+  }
+  return list;
+}
+function libPublic_(list) {
+  if (!list.ok) return list;
+  return { ok: true, at: list.at, groups: list.groups, paths: list.paths,
+           files: list.files.map(function (f) { return f.slice(0, 7); }) };
+}
+
+/* Runs every 10 minutes (setupLibrary starts it): re-reads the folder so additions, removals and
+   renames show on the website. */
+function refreshLibrary() {
+  var list = libBuild_();
+  if (!list.ok) return;
+  libShare_(list, 200);
+  libCachePut_('libList', JSON.stringify(list), LIB_CACHE_SECS);
+}
+
+function setupLibrary() {
+  var root = libFolder_();
+  if (!root) { Logger.log('Could not find a Drive folder named "SEPA Library Files" in this account. Check the name and run this again.'); return; }
+  if (root.getName() !== LIB_FOLDER_NAMES[0]) { root.setName(LIB_FOLDER_NAMES[0]); Logger.log('Renamed the folder to "' + LIB_FOLDER_NAMES[0] + '".'); }
+  root.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  var list = libBuild_();
+  var fixed = libShare_(list, 100000);
+  libCachePut_('libList', JSON.stringify(list), LIB_CACHE_SECS);
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'refreshLibrary') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('refreshLibrary').timeBased().everyMinutes(10).create();
+  var counts = {};
+  list.files.forEach(function (f) { var g = list.paths[f[2]].split('/')[0] || '(loose files at the top)'; counts[g] = (counts[g] || 0) + 1; });
+  Logger.log('Library is set up: ' + list.files.length + ' files. Made ' + fixed + ' viewable by link. Refresh every 10 minutes is on.');
+  Object.keys(counts).sort().forEach(function (g) { Logger.log('  ' + g + ': ' + counts[g]); });
+  if (list.skipped.length) Logger.log('Left off the website (leftover copies you can delete in Drive): ' + list.skipped.join(' | '));
+}
+
+/* SEARCH INSIDE THE DOCUMENTS. The website turns what someone typed into groups of words that mean
+   the same thing (for example ["mass care", "MC"]) and sends them here. Google Drive searches the text
+   inside every file. A file must match one word from EVERY group; if few do, files that match some
+   groups come after them. Only files in the library folder are returned. */
+function libQuote_(t) {
+  t = String(t).replace(/[\\']/g, ' ').replace(/"/g, ' ').replace(/\s+/g, ' ').trim();
+  return /[^A-Za-z0-9]/.test(t) ? '"' + t + '"' : t;   // anything with a space or symbol is searched as a phrase
+}
+function libDriveSearch_(groups, any) {
+  var parts = groups.map(function (g) {
+    return '(' + g.map(function (t) { return "fullText contains '" + libQuote_(t) + "'"; }).join(' or ') + ')';
+  });
+  var q = 'trashed = false and (' + parts.join(any ? ' or ' : ' and ') + ')';
+  var ids = [], it = DriveApp.searchFiles(q), n = 0;
+  while (it.hasNext() && n < 300) { ids.push(it.next().getId()); n++; }
+  return ids;
+}
+function libSearch_(raw) {
+  var groups;
+  try { groups = JSON.parse(raw); } catch (e) { return { ok: false, error: 'Bad search.' }; }
+  if (!Array.isArray(groups)) return { ok: false, error: 'Bad search.' };
+  groups = groups.slice(0, 6).map(function (g) {
+    return (Array.isArray(g) ? g : [g]).map(function (t) { return clean_(t, 60); })
+      .filter(function (t) { return t.replace(/[^A-Za-z0-9]/g, '').length >= 2; }).slice(0, 12);
+  }).filter(function (g) { return g.length; });
+  if (!groups.length) return { ok: true, hits: [], some: [] };
+  var key = 'libq:' + hash_('q', JSON.stringify(groups)).slice(0, 40), c = CacheService.getScriptCache(), hit = c.get(key);
+  if (hit) return JSON.parse(hit);
+  var list = libList_(false);
+  if (!list.ok) return list;
+  var inLib = {};
+  list.files.forEach(function (f) { inLib[f[0]] = 1; });
+  var hits = libDriveSearch_(groups, false).filter(function (id) { return inLib[id]; }), some = [];
+  if (hits.length < 5 && groups.length > 1) {
+    var seen = {};
+    hits.forEach(function (id) { seen[id] = 1; });
+    some = libDriveSearch_(groups, true).filter(function (id) { return inLib[id] && !seen[id]; });
+  }
+  var out = { ok: true, hits: hits.slice(0, 60), some: some.slice(0, 30) };
+  try { c.put(key, JSON.stringify(out), LIB_SEARCH_SECS); } catch (e) {}
+  return out;
 }

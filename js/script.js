@@ -1,23 +1,9 @@
-// SEPA Resource Library v0.4
-// Search box: as you type, only the matching buttons stay visible.
+// SEPA Resource Library v0.27
+// Homepage search box: the full site search (js/search.js). While someone is searching, the results
+// take the calendar's place; clearing the box (or pressing Esc) brings the calendar back.
 (function () {
   var box = document.getElementById('search');
-  if (!box) return;
-  var buttons = document.querySelectorAll('.nav-btn');
-  var labels = document.querySelectorAll('.nav-label');
-  var none = document.querySelector('.no-results');
-
-  box.addEventListener('input', function () {
-    var q = box.value.trim().toLowerCase();
-    var shown = 0;
-    buttons.forEach(function (b) {
-      var match = b.textContent.toLowerCase().indexOf(q) !== -1;
-      b.style.display = match ? '' : 'none';
-      if (match) shown++;
-    });
-    labels.forEach(function (l) { l.style.display = q ? 'none' : ''; });
-    if (none) none.hidden = shown !== 0;
-    var cal = document.getElementById('home-cal');   // hide the calendar while searching
-    if (cal) cal.style.display = q ? 'none' : '';
-  });
+  if (!box || typeof SEPASearch === 'undefined') return;
+  SEPASearch.attach(box, document.getElementById('ss-panel'),
+    [document.getElementById('home-cal')], '');
 })();
