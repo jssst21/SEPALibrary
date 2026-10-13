@@ -9,7 +9,9 @@
 //   - Live view (same page with ?view=CODE on the end): a read-only copy that re-reads the Google
 //     Sheet every few seconds, so someone else can watch the worksheet fill in.
 //   - ?view=list shows the most recent worksheets.
-// Filling in needs no login. READING as HQ (the live view and the list) needs the HQ user name and
+// STARTING a worksheet (becoming its lead) needs the HQ user name and password since v0.27.1, asked in
+// a pop-up; a device already logged in as HQ skips it. Responders who join with the lead's link need
+// no login. READING as HQ (the live view and the list) needs the HQ user name and
 // password, which are checked by the Google script and kept in the Google Sheet's Settings tab.
 // They are deliberately not in this file or anywhere else in the website folder, which is public.
 // The Google connection is set in js/config.js. The wording below comes from the Word original,
@@ -255,16 +257,26 @@
 
     var id;
     if (urlId && (urlKey || goodKey(lsGet('sepaEscKey:' + urlId)))) { id = urlId; joined = !!urlKey && mine !== urlId; }
-    else if (urlId && urlId !== mine) { id = mine || newId(); wrongLink = true; }   // someone else's link without its key
+    else if (urlId && urlId !== mine) {
+      // someone else's link without its key. But if this phone once had that worksheet (HQ cleared it, or
+      // the Back button / an old bookmark leads to it), just open this phone's current one without the
+      // warning (v0.27.1: the warning kept showing after a clear). A cleared worksheet leaves an empty
+      // key behind on the phone, which is how it is recognized.
+      id = mine || newId();
+      wrongLink = lsGet('sepaEscKey:' + urlId) === null && lsGet('sepaEscSeen:' + urlId) !== '1';
+    }
     else id = mine || newId();
     var hadKey = goodKey(lsGet('sepaEscKey:' + id));
-    var key = (id === urlId && urlKey) || hadKey || newKey();
-    // No key on this phone and no join link: this phone is starting the worksheet (or carried one over
-    // from before v0.18), so it is the lead.
-    if (!hadKey && !(id === urlId && urlKey)) lsSet('sepaEscLead:' + id, '1');
+    // No key on this phone and no join link: this phone has no worksheet yet. Since v0.27.1 it has to
+    // START one, which needs the HQ user name and password (see startMode).
+    if (!hadKey && !(id === urlId && urlKey)) {
+      return startMode(id, wrongLink ? 'That link cannot be used to join a worksheet. Ask the person who started it to tap "Add a responder" and send you the link.' : '');
+    }
+    var key = (id === urlId && urlKey) || hadKey;
     var lead = lsGet('sepaEscLead:' + id) === '1';
     lsSet('sepaEscKey:' + id, key);
     lsSet('sepaEscCurrent', id);
+    lsSet('sepaEscSeen:' + id, '1');
     try { history.replaceState(null, '', pageLink('id=' + id)); } catch (e) {}    // also takes the key out of the address bar
     $('esc-edit-tools').hidden = false; $('esc-bottom').hidden = false;
     draw();
@@ -287,13 +299,13 @@
     function cleared() {            // HQ ended the event: forget this worksheet and start a blank one
       lsSet('sepaEsc:' + id, ''); lsSet('sepaEscSync:' + id, ''); lsSet('sepaEscKey:' + id, ''); lsSet('sepaEscLead:' + id, '');
       var fresh = newId(); lsSet('sepaEscCurrent', fresh);
-      lsSet('sepaEscNote', 'HQ cleared the last worksheet at the end of the event. This is a new blank one.'); lsSet('sepaEscNoteOk', '');
+      lsSet('sepaEscNote', 'HQ cleared the last worksheet at the end of the event. Start a new one below when you need it.'); lsSet('sepaEscNoteOk', '');
       location.href = pageLink('id=' + fresh);
     }
 
     function sync() {
       if (busy) { again = true; return; }
-      if (live === 'off' || live === 'nokey') return;
+      if (live === 'off' || live === 'nokey' || live === 'nostart') return;
       busy = true; again = false; clearTimeout(timer);
       var names = changedHere(), sent = {}, claiming = claim;
       names.forEach(function (k) { sent[k] = cur(k); });
@@ -324,6 +336,12 @@
           store();
         }
         else if (r && r.nokey) live = 'nokey';
+        else if (r && r.needStart) {
+          // A worksheet begun on this phone before v0.27.1 that Google never received: it needs the
+          // HQ log in to be started. What is typed stays on this phone meanwhile.
+          live = 'nostart';
+          startAsLead(id, key, function (bad) { if (bad === null) { lead = true; live = 'unknown'; $('esc-add-how').hidden = false; $('esc-joined-how').hidden = true; Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.hidden = false; }); sync(); } });
+        }
         else if (r && r.toolong) { live = 'on'; problem = r.error || 'This worksheet is too long to save.'; }
         else if (r && !r.offline && /unknown request/i.test(r.error || '')) live = 'off';
         else live = 'offline';
@@ -344,6 +362,7 @@
       }
       else if (live === 'off') t = 'Saved on this device. Live sharing is not switched on yet (the Google script needs its update).';
       else if (live === 'offline') { t = 'Saved on this device. No connection: it will be sent when you are back online.'; s.className += ' esc-warn'; }
+      else if (live === 'nostart') { t = 'Saved on this device, but NOT shared yet: starting a worksheet needs the HQ user name and password. Reload the page to try again.'; s.className += ' esc-warn'; }
       else if (live === 'nokey') { t = 'Saved on this device, but NOT shared: this phone was not added to that worksheet. Ask the person who started it to tap "Add a responder" and send you the link.'; s.className += ' esc-warn'; }
       else t = 'Saved on this device.';
       s.textContent = t;
@@ -429,6 +448,64 @@
       if (!changedHere().length || live !== 'on') return go();
       sync(); setTimeout(go, 1500);      // give the last entries a moment to go out first (they are kept on this device either way)
     });
+  }
+
+  // ================================================================ STARTING A WORKSHEET (v0.27.1)
+  // Only someone with the HQ user name and password can start a worksheet and so become its lead.
+  function startMode(id, notice) {
+    var sec = $('esc-start'), err = $('esc-start-error'), btn = $('esc-start-btn');
+    root.hidden = true; sec.hidden = false;
+    var carried = lsGet('sepaEscNote');
+    if (carried) { notice = carried; lsSet('sepaEscNote', ''); lsSet('sepaEscNoteOk', ''); }
+    if (notice) { var n = $('esc-start-note'); n.textContent = notice; n.hidden = false; }
+    try { history.replaceState(null, '', pageLink('')); } catch (e) {}
+    btn.onclick = function () {
+      err.hidden = true; btn.disabled = true; btn.textContent = 'Starting...';
+      var key = newKey();
+      startAsLead(id, key, function (problem) {
+        btn.disabled = false; btn.textContent = 'Start a worksheet';
+        if (problem === '') return;                                   // closed the pop-up
+        if (problem) { err.textContent = problem; err.hidden = false; return; }
+        lsSet('sepaEscKey:' + id, key); lsSet('sepaEscCurrent', id); lsSet('sepaEscSeen:' + id, '1');
+        location.replace(pageLink('id=' + id));
+      });
+    };
+  }
+  // Asks Google to start worksheet "id" with this key. A device logged in as HQ goes straight through;
+  // otherwise the pop-up asks for the HQ user name and password (they are NOT kept on the device).
+  // done(null) = started (this device is the lead); done('') = pop-up closed; done('...') = a problem.
+  function startAsLead(id, key, done) {
+    var m = $('esc-lead-modal'), lerr = $('esc-lead-error'), lbtn = $('esc-lead-btn');
+    function begin(extra) {
+      var data = { action: 'escStart', id: id, key: key };
+      Object.keys(extra).forEach(function (k) { data[k] = extra[k]; });
+      call(data).then(function (r) {
+        lbtn.disabled = false;
+        if (r && r.ok) { m.hidden = true; lsSet('sepaEscLead:' + id, '1'); return done(null); }
+        if (r && r.leadLogin) return ask(r);
+        m.hidden = true;
+        if (r && r.offline) return done('No connection. Starting a worksheet needs a signal once; after that you can type with no signal.');
+        if (r && /unknown request/i.test(r.error || '')) return done('The Escalation Form is not switched on yet. The site admin needs to update the Google script.');
+        done((r && r.error) || 'Could not start. Please try again.');
+      });
+    }
+    function ask(r) {
+      m.hidden = false; lbtn.disabled = !!r.locked;
+      lerr.textContent = r.error || ''; lerr.hidden = !lerr.textContent;
+      $('esc-lead-pass').value = '';
+      setTimeout(function () { ($('esc-lead-user').value ? $('esc-lead-pass') : $('esc-lead-user')).focus(); }, 50);
+      var close = function () { m.hidden = true; done(''); };
+      $('esc-lead-x').onclick = close;
+      m.onclick = function (ev) { if (ev.target === m) close(); };
+      $('esc-lead-form').onsubmit = function (ev) {
+        ev.preventDefault();
+        var u = $('esc-lead-user').value.trim(), pw = $('esc-lead-pass').value;
+        if (!u || !pw) { lerr.textContent = 'Please enter the user name and password.'; lerr.hidden = false; return; }
+        lbtn.disabled = true; lerr.hidden = true;
+        begin({ user: u, password: pw });
+      };
+    }
+    begin(token() ? { token: token() } : {});
   }
 
   // A join link was opened on a phone that already has its own worksheet with entries: ask which to use.

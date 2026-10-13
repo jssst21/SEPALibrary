@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.27.1
+- ESCALATION FORM: becoming the lead now needs the HQ user name and password, the same as the
+  Reception Center Form. Opening the form with no worksheet shows "Start a worksheet"; tapping it opens
+  a pop-up asking for the HQ login (a device already logged in as HQ skips it). The pop-up does not log
+  the device in as HQ, so only real HQ logins see the live view list and the Clear button. Responders
+  still join with the lead's link, no password. The Google script checks this too (new escStart; escSync
+  no longer makes a worksheet by itself). Starting needs a signal once; after that typing works offline.
+- Fixed: the yellow "That link cannot be used to join a worksheet" warning kept appearing after HQ
+  cleared a worksheet (the Back button or an old bookmark still pointed at the cleared one). A phone
+  now recognizes a worksheet it once had and skips the warning.
+- The lead check is shared by both forms in the script (leadDenied_).
+
 ## v0.27
 - DOCUMENTS MOVED TO GOOGLE DRIVE. Every document now lives in the Drive folder "SEPA Library Files"
   (sepalibrary account), not on GitHub. documents/library, documents/masscare and documents/onboarding

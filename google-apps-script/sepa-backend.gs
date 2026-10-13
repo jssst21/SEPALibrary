@@ -179,6 +179,7 @@ function doPost(e) {
       fEdit: fEdit_,
       fRemove: fRemove_,
       escPing: escPing_,
+      escStart: escStart_,
       escSync: escSync_,
       escLogin: escLogin_,
       escGet: escGet_,
@@ -914,6 +915,8 @@ function escSync_(d) {
   var since = Math.max(0, parseInt(d.since, 10) || 0);
   // Nothing saved yet and nothing to save: do not make an empty row (keeps HQ's list clean).
   if (!row && !names.length && !d.claim) return { ok: true, rev: 0, changed: {}, now: now.getTime() };
+  // Since website v0.27.1 a worksheet must be STARTED first (escStart, HQ user name and password).
+  if (!row) return { ok: false, needStart: true, error: 'Starting a worksheet needs the HQ user name and password.' };
 
   var mark = escKeyMark_(id, key);
   var w = row ? escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]) : { data: {}, meta: { r: 0, k: '', f: {} } };
@@ -946,6 +949,26 @@ function escSync_(d) {
   var out = {};
   Object.keys(w.meta.f).forEach(function (k) { if (w.meta.f[k] > since) out[k] = w.data[k] || ''; });
   return { ok: true, rev: w.meta.r, changed: out, now: now.getTime() };
+}
+
+// START a worksheet (website v0.27.1). Only someone with the HQ login can start one and so become its
+// lead: a device logged in as HQ, or the HQ user name and password typed into the pop-up (this does NOT
+// log the device in as HQ). Makes the worksheet's row with its edit key and nothing typed yet.
+function escStart_(d) {
+  var id = escId_(d.id), key = escKey_(d.key);
+  if (!id || !key) return { ok: false, error: 'This worksheet could not be started.' };
+  if (escIsCleared_(id)) return { ok: false, error: 'That worksheet was cleared. Reload the page to start a new one.' };
+  var sh = escTab_(), row = escFindRow_(sh, id), mark = escKeyMark_(id, key);
+  if (row) {
+    var w = escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]);
+    return w.meta.k === mark ? { ok: true } : { ok: false, nokey: true, error: 'This worksheet could not be started.' };
+  }
+  var denied = leadDenied_(d);
+  if (denied) return denied;
+  var store = {}, now = new Date(), nowText = stamp_(now);
+  store[ESC_META] = { r: 0, k: mark, f: {} };
+  sh.appendRow([id, nowText, nowText, '', '', String(now.getTime()), JSON.stringify(store)]);
+  return { ok: true };
 }
 
 // Read one worksheet back (the live view calls this every few seconds). HQ login needed.
@@ -1083,7 +1106,7 @@ function recStart_(d) {
   // Only someone with the HQ login can become a lead (website v0.27): either a phone already logged in
   // as HQ, or the HQ user name and password typed into the pop-up when starting. Typing them here does
   // NOT log the phone in as HQ; it only starts this one center.
-  var denied = recLeadDenied_(d);
+  var denied = leadDenied_(d);
   if (denied) return denied;
   var now = new Date(), nowText = stamp_(now);
   recCenters_().appendRow([id, nowText, '', safe_(clean_(d.center, 120)), safe_(clean_(d.lead, 100)), '0', String(now.getTime()),
@@ -1091,7 +1114,9 @@ function recStart_(d) {
   return { ok: true };
 }
 
-function recLeadDenied_(d) {
+/* Who may become a lead (Reception Center Form and Escalation Form, website v0.27): a device logged in
+   as HQ, or someone who types the HQ user name and password. Returns null when allowed. */
+function leadDenied_(d) {
   if (d.token && !escDenied_(d)) return null;
   var s = escLoginSettings_();                // also makes sure the HQ login rows exist in Settings
   if (!s.user || !s.pass) return { ok: false, leadLogin: true, locked: true, error: 'The HQ user name and password have not been set yet. The site admin sets them in the Google Sheet.' };
