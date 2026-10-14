@@ -200,7 +200,8 @@ function doPost(e) {
       recList: recList_,
       recClear: recClear_,
       recEdit: recEdit_,
-      recDeleteOne: recDeleteOne_
+      recDeleteOne: recDeleteOne_,
+      recDda: recDda_
     };
     var fn = actions[d.action || 'shiftSignup'];
     if (!fn) return json_({ ok: false, error: 'Unknown request.' });
@@ -1060,7 +1061,9 @@ function escClear_(d) {
 var REC_CENTER_HEADERS = ['ID', 'Started', 'Last intake', 'Center name or location', 'Lead', 'Intakes', 'Last activity ms (do not edit)', 'Join check (do not edit)', 'Lead check (do not edit)'];
 var REC_INTAKE_HEADERS = ['Center ID', 'Intake ID', 'Saved', 'Responder', 'Name', 'Address', 'Unit', 'Phone', 'Alternate contact',
   'Adults', 'Children', 'Pets', 'Pets with them', 'Safe place tonight', 'Where', 'Would stay in a shelter', 'Immediate needs', 'Other concerns or needs',
-  'Last edited', 'Edited by'];      // the last two were added in website v0.27.7 (Edit button)
+  'Last edited', 'Edited by',       // added in website v0.27.7 (Edit button)
+  'DDA', 'DDA set', 'DDA set by'];   // added in website v0.27.8 (DDA button)
+var REC_DDA_OPTIONS = ['Destroyed', 'Major', 'Uninhabitable'];   // plus "Other", which can have a description
 /* The intake boxes the website sends, in the same order as the columns after "Responder", with the
    longest text each may hold. */
 var REC_FIELDS = [['name', 120], ['address', 200], ['unit', 40], ['phone', 60], ['alt', 200], ['adults', 4], ['children', 4],
@@ -1071,7 +1074,7 @@ function recCenters_() { makeTab_('Reception Centers', REC_CENTER_HEADERS); retu
 function recIntakes_() {
   makeTab_('Reception Intakes', REC_INTAKE_HEADERS);
   var sh = tab_('Reception Intakes'), n = REC_INTAKE_HEADERS.length;
-  // A tab made before v0.27.7 has no "Last edited" / "Edited by" columns yet: add their headings.
+  // A tab made before v0.27.7 / v0.27.8 is missing the newer columns at the end: add their headings.
   if (sh.getLastColumn() < n) {
     var have = sh.getLastColumn();
     sh.getRange(1, have + 1, 1, n - have).setValues([REC_INTAKE_HEADERS.slice(have)]).setFontWeight('bold');
@@ -1217,6 +1220,9 @@ function recGet_(d) {
       REC_FIELDS.forEach(function (f, j) { o[f[0]] = escText_(r[4 + j]); });
       o.edited = r[4 + REC_FIELDS.length] ? iso_(r[4 + REC_FIELDS.length]) : '';
       o.edited_by = escText_(r[5 + REC_FIELDS.length]);
+      o.dda = escText_(r[6 + REC_FIELDS.length]);
+      o.dda_set = r[7 + REC_FIELDS.length] ? iso_(r[7 + REC_FIELDS.length]) : '';
+      o.dda_by = escText_(r[8 + REC_FIELDS.length]);
       items.push(o);
     });
   }
@@ -1245,6 +1251,34 @@ function recEdit_(d) {
   var vals = REC_FIELDS.map(function (f) { return safe_(clean_(it[f[0]], f[1])); });
   vals.push(stamp_(new Date()), who);
   recIntakes_().getRange(row, 5, 1, vals.length).setValues([vals]);
+  return { ok: true };
+}
+
+/* DDA FOR ONE INTAKE (website v0.27.8). Detailed Damage Assessment of the client's home, set by the lead
+   (with the lead key) or HQ (logged in) from the summary page. Tick all that apply: Destroyed, Major,
+   Uninhabitable, Other (with an optional description). Saved as one line of text in the "DDA" column,
+   always in that order, e.g. "Major, Uninhabitable" or "Other: smoke damage". Ticking nothing clears it. */
+function recDda_(d) {
+  var id = escId_(d.id), iid = escId_(d.iid);
+  if (!id || !iid) return { ok: false, error: 'This intake could not be found.' };
+  var c = recCenter_(id, escKey_(d.leadKey), 'lead'), who;
+  if (c && c.ok) who = escText_(c.r[4]) + ' (lead)';
+  else {
+    var denied = escDenied_(d);
+    if (denied) return denied;
+    who = 'HQ';
+  }
+  if (!c) return { ok: false, gone: true, error: 'This reception center was closed.' };
+  var picks = Array.isArray(d.picks) ? d.picks.map(String) : [], parts = [];
+  REC_DDA_OPTIONS.forEach(function (o) { if (picks.indexOf(o) >= 0) parts.push(o); });
+  if (picks.indexOf('Other') >= 0) {
+    var other = clean_(d.other, 200).replace(/\s+/g, ' ');
+    parts.push(other ? 'Other: ' + other : 'Other');
+  }
+  var row = recIntakeRow_(id, iid);
+  if (!row) return { ok: false, gone: true, error: 'This intake is no longer there (it may have been deleted).' };
+  var text = parts.join(', ');
+  recIntakes_().getRange(row, 7 + REC_FIELDS.length, 1, 3).setValues([[safe_(text), text ? stamp_(new Date()) : '', text ? who : '']]);
   return { ok: true };
 }
 

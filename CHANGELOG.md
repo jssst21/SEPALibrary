@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.27.8 (Oct 14, 2026)
+- RECEPTION CENTER FORM: DDA (Detailed Damage Assessment) BUTTON. On the summary page, each row now has a DDA button beside Edit (lead and HQ only, like Edit).
+  - It opens "What is the damage to this home? Tick all that apply." with tick boxes: Destroyed, Major, Uninhabitable, Other. Ticking Other opens a Describe box. Save DDA saves it; unticking everything and saving clears it.
+  - The answer shows in a new red DDA column (after Unit), e.g. "Major, Uninhabitable" or "Other: smoke damage". Under the buttons: "DDA [time], [who]".
+  - A seventh totals tile counts the homes with a DDA and how many of each (e.g. "2 DDA homes: 1 destroyed, 1 major"). It turns red when any home is destroyed or uninhabitable.
+  - The Sheet's "Reception Intakes" tab gets three more columns, "DDA", "DDA set" and "DDA set by" (added by themselves). All three are in the Download for Excel file.
+  - Editing an intake does not change its DDA, and setting a DDA does not mark the intake as Edited.
+- GOOGLE SCRIPT CHANGED (Sean pastes and deploys it): new action recDda.
+- Version number is now ?v=0.27.8 on every page and the homepage footer reads v0.27.8
+
 ## v0.27.7 (Oct 14, 2026)
 - RECEPTION CENTER FORM: EDIT AND DELETE ONE INTAKE. On the summary page (which only the lead and HQ can open), every row now starts with an Edit button.
   - Edit opens a pop-up with the 9 questions filled in with that intake's answers. "Save changes" writes the corrections to the Google Sheet. The responder's name and the time it was taken stay as they were.
