@@ -3,6 +3,8 @@
 // someone (their intakes stay). See WHO IS ON AN EVENT in the Google script.
 // v0.27.7: on the summary, the lead and HQ can Edit any intake (pop-up); HQ can also Delete one. Edited
 // intakes show "Edited [time], [who]". See EDIT ONE INTAKE in the Google script.
+// v0.27.8: a DDA button (Detailed Damage Assessment) beside Edit, for the lead and HQ: tick all that apply
+// (Destroyed, Major, Uninhabitable, Other + describe). Shown in the DDA column and a DDA totals tile.
 //
 // One short intake per displaced person or family, done on a phone at a reception center.
 //   - The phone that STARTS a reception center is its lead. Since v0.27 starting one needs the HQ user
@@ -65,10 +67,19 @@
     return Math.round(s / 86400) + ' days ago';
   }
   function num(v) { var n = parseInt(v, 10); return n > 0 ? n : 0; }
+  // "Major, Uninhabitable, Other: smoke damage" -> { picks: ['Major', 'Uninhabitable', 'Other'], other: 'smoke damage' }
+  function ddaParse(text) {
+    text = String(text || ''); var picks = [], other = '';
+    var m = /(?:^|,\s*)Other(?::\s*([\s\S]*))?$/.exec(text);
+    if (m) { other = (m[1] || '').trim(); text = text.slice(0, m.index); }
+    ['Destroyed', 'Major', 'Uninhabitable'].forEach(function (k) { if (text.split(/,\s*/).indexOf(k) >= 0) picks.push(k); });
+    if (m) picks.push('Other');
+    return { picks: picks, other: other };
+  }
   function notice(msg) { var n = $('rec-notice'); n.textContent = msg; n.hidden = !msg; }
 
   // The summary's columns (also the Download file's columns).
-  var COLS = [['saved', 'Time'], ['by', 'Responder'], ['name', 'Name'], ['address', 'Address'], ['unit', 'Unit'], ['phone', 'Phone'],
+  var COLS = [['saved', 'Time'], ['by', 'Responder'], ['name', 'Name'], ['address', 'Address'], ['unit', 'Unit'], ['dda', 'DDA'], ['phone', 'Phone'],
     ['alt', 'Alternate contact'], ['adults', 'Adults'], ['children', 'Children'], ['pets', 'Pets'], ['pets_with', 'Pets with them'],
     ['safe', 'Safe place tonight'], ['safe_where', 'Where'], ['shelter', 'Would stay in shelter'], ['needs', 'Immediate needs'], ['concerns', 'Other concerns']];
 
@@ -451,7 +462,7 @@
     if (!id) { s.textContent = 'This link is not a valid reception center link.'; s.className = 'esc-status esc-warn'; return; }
 
     function totals(items) {
-      var t = { hh: items.length, adults: 0, children: 0, pets: 0, nosafe: 0, shelter: 0, maybe: 0, needs: 0 };
+      var t = { hh: items.length, adults: 0, children: 0, pets: 0, nosafe: 0, shelter: 0, maybe: 0, needs: 0, dda: 0, Destroyed: 0, Major: 0, Uninhabitable: 0, Other: 0 };
       items.forEach(function (i) {
         t.adults += num(i.adults); t.children += num(i.children);
         if (/^yes/i.test(i.pets)) t.pets++;
@@ -459,6 +470,8 @@
         if (i.shelter === 'Yes') t.shelter++;
         if (i.shelter === 'Maybe') t.maybe++;
         if (i.needs) t.needs++;
+        var d = ddaParse(i.dda);
+        if (d.picks.length) { t.dda++; d.picks.forEach(function (p) { t[p]++; }); }
       });
       return t;
     }
@@ -472,6 +485,8 @@
       box.appendChild(tile(t.shelter, 'would stay in a shelter' + (t.maybe ? ' (+' + t.maybe + ' maybe)' : ''), true));
       box.appendChild(tile(t.pets, 'households with pets'));
       box.appendChild(tile(t.needs, 'with immediate needs', true));
+      var dd = ['Destroyed', 'Major', 'Uninhabitable', 'Other'].filter(function (k) { return t[k]; }).map(function (k) { return t[k] + ' ' + k.toLowerCase(); });
+      box.appendChild(tile(t.dda, 'DDA ' + (t.dda === 1 ? 'home' : 'homes') + (dd.length ? ': ' + dd.join(', ') : ' assessed'), t.Destroyed || t.Uninhabitable));
       tb.innerHTML = '';
       var head = el('tr'); head.appendChild(el('th', '', ''));
       COLS.forEach(function (c) { head.appendChild(el('th', '', c[1])); });
@@ -484,9 +499,14 @@
         eb.type = 'button'; eb.setAttribute('aria-label', 'Edit the intake for ' + (i.name || 'this person'));
         eb.addEventListener('click', function () { openEdit(i); });
         ec.appendChild(eb);
+        var db = el('button', 'esc-btn rec-edit-btn', 'DDA');
+        db.type = 'button'; db.setAttribute('aria-label', 'Damage assessment for the home of ' + (i.name || 'this person'));
+        db.addEventListener('click', function () { openDda(i); });
+        ec.appendChild(db);
+        if (i.dda_set) ec.appendChild(el('span', 'rec-edited', 'DDA ' + clock(i.dda_set) + (i.dda_by ? ', ' + i.dda_by : '')));
         if (i.edited) ec.appendChild(el('span', 'rec-edited', 'Edited ' + clock(i.edited) + (i.edited_by ? ', ' + i.edited_by : '')));
         tr.appendChild(ec);
-        COLS.forEach(function (c) { tr.appendChild(el('td', '', c[0] === 'saved' ? clock(i.saved) : (i[c[0]] || ''))); });
+        COLS.forEach(function (c) { tr.appendChild(el('td', c[0] === 'dda' ? 'rec-dda-tag' : '', c[0] === 'saved' ? clock(i.saved) : (i[c[0]] || ''))); });
         body.appendChild(tr);
       });
       if (!items.length) { var tr = el('tr'), td = el('td', 'rec-empty', 'No intakes yet. This page checks every few seconds.'); td.colSpan = COLS.length + 1; tr.appendChild(td); body.appendChild(tr); }
@@ -605,11 +625,53 @@
       call({ action: 'recDeleteOne', id: id, iid: editing.iid, token: token() }).then(function (r) { afterChange(r, btn, ''); });
     };
 
+    // ---- DDA FOR ONE INTAKE (v0.27.8): the lead or HQ. Tick all that apply; Other opens a Describe box.
+    var dm = $('rec-dda-modal'), df = $('rec-dda-form'), ddaFor = null;
+    var ddaBoxes = Array.prototype.slice.call(df.querySelectorAll('input[name=dda]'));
+    function ddaShow() {
+      ddaBoxes.forEach(function (b) { b.parentNode.classList.toggle('on', b.checked); });
+      var other = ddaBoxes[3].checked;
+      $('rec-dda-other-box').hidden = !other;
+      return other;
+    }
+    df.addEventListener('change', function (ev) { if (ddaShow() && ev.target === ddaBoxes[3]) $('rec-dda-other').focus(); });
+    function dErr(msg) { $('rec-dda-error').textContent = msg; $('rec-dda-error').hidden = !msg; }
+    function closeDda() { dm.hidden = true; ddaFor = null; }
+    function openDda(i) {
+      ddaFor = i; dErr('');
+      var d = ddaParse(i.dda);
+      ddaBoxes.forEach(function (b) { b.checked = d.picks.indexOf(b.value) >= 0; });
+      $('rec-dda-other').value = d.other;
+      ddaShow();
+      $('rec-dda-meta').textContent = (i.name || 'No name') + (i.address ? ', ' + i.address + (i.unit ? ' ' + i.unit : '') : '') + '.' +
+        (i.dda_set ? ' Last set ' + clock(i.dda_set) + (i.dda_by ? ' by ' + i.dda_by : '') + '.' : '');
+      $('rec-dda-save').disabled = false;
+      dm.hidden = false; dm.scrollTop = 0;
+    }
+    $('rec-dda-x').onclick = closeDda; $('rec-dda-cancel').onclick = closeDda;
+    dm.addEventListener('click', function (ev) { if (ev.target === dm) closeDda(); });
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !dm.hidden) closeDda(); });
+    df.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      if (!ddaFor) return;
+      var picks = ddaBoxes.filter(function (b) { return b.checked; }).map(function (b) { return b.value; });
+      var btn = $('rec-dda-save'), iid = ddaFor.iid; btn.disabled = true; dErr('');
+      call({ action: 'recDda', id: id, iid: iid, picks: picks, other: picks.indexOf('Other') >= 0 ? $('rec-dda-other').value.trim() : '', leadKey: leadKey, token: token() }).then(function (r) {
+        btn.disabled = false;
+        if (r && r.login) { closeDda(); waiting = true; needLogin(r, function () { waiting = false; load(); }); return; }
+        if (r && r.ok) { closeDda(); justEdited = iid; load(); return; }
+        if (r && r.offline) return dErr('No connection. Your ticks are still here; try Save again when you have a signal.');
+        if (oldScript(r)) return dErr('DDA is not switched on yet. The site admin needs to update the Google script.');
+        dErr((r && r.error) || 'Could not save. Please try again.');
+        if (r && r.gone) load();
+      });
+    });
+
     // Download everything as a file that opens in Excel (CSV).
     $('rec-download').addEventListener('click', function () {
       if (!last) return;
       var q = function (v) { v = String(v == null ? '' : v); return /[",\n\r]/.test(v) || /^[=+\-@]/.test(v) ? '"' + (/^[=+\-@]/.test(v) ? "'" : '') + v.replace(/"/g, '""') + '"' : v; };
-      var cols = COLS.concat([['edited', 'Last edited'], ['edited_by', 'Edited by']]);
+      var cols = COLS.concat([['edited', 'Last edited'], ['edited_by', 'Edited by'], ['dda_set', 'DDA set'], ['dda_by', 'DDA set by']]);
       var lines = [cols.map(function (c) { return q(c[1]); }).join(',')];
       last.items.forEach(function (i) { lines.push(cols.map(function (c) { return q(i[c[0]]); }).join(',')); });
       var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });

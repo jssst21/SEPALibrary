@@ -1141,11 +1141,11 @@ body:not(.esc-viewing) .esc-flash { animation-name: esc-flash-edit; }
 .rec-table th, .rec-table td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
 .rec-table th { position: sticky; top: 0; background: #f4f7fc; font-size: 13px; white-space: nowrap; }
 .rec-table td { min-width: 70px; max-width: 260px; overflow-wrap: break-word; white-space: pre-wrap; }
-/* v0.27.7: column 1 is now the Edit button, so every column below moved one to the right */
-.rec-table td:nth-child(2), .rec-table td:nth-child(7) { white-space: nowrap; }      /* time, phone */
+/* v0.27.7: column 1 is the Edit button; v0.27.8: column 7 is DDA. The numbers below count both. */
+.rec-table td:nth-child(2), .rec-table td:nth-child(8) { white-space: nowrap; }      /* time, phone */
 .rec-table td:nth-child(4) { min-width: 120px; }                                      /* name */
-.rec-table td:nth-child(5), .rec-table td:nth-child(8) { min-width: 170px; }          /* address, alternate contact */
-.rec-table td:nth-child(16), .rec-table td:nth-child(17) { min-width: 200px; }        /* needs, concerns */
+.rec-table td:nth-child(5), .rec-table td:nth-child(9) { min-width: 170px; }          /* address, alternate contact */
+.rec-table td:nth-child(17), .rec-table td:nth-child(18) { min-width: 200px; }        /* needs, concerns */
 /* EDIT / DELETE ONE INTAKE (v0.27.7): the Edit button in each summary row, the "Edited ..." note under
    it, and the Edit pop-up (lead and HQ; Delete is HQ only). */
 .rec-table td.rec-edit-cell { min-width: 0; white-space: nowrap; }
@@ -1161,6 +1161,17 @@ body:not(.esc-viewing) .esc-flash { animation-name: esc-flash-edit; }
 .rec-del-line[hidden], .rec-del-ask[hidden] { display: none; }
 .rec-del-ask { display: block; margin-top: 8px; }
 .rec-del-ask .esc-btn { margin-top: 8px; padding: 7px 14px; font-size: 14px; }
+/* DDA (v0.27.8): the DDA button beside Edit, the red DDA column, and the DDA pop-up's tick boxes */
+.rec-edit-cell .rec-edit-btn + .rec-edit-btn { margin-left: 6px; }
+.rec-table td.rec-dda-tag { min-width: 120px; font-weight: 600; color: var(--red); }
+.rec-dda-q { margin-top: 14px; }
+.dda-list { display: grid; gap: 10px; margin-top: 14px; }
+.dda-opt { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1.5px solid #8fa3c2; border-radius: 10px; background: #eef3fb; font-size: 17px; font-weight: 600; cursor: pointer; }
+.dda-opt input { width: 22px; height: 22px; margin: 0; accent-color: var(--navy); }
+.dda-opt.on { background: #fff; border-color: var(--navy); box-shadow: 0 0 0 2px rgba(31, 53, 86, .15); }
+.dda-other { margin: 0 0 0 12px; padding-left: 12px; border-left: 3px solid #c9d6e8; }
+.dda-other[hidden] { display: none; }
+@media (min-width: 1100px) { .rec-totals { grid-template-columns: repeat(7, 1fr); } }   /* seven tiles since the DDA tile */
 .rec-table tr.esc-flash td { animation: rec-row-flash 4s ease-out 1; }
 @keyframes rec-row-flash { 0% { background: #ffe37a; } 100% { background: transparent; } }
 .rec-empty { color: var(--ink-soft); text-align: center !important; padding: 18px !important; }

@@ -222,7 +222,7 @@
 
   <!-- 4. Summary (lead or HQ) -->
   <section class="esc-tools" id="rec-view-tools" hidden>
-    <p class="esc-how">Every intake for this reception center. The page updates by itself every few seconds; new intakes flash yellow. <strong>The lead and HQ can tap Edit to correct an intake.</strong></p>
+    <p class="esc-how">Every intake for this reception center. The page updates by itself every few seconds; new intakes flash yellow. <strong>The lead and HQ can tap Edit to correct an intake, or DDA to record the damage to the home.</strong></p>
     <p class="esc-status" id="rec-view-status" role="status">Connecting...</p>
     <p class="esc-how rec-keep" id="rec-keep" hidden></p>
     <!-- Who is on this reception center, with Remove (lead and HQ, v0.27.3) -->
@@ -331,6 +331,33 @@
             <button type="button" class="esc-btn" id="rec-del-no">Cancel</button>
           </span>
         </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- DDA (Detailed Damage Assessment) for one intake (v0.27.8): opened by the DDA button in each summary
+       row (lead and HQ only). Tick all that apply. "Other" opens a Describe box. -->
+  <div class="f-modal rec-edit-modal" id="rec-dda-modal" hidden>
+    <div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="rec-dda-title">
+      <button type="button" class="f-modal-x" id="rec-dda-x" aria-label="Close">&times;</button>
+      <h2 id="rec-dda-title">Detailed Damage Assessment</h2>
+      <p class="rec-edit-meta" id="rec-dda-meta"></p>
+      <form id="rec-dda-form" novalidate>
+        <p class="esc-label esc-bold rec-dda-q" id="rec-dda-q">What is the damage to this home? Tick all that apply.</p>
+        <div class="dda-list" role="group" aria-labelledby="rec-dda-q">
+          <label class="dda-opt"><input type="checkbox" name="dda" value="Destroyed"> Destroyed</label>
+          <label class="dda-opt"><input type="checkbox" name="dda" value="Major"> Major</label>
+          <label class="dda-opt"><input type="checkbox" name="dda" value="Uninhabitable"> Uninhabitable</label>
+          <label class="dda-opt"><input type="checkbox" name="dda" value="Other"> Other</label>
+          <div class="dda-other" id="rec-dda-other-box" hidden>
+            <label><span class="esc-cap rec-capl">Describe</span><input class="esc-in" id="rec-dda-other" maxlength="200" autocomplete="off"></label>
+          </div>
+        </div>
+        <p class="form-error" id="rec-dda-error" hidden></p>
+        <div class="rec-edit-actions">
+          <button class="primary-btn" type="submit" id="rec-dda-save">Save DDA</button>
+          <button type="button" class="esc-btn" id="rec-dda-cancel">Cancel</button>
+        </div>
       </form>
     </div>
   </div>
