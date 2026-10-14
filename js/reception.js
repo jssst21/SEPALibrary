@@ -1,6 +1,8 @@
 // SEPA Resource Library - Reception Center Form (pages/reception.html), v0.21
 // v0.27.3: each phone checks in with its name; the lead and HQ see who is on the center and can Remove
 // someone (their intakes stay). See WHO IS ON AN EVENT in the Google script.
+// v0.27.7: on the summary, the lead and HQ can Edit any intake (pop-up); HQ can also Delete one. Edited
+// intakes show "Edited [time], [who]". See EDIT ONE INTAKE in the Google script.
 //
 // One short intake per displaced person or family, done on a phone at a reception center.
 //   - The phone that STARTS a reception center is its lead. Since v0.27 starting one needs the HQ user
@@ -445,7 +447,7 @@
     $('rec-intro').textContent = 'Every intake for this reception center.';
     $('rec-view-tools').hidden = false;
     var leadKey = goodKey(lsGet('sepaRecLead:' + id));
-    var s = $('rec-view-status'), seen = null, waiting = false, done = false, last = null;
+    var s = $('rec-view-status'), seen = null, waiting = false, done = false, last = null, justEdited = '';
     if (!id) { s.textContent = 'This link is not a valid reception center link.'; s.className = 'esc-status esc-warn'; return; }
 
     function totals(items) {
@@ -471,18 +473,26 @@
       box.appendChild(tile(t.pets, 'households with pets'));
       box.appendChild(tile(t.needs, 'with immediate needs', true));
       tb.innerHTML = '';
-      var head = el('tr'); COLS.forEach(function (c) { head.appendChild(el('th', '', c[1])); });
+      var head = el('tr'); head.appendChild(el('th', '', ''));
+      COLS.forEach(function (c) { head.appendChild(el('th', '', c[1])); });
       var th = el('thead'); th.appendChild(head); tb.appendChild(th);
       var body = el('tbody');
       items.slice().reverse().forEach(function (i) {        // newest first
         var tr = el('tr');
-        if (seen && !seen[i.iid]) tr.className = 'esc-flash';
+        if ((seen && !seen[i.iid]) || i.iid === justEdited) tr.className = 'esc-flash';
+        var ec = el('td', 'rec-edit-cell'), eb = el('button', 'esc-btn rec-edit-btn', 'Edit');
+        eb.type = 'button'; eb.setAttribute('aria-label', 'Edit the intake for ' + (i.name || 'this person'));
+        eb.addEventListener('click', function () { openEdit(i); });
+        ec.appendChild(eb);
+        if (i.edited) ec.appendChild(el('span', 'rec-edited', 'Edited ' + clock(i.edited) + (i.edited_by ? ', ' + i.edited_by : '')));
+        tr.appendChild(ec);
         COLS.forEach(function (c) { tr.appendChild(el('td', '', c[0] === 'saved' ? clock(i.saved) : (i[c[0]] || ''))); });
         body.appendChild(tr);
       });
-      if (!items.length) { var tr = el('tr'), td = el('td', 'rec-empty', 'No intakes yet. This page checks every few seconds.'); td.colSpan = COLS.length; tr.appendChild(td); body.appendChild(tr); }
+      if (!items.length) { var tr = el('tr'), td = el('td', 'rec-empty', 'No intakes yet. This page checks every few seconds.'); td.colSpan = COLS.length + 1; tr.appendChild(td); body.appendChild(tr); }
       tb.appendChild(body);
       seen = {}; items.forEach(function (i) { seen[i.iid] = true; });
+      justEdited = '';
       $('rec-summary').hidden = false; $('rec-view-buttons').hidden = false;
     }
     function load() {
@@ -514,12 +524,94 @@
         s.textContent = 'Live. ' + r.items.length + ' intake' + (r.items.length === 1 ? '' : 's') + '. Last activity ' + ago((r.now || 0) - (r.ms || 0)) + '.';
       });
     }
+    // ---- EDIT ONE INTAKE (v0.27.7): the lead or HQ. Delete is HQ only (the Google script checks too).
+    var ef = $('rec-edit-form'), em = $('rec-edit-modal'), editing = null, eChoices = {};
+    function eSet(name, v) {
+      eChoices[name] = v;
+      var g = ef.querySelector('.rc-choice[data-name="' + name + '"]');
+      Array.prototype.forEach.call(g.querySelectorAll('button'), function (b) {
+        var on = b.dataset.v === v;
+        b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on));
+      });
+      Array.prototype.forEach.call(ef.querySelectorAll('.rec-more'), function (m) {
+        var w = m.dataset.when.split('=');
+        m.hidden = eChoices[w[0]] !== w[1];
+      });
+    }
+    Array.prototype.forEach.call(ef.querySelectorAll('.rc-choice'), function (g) {
+      Array.prototype.forEach.call(g.querySelectorAll('button'), function (b) {
+        b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', 'false');
+        b.addEventListener('click', function () { eSet(g.dataset.name, eChoices[g.dataset.name] === b.dataset.v ? '' : b.dataset.v); });
+      });
+    });
+    function eTotal() {
+      var a = num(ef.elements.adults.value), c = num(ef.elements.children.value);
+      $('rec-edit-total').textContent = (a || c) ? 'Total: ' + (a + c) + ' ' + ((a + c) === 1 ? 'person' : 'people') : '';
+    }
+    ef.addEventListener('input', eTotal);
+    function eErr(msg) { $('rec-edit-error').textContent = msg; $('rec-edit-error').hidden = !msg; }
+    function closeEdit() { em.hidden = true; editing = null; }
+    function openEdit(i) {
+      editing = i;
+      ef.reset(); eChoices = {}; eErr('');
+      ['name', 'address', 'unit', 'phone', 'alt', 'adults', 'children', 'safe_where', 'needs', 'concerns'].forEach(function (n) { ef.elements[n].value = i[n] || ''; });
+      // Pets is kept as "Yes: 2 dogs", "Yes" or "No"
+      var pm = /^(yes|no)\s*:?\s*([\s\S]*)$/i.exec(i.pets || '');
+      eSet('has_pets', pm ? (pm[1].toLowerCase() === 'yes' ? 'Yes' : 'No') : '');
+      ef.elements.pets.value = pm ? pm[2] : (i.pets || '');
+      eSet('pets_with', i.pets_with || ''); eSet('safe', i.safe || ''); eSet('shelter', i.shelter || '');
+      eTotal();
+      $('rec-edit-meta').textContent = 'Taken by ' + (i.by || 'unknown') + ' at ' + clock(i.saved) + '.' +
+        (i.edited ? ' Last edited ' + clock(i.edited) + (i.edited_by ? ' by ' + i.edited_by : '') + '.' : '');
+      $('rec-del-line').hidden = !token(); $('rec-del-ask').hidden = true; $('rec-del').hidden = false;
+      $('rec-edit-save').disabled = false;
+      em.hidden = false; em.scrollTop = 0;
+      setTimeout(function () { ef.elements.name.focus({ preventScroll: true }); }, 50);
+    }
+    function eVal(n) { return (ef.elements[n].value || '').trim(); }
+    $('rec-edit-x').onclick = closeEdit; $('rec-edit-cancel').onclick = closeEdit;
+    em.addEventListener('click', function (ev) { if (ev.target === em) closeEdit(); });
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !em.hidden) closeEdit(); });
+    function afterChange(r, btn, iid) {
+      btn.disabled = false;
+      if (r && r.login) { closeEdit(); waiting = true; needLogin(r, function () { waiting = false; load(); }); return; }
+      if (r && r.ok) { closeEdit(); justEdited = iid; load(); return; }
+      if (r && r.offline) return eErr('No connection. Your changes are still here; try Save again when you have a signal.');
+      if (oldScript(r)) return eErr('Editing is not switched on yet. The site admin needs to update the Google script.');
+      eErr((r && r.error) || 'Could not save. Please try again.');
+      if (r && r.gone) load();
+    }
+    ef.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      if (!editing) return;
+      if (!eVal('name')) { eErr('Please enter at least a name (question 1).'); ef.elements.name.focus(); return; }
+      var pets = eChoices.has_pets || '';
+      if (pets === 'Yes' && eVal('pets')) pets = 'Yes: ' + eVal('pets');
+      var it = {
+        name: eVal('name'), address: eVal('address'), unit: eVal('unit'), phone: eVal('phone'), alt: eVal('alt'),
+        adults: eVal('adults').replace(/\D/g, ''), children: eVal('children').replace(/\D/g, ''),
+        pets: pets, pets_with: eChoices.has_pets === 'Yes' ? (eChoices.pets_with || '') : '',
+        safe: eChoices.safe || '', safe_where: eChoices.safe === 'Yes' ? eVal('safe_where') : '',
+        shelter: eChoices.shelter || '', needs: eVal('needs'), concerns: eVal('concerns')
+      };
+      var btn = $('rec-edit-save'), iid = editing.iid; btn.disabled = true; eErr('');
+      call({ action: 'recEdit', id: id, iid: iid, intake: it, leadKey: leadKey, token: token() }).then(function (r) { afterChange(r, btn, iid); });
+    });
+    $('rec-del').onclick = function () { $('rec-del-ask').hidden = false; this.hidden = true; };
+    $('rec-del-no').onclick = function () { $('rec-del-ask').hidden = true; $('rec-del').hidden = false; };
+    $('rec-del-yes').onclick = function () {
+      if (!editing) return;
+      var btn = this; btn.disabled = true; eErr('');
+      call({ action: 'recDeleteOne', id: id, iid: editing.iid, token: token() }).then(function (r) { afterChange(r, btn, ''); });
+    };
+
     // Download everything as a file that opens in Excel (CSV).
     $('rec-download').addEventListener('click', function () {
       if (!last) return;
       var q = function (v) { v = String(v == null ? '' : v); return /[",\n\r]/.test(v) || /^[=+\-@]/.test(v) ? '"' + (/^[=+\-@]/.test(v) ? "'" : '') + v.replace(/"/g, '""') + '"' : v; };
-      var lines = [COLS.map(function (c) { return q(c[1]); }).join(',')];
-      last.items.forEach(function (i) { lines.push(COLS.map(function (c) { return q(i[c[0]]); }).join(',')); });
+      var cols = COLS.concat([['edited', 'Last edited'], ['edited_by', 'Edited by']]);
+      var lines = [cols.map(function (c) { return q(c[1]); }).join(',')];
+      last.items.forEach(function (i) { lines.push(cols.map(function (c) { return q(i[c[0]]); }).join(',')); });
       var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
       var a = document.createElement('a'), d = new Date();
       a.href = window.URL.createObjectURL(blob);

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.6">
+<link rel="stylesheet" href="../css/style.css?v=0.27.7">
 </head>
 <body class="home" data-ask-form="reception">
 
@@ -222,7 +222,7 @@
 
   <!-- 4. Summary (lead or HQ) -->
   <section class="esc-tools" id="rec-view-tools" hidden>
-    <p class="esc-how"><strong>Read only.</strong> Every intake for this reception center. The page updates by itself every few seconds; new intakes flash yellow.</p>
+    <p class="esc-how">Every intake for this reception center. The page updates by itself every few seconds; new intakes flash yellow. <strong>The lead and HQ can tap Edit to correct an intake.</strong></p>
     <p class="esc-status" id="rec-view-status" role="status">Connecting...</p>
     <p class="esc-how rec-keep" id="rec-keep" hidden></p>
     <!-- Who is on this reception center, with Remove (lead and HQ, v0.27.3) -->
@@ -246,6 +246,94 @@
     <div class="rec-totals" id="rec-totals"></div>
     <div class="rec-table-wrap"><table class="rec-table" id="rec-table"></table></div>
   </section>
+
+  <!-- Edit one intake (v0.27.7): opened by the Edit button in each summary row (lead and HQ only).
+       The questions here are short versions of the intake form above. If a question is added or
+       changed there, change it here too (and in REC_FIELDS in the Google script).
+       Delete is shown to HQ only (a phone logged in as HQ). -->
+  <div class="f-modal rec-edit-modal" id="rec-edit-modal" hidden>
+    <div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="rec-edit-title">
+      <button type="button" class="f-modal-x" id="rec-edit-x" aria-label="Close">&times;</button>
+      <h2 id="rec-edit-title">Edit intake</h2>
+      <p class="rec-edit-meta" id="rec-edit-meta"></p>
+      <form class="esc-form rec-form rec-edit-form" id="rec-edit-form" novalidate>
+        <div class="esc-q">
+          <label class="esc-label esc-bold" for="e_name">1. Name</label>
+          <input class="esc-in" id="e_name" name="name" autocomplete="off" autocapitalize="words">
+        </div>
+        <div class="esc-q">
+          <span class="esc-label esc-bold">2. Address and unit</span>
+          <div class="rec-pair rec-pair-wide">
+            <label><span class="esc-cap">Address</span><input class="esc-in" name="address" autocomplete="off"></label>
+            <label><span class="esc-cap">Unit</span><input class="esc-in" name="unit" autocomplete="off"></label>
+          </div>
+        </div>
+        <div class="esc-q">
+          <span class="esc-label esc-bold">3. Phone</span>
+          <label><span class="esc-cap rec-capl">Phone number</span><input class="esc-in" name="phone" type="tel" inputmode="tel" autocomplete="off"></label>
+          <label><span class="esc-cap rec-capl">Someone else we can contact? Name and number</span><input class="esc-in" name="alt" autocomplete="off"></label>
+        </div>
+        <div class="esc-q">
+          <span class="esc-label esc-bold">4. How many people in total?</span>
+          <div class="rec-pair">
+            <label><span class="esc-cap">Adults</span><input class="esc-in rec-num" name="adults" inputmode="numeric" autocomplete="off"></label>
+            <label><span class="esc-cap">Children</span><input class="esc-in rec-num" name="children" inputmode="numeric" autocomplete="off"></label>
+          </div>
+          <p class="rec-total" id="rec-edit-total"></p>
+        </div>
+        <div class="esc-q">
+          <span class="esc-label esc-bold" id="le_pets">5. Pets?</span>
+          <div class="rc-choice" role="radiogroup" aria-labelledby="le_pets" data-name="has_pets">
+            <button type="button" data-v="Yes">Yes</button><button type="button" data-v="No">No</button>
+          </div>
+          <div class="rec-more" data-when="has_pets=Yes" hidden>
+            <label><span class="esc-cap rec-capl">What pets, and how many?</span><input class="esc-in" name="pets" autocomplete="off"></label>
+            <span class="esc-cap rec-capl" id="le_pets_with">Are they with you?</span>
+            <div class="rc-choice" role="radiogroup" aria-labelledby="le_pets_with" data-name="pets_with">
+              <button type="button" data-v="Yes">Yes</button><button type="button" data-v="No">No</button>
+            </div>
+          </div>
+        </div>
+        <div class="esc-q">
+          <span class="esc-label esc-bold" id="le_safe">6. Safe place to go tonight?</span>
+          <div class="rc-choice" role="radiogroup" aria-labelledby="le_safe" data-name="safe">
+            <button type="button" data-v="Yes">Yes</button><button type="button" data-v="No">No</button><button type="button" data-v="Not sure">Not sure</button>
+          </div>
+          <div class="rec-more" data-when="safe=Yes" hidden>
+            <label><span class="esc-cap rec-capl">Where? (optional)</span><input class="esc-in" name="safe_where" autocomplete="off"></label>
+          </div>
+        </div>
+        <div class="esc-q">
+          <span class="esc-label esc-bold" id="le_shelter">7. Would stay in a shelter?</span>
+          <div class="rc-choice" role="radiogroup" aria-labelledby="le_shelter" data-name="shelter">
+            <button type="button" data-v="Yes">Yes</button><button type="button" data-v="No">No</button><button type="button" data-v="Maybe">Maybe</button>
+          </div>
+        </div>
+        <div class="esc-q">
+          <label class="esc-label esc-bold" for="e_needs">8. Immediate needs</label>
+          <span class="esc-hint rec-warn">Basic needs only. Do not record diagnoses.</span>
+          <textarea class="esc-in" id="e_needs" name="needs" rows="2"></textarea>
+        </div>
+        <div class="esc-q">
+          <label class="esc-label esc-bold" for="e_concerns">9. Other concerns or needs</label>
+          <textarea class="esc-in" id="e_concerns" name="concerns" rows="2"></textarea>
+        </div>
+        <p class="form-error" id="rec-edit-error" hidden></p>
+        <div class="rec-edit-actions">
+          <button class="primary-btn" type="submit" id="rec-edit-save">Save changes</button>
+          <button type="button" class="esc-btn" id="rec-edit-cancel">Cancel</button>
+        </div>
+        <!-- HQ only -->
+        <p class="rec-del-line" id="rec-del-line" hidden>
+          <button type="button" class="link-btn" id="rec-del">Delete this intake</button>
+          <span class="rec-del-ask" id="rec-del-ask" hidden>Delete this intake for good? Use this for a duplicate or a mistake. It cannot be undone.<br>
+            <button type="button" class="esc-btn esc-danger" id="rec-del-yes">Yes, delete it</button>
+            <button type="button" class="esc-btn" id="rec-del-no">Cancel</button>
+          </span>
+        </p>
+      </form>
+    </div>
+  </div>
 
   <!-- Pop-up when starting a reception center (v0.27): only someone with the HQ user name and password
        can become a lead. Typing them here starts the center; it does not log this phone in as HQ. -->
@@ -294,10 +382,10 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.6"></script>
-<script src="../js/ask-lead.js?v=0.27.6"></script>
-<script src="../js/phone-format.js?v=0.27.6"></script>
-<script src="../js/reception.js?v=0.27.6"></script>
-<script src="../js/close-tab.js?v=0.27.6"></script>
+<script src="../js/config.js?v=0.27.7"></script>
+<script src="../js/ask-lead.js?v=0.27.7"></script>
+<script src="../js/phone-format.js?v=0.27.7"></script>
+<script src="../js/reception.js?v=0.27.7"></script>
+<script src="../js/close-tab.js?v=0.27.7"></script>
 </body>
 </html>

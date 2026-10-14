@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.27.7 (Oct 14, 2026)
+- RECEPTION CENTER FORM: EDIT AND DELETE ONE INTAKE. On the summary page (which only the lead and HQ can open), every row now starts with an Edit button.
+  - Edit opens a pop-up with the 9 questions filled in with that intake's answers. "Save changes" writes the corrections to the Google Sheet. The responder's name and the time it was taken stay as they were.
+  - HQ only (a phone logged in as HQ): "Delete this intake" at the bottom of the pop-up, for a duplicate or a mistake. It asks first, deletes the intake for good, and lowers the center's intake count. The lead does not see Delete, and the Google script refuses it without the HQ log in.
+  - If two people edit the same intake at once, the last one to save wins.
+  - The pop-up's questions are short versions of the intake form. If a question changes on the intake form, change it in the pop-up too (both are in pages/reception.html).
+- GOOGLE SCRIPT CHANGED (Sean pastes and deploys it): new actions recEdit and recDeleteOne.
+- Version number is now ?v=0.27.7 on every page and the homepage footer reads v0.27.7
+
 ## v0.27.6 (Oct 13, 2026)
 - Homepage: the "Get the SEPA Tools App for your phone!" button is now a navy card with a white border, right above the photo gallery, instead of a plain button in the list. It has a small phone picture, a yellow NEW tag and the same one-time gleam as the shift sign-up bar. It opens get-app/.
 - To remove the NEW tag later: delete the side-app-new line in index.html.

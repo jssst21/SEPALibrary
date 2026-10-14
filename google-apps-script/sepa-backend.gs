@@ -198,7 +198,9 @@ function doPost(e) {
       recAdd: recAdd_,
       recGet: recGet_,
       recList: recList_,
-      recClear: recClear_
+      recClear: recClear_,
+      recEdit: recEdit_,
+      recDeleteOne: recDeleteOne_
     };
     var fn = actions[d.action || 'shiftSignup'];
     if (!fn) return json_({ ok: false, error: 'Unknown request.' });
@@ -1057,7 +1059,8 @@ function escClear_(d) {
    ========================================================= */
 var REC_CENTER_HEADERS = ['ID', 'Started', 'Last intake', 'Center name or location', 'Lead', 'Intakes', 'Last activity ms (do not edit)', 'Join check (do not edit)', 'Lead check (do not edit)'];
 var REC_INTAKE_HEADERS = ['Center ID', 'Intake ID', 'Saved', 'Responder', 'Name', 'Address', 'Unit', 'Phone', 'Alternate contact',
-  'Adults', 'Children', 'Pets', 'Pets with them', 'Safe place tonight', 'Where', 'Would stay in a shelter', 'Immediate needs', 'Other concerns or needs'];
+  'Adults', 'Children', 'Pets', 'Pets with them', 'Safe place tonight', 'Where', 'Would stay in a shelter', 'Immediate needs', 'Other concerns or needs',
+  'Last edited', 'Edited by'];      // the last two were added in website v0.27.7 (Edit button)
 /* The intake boxes the website sends, in the same order as the columns after "Responder", with the
    longest text each may hold. */
 var REC_FIELDS = [['name', 120], ['address', 200], ['unit', 40], ['phone', 60], ['alt', 200], ['adults', 4], ['children', 4],
@@ -1065,7 +1068,17 @@ var REC_FIELDS = [['name', 120], ['address', 200], ['unit', 40], ['phone', 60], 
 var REC_KEEP_DAYS = 5;
 
 function recCenters_() { makeTab_('Reception Centers', REC_CENTER_HEADERS); return tab_('Reception Centers'); }
-function recIntakes_() { makeTab_('Reception Intakes', REC_INTAKE_HEADERS); return tab_('Reception Intakes'); }
+function recIntakes_() {
+  makeTab_('Reception Intakes', REC_INTAKE_HEADERS);
+  var sh = tab_('Reception Intakes'), n = REC_INTAKE_HEADERS.length;
+  // A tab made before v0.27.7 has no "Last edited" / "Edited by" columns yet: add their headings.
+  if (sh.getLastColumn() < n) {
+    var have = sh.getLastColumn();
+    sh.getRange(1, have + 1, 1, n - have).setValues([REC_INTAKE_HEADERS.slice(have)]).setFontWeight('bold');
+    sh.getRange(1, have + 1, 1000, n - have).setNumberFormat('@');
+  }
+  return sh;
+}
 function recClearedTab_() { makeTab_('Reception cleared', ['ID', 'Cleared', 'How']); return tab_('Reception cleared'); }
 function recIsCleared_(id) { return escFindRow_(recClearedTab_(), id) > 0; }
 function recMark_(kind, id, key) { return hash_('rec-' + kind + '|' + id, key).slice(0, 32); }
@@ -1202,11 +1215,64 @@ function recGet_(d) {
       if (String(r[0]) !== id) return;
       var o = { iid: String(r[1]), saved: iso_(r[2]), by: escText_(r[3]) };
       REC_FIELDS.forEach(function (f, j) { o[f[0]] = escText_(r[4 + j]); });
+      o.edited = r[4 + REC_FIELDS.length] ? iso_(r[4 + REC_FIELDS.length]) : '';
+      o.edited_by = escText_(r[5 + REC_FIELDS.length]);
       items.push(o);
     });
   }
   return { ok: true, found: true, id: id, center: escText_(c.r[3]), lead: escText_(c.r[4]), started: iso_(c.r[1]),
     ms: Number(escText_(c.r[6])) || 0, keepDays: REC_KEEP_DAYS, now: now, items: items, roster: rosterPublic_('rec', id) };
+}
+
+/* EDIT ONE INTAKE (website v0.27.7). The lead (with the lead key) or HQ (logged in) corrects an intake
+   from the summary page. The responder's name and the time it was saved stay as they were; the row is
+   marked "Last edited" and "Edited by" (the lead's name, or HQ). Last save wins if two people edit
+   the same intake at once. */
+function recEdit_(d) {
+  var id = escId_(d.id), iid = escId_(d.iid), it = (d.intake && typeof d.intake === 'object') ? d.intake : {};
+  if (!id || !iid) return { ok: false, error: 'This intake could not be found.' };
+  var c = recCenter_(id, escKey_(d.leadKey), 'lead'), who;
+  if (c && c.ok) who = escText_(c.r[4]) + ' (lead)';
+  else {
+    var denied = escDenied_(d);
+    if (denied) return denied;
+    who = 'HQ';
+  }
+  if (!c) return { ok: false, gone: true, error: 'This reception center was closed.' };
+  if (!clean_(it.name, 120)) return { ok: false, error: 'Please enter a name.' };
+  var row = recIntakeRow_(id, iid);
+  if (!row) return { ok: false, gone: true, error: 'This intake is no longer there (it may have been deleted).' };
+  var vals = REC_FIELDS.map(function (f) { return safe_(clean_(it[f[0]], f[1])); });
+  vals.push(stamp_(new Date()), who);
+  recIntakes_().getRange(row, 5, 1, vals.length).setValues([vals]);
+  return { ok: true };
+}
+
+/* DELETE ONE INTAKE (website v0.27.7). HQ only (logged in), e.g. the same family taken in twice. It is
+   deleted for good, like a cleared center, and the center's intake count goes down by one. */
+function recDeleteOne_(d) {
+  var denied = escDenied_(d);
+  if (denied) return denied;
+  var id = escId_(d.id), iid = escId_(d.iid);
+  if (!id || !iid) return { ok: false, error: 'This intake could not be found.' };
+  var row = recIntakeRow_(id, iid);
+  if (!row) return { ok: true, gone: true };
+  recIntakes_().deleteRow(row);
+  var csh = recCenters_(), cr = escFindRow_(csh, id);
+  if (cr) {
+    var cell = csh.getRange(cr, 6), n = (parseInt(escText_(cell.getValue()), 10) || 0) - 1;
+    cell.setValue(String(Math.max(0, n)));
+  }
+  return { ok: true };
+}
+
+// The Sheet row of one intake (0 if it is not there).
+function recIntakeRow_(id, iid) {
+  var ish = recIntakes_(), last = ish.getLastRow();
+  if (last < 2) return 0;
+  var v = ish.getRange(2, 1, last - 1, 2).getValues();
+  for (var i = 0; i < v.length; i++) if (String(v[i][0]) === id && String(v[i][1]) === iid) return i + 2;
+  return 0;
 }
 
 // All open reception centers, newest activity first. HQ login needed.
