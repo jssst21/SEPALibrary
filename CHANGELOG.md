@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.10 (Oct 14, 2026)
+- Reception Center Form: the lead's red start button now reads "Start a Reception Center" (was "Leads: Click Here to Start a Reception Center Intake"). It starts the center; intakes are the individual records inside it.
+- Version number is now ?v=0.27.10 on every page and the homepage footer reads v0.27.10
+
 ## v0.27.9 (Oct 14, 2026)
 - RECEPTION CENTER SUMMARY (HQ):
   - "Clear this reception center (end of event)" is now a solid red button reading "Close Reception Center and Erase All Data".

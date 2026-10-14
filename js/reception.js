@@ -136,7 +136,7 @@
         Object.keys(extra).forEach(function (k) { data[k] = extra[k]; });
         btn.disabled = true; btn.textContent = 'Starting...';
         call(data).then(function (r) {
-          btn.disabled = false; btn.textContent = 'Leads: Click Here to Start a Reception Center Intake';
+          btn.disabled = false; btn.textContent = 'Start a Reception Center';
           if (oldScript(r) || !URL) { err.textContent = 'The Reception Center Form is not switched on yet. The site admin needs to update the Google script.'; err.hidden = false; return done && done(); }
           if (r && r.leadLogin) return askLead(r);
           if (!(r && r.ok)) { err.textContent = r && r.offline ? 'No connection. Starting a reception center needs a signal once; after that, intakes can be done offline.' : ((r && r.error) || 'Could not start. Please try again.'); err.hidden = false; return done && done(); }
