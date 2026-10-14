@@ -3,6 +3,7 @@
 ## v0.27.7 (Oct 14, 2026)
 - RECEPTION CENTER FORM: EDIT AND DELETE ONE INTAKE. On the summary page (which only the lead and HQ can open), every row now starts with an Edit button.
   - Edit opens a pop-up with the 9 questions filled in with that intake's answers. "Save changes" writes the corrections to the Google Sheet. The responder's name and the time it was taken stay as they were.
+  - An edited intake shows "Edited [time], [who]" under its Edit button ("HQ", or the lead's name with "(lead)"), and the row flashes yellow once. The Sheet's "Reception Intakes" tab gets two new columns, "Last edited" and "Edited by" (added by themselves), and they are in the Download for Excel file too.
   - HQ only (a phone logged in as HQ): "Delete this intake" at the bottom of the pop-up, for a duplicate or a mistake. It asks first, deletes the intake for good, and lowers the center's intake count. The lead does not see Delete, and the Google script refuses it without the HQ log in.
   - If two people edit the same intake at once, the last one to save wins.
   - The pop-up's questions are short versions of the intake form. If a question changes on the intake form, change it in the pop-up too (both are in pages/reception.html).
