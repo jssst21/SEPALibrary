@@ -681,16 +681,22 @@
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { window.URL.revokeObjectURL(a.href); }, 2000);
     });
-    // HQ: clear at the end of the event (asks first, on the page)
-    $('rec-clear').addEventListener('click', function () { $('rec-clear-ask').hidden = false; $('rec-clear').hidden = true; });
-    $('rec-clear-no').addEventListener('click', function () { $('rec-clear-ask').hidden = true; $('rec-clear').hidden = false; });
+    // HQ: close the center at the end of the event (v0.27.9: asks in a warning pop-up, with a
+    // "Download for Excel first" button in it)
+    var cm = $('rec-clear-modal');
+    function closeClear() { cm.hidden = true; }
+    $('rec-clear').addEventListener('click', function () { $('rec-clear-error').hidden = true; $('rec-clear-yes').disabled = false; cm.hidden = false; });
+    $('rec-clear-no').addEventListener('click', closeClear); $('rec-clear-x').addEventListener('click', closeClear);
+    cm.addEventListener('click', function (ev) { if (ev.target === cm) closeClear(); });
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !cm.hidden) closeClear(); });
+    $('rec-clear-dl').addEventListener('click', function () { $('rec-download').click(); });
     $('rec-clear-yes').addEventListener('click', function () {
       $('rec-clear-yes').disabled = true;
       call({ action: 'recClear', id: id, token: token() }).then(function (r) {
         $('rec-clear-yes').disabled = false;
-        if (r && r.login) { waiting = true; needLogin(r, function () { waiting = false; load(); }); return; }
-        if (r && r.ok) { $('rec-clear-ask').hidden = true; $('rec-clear').hidden = false; load(); }
-        else { $('rec-clear-error').textContent = 'Could not clear it. Please try again.'; $('rec-clear-error').hidden = false; }
+        if (r && r.login) { closeClear(); waiting = true; needLogin(r, function () { waiting = false; load(); }); return; }
+        if (r && r.ok) { closeClear(); load(); }
+        else { $('rec-clear-error').textContent = r && r.offline ? 'No connection. Nothing was erased. Try again when you have a signal.' : 'Could not close it. Nothing was erased. Please try again.'; $('rec-clear-error').hidden = false; }
       });
     });
     load();

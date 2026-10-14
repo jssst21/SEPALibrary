@@ -1172,6 +1172,18 @@ body:not(.esc-viewing) .esc-flash { animation-name: esc-flash-edit; }
 .dda-other { margin: 0 0 0 12px; padding-left: 12px; border-left: 3px solid #c9d6e8; }
 .dda-other[hidden] { display: none; }
 @media (min-width: 1100px) { .rec-totals { grid-template-columns: repeat(7, 1fr); } }   /* seven tiles since the DDA tile */
+/* v0.27.9: solid Download for Excel (navy) and solid Close Reception Center (red), and the warning pop-up */
+.esc-btn.rec-dl-solid { background: var(--navy); border-color: var(--navy); color: #fff; }
+.esc-btn.rec-dl-solid:hover { background: #162844; }
+.esc-btn.rec-close-solid { background: var(--red); border-color: var(--red); color: #fff; }
+.esc-btn.rec-close-solid:hover { background: #8f1f2f; }
+.esc-btn.rec-close-solid:disabled { opacity: .6; cursor: default; }
+.rec-warn-box h2 { color: var(--red); }
+.rec-warn-text { margin: 12px 0 0; font-size: 17px; line-height: 1.45; }
+.rec-warn-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.rec-warn-actions .esc-btn { flex: 1 1 160px; }
+.rec-warn-dl { margin: 10px 0 0; }
+.rec-warn-dl .esc-btn { display: block; width: 100%; }
 .rec-table tr.esc-flash td { animation: rec-row-flash 4s ease-out 1; }
 @keyframes rec-row-flash { 0% { background: #ffe37a; } 100% { background: transparent; } }
 .rec-empty { color: var(--ink-soft); text-align: center !important; padding: 18px !important; }

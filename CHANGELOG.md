@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.27.9 (Oct 14, 2026)
+- RECEPTION CENTER SUMMARY (HQ):
+  - "Clear this reception center (end of event)" is now a solid red button reading "Close Reception Center and Erase All Data".
+  - Tapping it opens a warning pop-up: "This will remove data from both HQ and Responder Devices. Do you wish to proceed?" with "Yes, close and erase", "Cancel", and a "Download for Excel first" button (saves the file and leaves the pop-up open). It replaces the old on-page confirm.
+  - "Download for Excel" is now a solid navy button with white text.
+- Version number is now ?v=0.27.9 on every page and the homepage footer reads v0.27.9
+
 ## v0.27.8 (Oct 14, 2026)
 - RECEPTION CENTER FORM: DDA (Detailed Damage Assessment) BUTTON. On the summary page, each row now has a DDA button beside Edit (lead and HQ only, like Edit).
   - It opens "What is the damage to this home? Tick all that apply." with tick boxes: Destroyed, Major, Uninhabitable, Other. Ticking Other opens a Describe box. Save DDA saves it; unticking everything and saving clears it.

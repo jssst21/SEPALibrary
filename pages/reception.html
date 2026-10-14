@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.8">
+<link rel="stylesheet" href="../css/style.css?v=0.27.9">
 </head>
 <body class="home" data-ask-form="reception">
 
@@ -228,18 +228,12 @@
     <!-- Who is on this reception center, with Remove (lead and HQ, v0.27.3) -->
     <div class="rost-box" id="rec-view-roster" hidden></div>
     <div class="esc-buttons" id="rec-view-buttons" hidden>
-      <button type="button" class="esc-btn" id="rec-download">Download for Excel</button>
+      <button type="button" class="esc-btn rec-dl-solid" id="rec-download">Download for Excel</button>
     </div>
-    <!-- HQ only: end of the event -->
+    <!-- HQ only: end of the event. v0.27.9: solid red, renamed, and it asks in a warning pop-up
+         (rec-clear-modal, below) instead of on the page. -->
     <p class="esc-clear-line" id="rec-clear-line" hidden>
-      <button type="button" class="esc-btn esc-danger" id="rec-clear">Clear this reception center (end of event)</button>
-      <span class="esc-clear-ask" id="rec-clear-ask" hidden>Clear it? <strong>Every intake is deleted for good.</strong> Download a copy first if you need one. The responders' phones are told the center has closed.
-        <span class="esc-clear-buttons">
-          <button type="button" class="esc-btn esc-danger" id="rec-clear-yes">Yes, delete it</button>
-          <button type="button" class="esc-btn" id="rec-clear-no">Cancel</button>
-        </span>
-      </span>
-      <span class="form-error" id="rec-clear-error" hidden></span>
+      <button type="button" class="esc-btn rec-close-solid" id="rec-clear">Close Reception Center and Erase All Data</button>
     </p>
   </section>
   <section id="rec-summary" hidden>
@@ -362,6 +356,21 @@
     </div>
   </div>
 
+  <!-- Warning before HQ closes a reception center and erases its data (v0.27.9) -->
+  <div class="f-modal" id="rec-clear-modal" hidden>
+    <div class="f-modal-box rec-warn-box" role="alertdialog" aria-modal="true" aria-labelledby="rec-clear-title" aria-describedby="rec-clear-text">
+      <button type="button" class="f-modal-x" id="rec-clear-x" aria-label="Close">&times;</button>
+      <h2 id="rec-clear-title">Warning</h2>
+      <p class="rec-warn-text" id="rec-clear-text">This will remove data from both HQ and Responder Devices. Do you wish to proceed?</p>
+      <div class="rec-warn-actions">
+        <button type="button" class="esc-btn rec-close-solid" id="rec-clear-yes">Yes, close and erase</button>
+        <button type="button" class="esc-btn" id="rec-clear-no">Cancel</button>
+      </div>
+      <p class="rec-warn-dl"><button type="button" class="esc-btn rec-dl-solid" id="rec-clear-dl">Download for Excel first</button></p>
+      <p class="form-error" id="rec-clear-error" hidden></p>
+    </div>
+  </div>
+
   <!-- Pop-up when starting a reception center (v0.27): only someone with the HQ user name and password
        can become a lead. Typing them here starts the center; it does not log this phone in as HQ. -->
   <div class="f-modal" id="rec-lead-modal" hidden>
@@ -409,10 +418,10 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.8"></script>
-<script src="../js/ask-lead.js?v=0.27.8"></script>
-<script src="../js/phone-format.js?v=0.27.8"></script>
-<script src="../js/reception.js?v=0.27.8"></script>
-<script src="../js/close-tab.js?v=0.27.8"></script>
+<script src="../js/config.js?v=0.27.9"></script>
+<script src="../js/ask-lead.js?v=0.27.9"></script>
+<script src="../js/phone-format.js?v=0.27.9"></script>
+<script src="../js/reception.js?v=0.27.9"></script>
+<script src="../js/close-tab.js?v=0.27.9"></script>
 </body>
 </html>
