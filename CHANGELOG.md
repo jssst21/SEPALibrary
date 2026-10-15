@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.27.17 (Oct 15, 2026)
+- SEPA TOOLS APP, TEST ONLY (website unchanged): green background (#1f6e43, phone top bar too) and German button labels. RC Care, Noggin and SCIA stay as they are. Shift Sign Up = Schichtanmeldung, Escalation = Eskalation, Reception Center = Aufnahmezentrum, Practice RC Care / Practice SCIA = RC Care üben / SCIA üben, PRACTICE tag = ÜBUNG, Register for Events = Kurse & Termine, Call for Help = Hilfe rufen. Title, subtitle, footer and the Call for Help page stay English.
+  - Last known good for the app is v0.27.16 (commit 9f54111). To go back: restore the red background and English labels.
+  - Kept when going back: the button grid can no longer be pushed wider than the screen by a long word (minmax).
+  - App cache is now sepa-tools-8 so phones pick up the change.
+- Version number is now ?v=0.27.17 on every page and the homepage footer reads v0.27.17
+
 ## v0.27.16 (Oct 15, 2026)
 - SEPA TOOLS APP: "Register for Events" now opens in full Safari (or the phone's browser) instead of the app's built-in viewer. In the app's viewer, Volunteer Connection did not keep the sign-in, so it showed "page expired" and then looped back to login. The same link worked in regular Safari (tested by Sean). The other buttons are unchanged.
   - App cache is now sepa-tools-7 so phones pick up the change.
