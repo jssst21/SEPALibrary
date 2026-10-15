@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.27.14 (Oct 15, 2026)
+- SEPA TOOLS APP: the RC Reserve button is replaced by "Register for Events" (calendar-plus icon), which is used far more. It uses the same Volunteer Connection sign-in link as the website's "Register for Classes and Events" button. Call for Help stays alone on the bottom row. The app picture on the Get the App page matches.
+  - The website itself is unchanged: RC Reserve stays in the homepage quick launch bar and in search.
+  - App cache is now sepa-tools-5 so phones pick up the new button.
+- Version number is now ?v=0.27.14 on every page and the homepage footer reads v0.27.14
+
 ## v0.27.13 (Oct 15, 2026)
 - AMBER back to the original light shade (#fdf3df fill / #ecd3a2 border) on both calendars and both keys. The stronger amber from v0.27.12 was too dark. The darker date text added with it is removed too.
 - Version number is now ?v=0.27.13 on every page and the homepage footer reads v0.27.13
