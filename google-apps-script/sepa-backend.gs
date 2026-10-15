@@ -820,7 +820,13 @@ var ESC_MAX_CHARS = 45000;   // a single spreadsheet cell holds 50,000 character
 
 var ESC_USER_LABEL = 'Escalation Form live view: user name (while blank, the live view is locked to everyone)';
 var ESC_PASS_LABEL = 'Escalation Form live view: password';
-var ESC_SESSION_DAYS = 30;   // how long an HQ login lasts on one device
+var ESC_SESSION_DAYS = 30;
+/* LEAD LOGIN (website v0.27.25). A second user name and password, ONLY for starting an Escalation worksheet or a
+   Reception Center (becoming its lead). It does not open the Scene Summary, the HQ lists or Clear: those
+   stay with the HQ login above. The HQ login also still works to start one. Typed into the Settings tab
+   like the HQ pair (rows added blank the first time this runs). While they are blank, only HQ can start. */
+var LEAD_USER_LABEL = 'Lead login (starting a worksheet or reception center only): user name';
+var LEAD_PASS_LABEL = 'Lead login: password';   // how long an HQ login lasts on one device
 
 /* Inside the coded last column, next to the boxes, sits one extra entry under this name. It holds the
    bookkeeping for shared worksheets: r = how many times the worksheet has changed, k = the scrambled
@@ -851,7 +857,7 @@ function escMark_(s) { return 'HQ ' + hash_('esc-live-view', s.user.toLowerCase(
 // Does nothing but answer. If it is told which worksheet is asking, it also says whether HQ has
 // cleared that worksheet. (The fill-in page now learns both from escSync; this stays for older pages.)
 function escPing_(d) {
-  escTab_(); escLoginSettings_();
+  escTab_(); escLoginSettings_(); leadLoginSettings_();
   var id = escId_(d && d.id);
   return { ok: true, cleared: id ? escIsCleared_(id) : false };
 }
@@ -923,7 +929,11 @@ function escOpen_(cell) {
    with the same key (those sent the join link) get in. No login. */
 function escSync_(d) {
   var id = escId_(d.id), key = escKey_(d.key);
-  if (!id || !key) return { ok: false, nokey: true, error: 'This link cannot open the worksheet.' };
+  // HQ TYPING INTO A WORKSHEET (website v0.27.28): no edit key, but the HQ login. For example HQ on a
+  // group call types the notes the lead reads out. HQ cannot start a worksheet this way, and is not
+  // added to the "Who is on this worksheet" list.
+  var hq = !key && !!d.token && !escDenied_(d);
+  if (!id || (!key && !hq)) return { ok: false, nokey: true, hqLogin: !key && !!d.token, error: 'This link cannot open the worksheet.' };
   if (escIsCleared_(id)) return { ok: true, cleared: true };
   var sh = escTab_(), row = escFindRow_(sh, id), now = new Date();
   var changes = (d.changes && typeof d.changes === 'object') ? d.changes : {};
@@ -932,14 +942,17 @@ function escSync_(d) {
   // Nothing saved yet and nothing to save: do not make an empty row (keeps HQ's list clean).
   if (!row && !names.length && !d.claim) return { ok: true, rev: 0, changed: {}, now: now.getTime() };
   // Since website v0.27.1 a worksheet must be STARTED first (escStart, HQ user name and password).
-  if (!row) return { ok: false, needStart: true, error: 'Starting a worksheet needs the HQ user name and password.' };
+  if (!row) return hq ? { ok: false, error: 'That worksheet was not found.' } : { ok: false, needStart: true, error: 'Starting a worksheet needs the HQ user name and password.' };
 
-  var mark = escKeyMark_(id, key);
   var w = row ? escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]) : { data: {}, meta: { r: 0, k: '', f: {} } };
-  var adopt = !w.meta.k;                       // a new worksheet, or one saved before v0.18: this key becomes its key
-  if (adopt) w.meta.k = mark;
-  else if (w.meta.k !== mark) return { ok: false, nokey: true, error: 'This link cannot open the worksheet.' };
+  var adopt = !hq && !w.meta.k;                // a new worksheet, or one saved before v0.18: this key becomes its key
+  if (adopt) w.meta.k = escKeyMark_(id, key);
+  else if (!hq && w.meta.k !== escKeyMark_(id, key)) return { ok: false, nokey: true, error: 'This link cannot open the worksheet.' };
 
+  // v0.27.28: keep the real edit key too (meta.e), so HQ can send a join link ("Add a responder" while
+  // typing as HQ). Only an HQ login is ever given it back. Older worksheets pick it up on a team phone's next sync.
+  var keyNew = !hq && w.meta.e !== key;
+  if (keyNew) w.meta.e = key;
   var touched = false;
   names.forEach(function (k) {
     var v = clean_(changes[k], 4000);
@@ -949,7 +962,7 @@ function escSync_(d) {
     w.meta.f[k] = w.meta.r;
   });
 
-  if (touched || adopt || !row) {
+  if (touched || adopt || keyNew || !row) {
     var store = {};
     Object.keys(w.data).forEach(function (k) { store[k] = w.data[k]; });
     store[ESC_META] = w.meta;
@@ -966,6 +979,7 @@ function escSync_(d) {
   Object.keys(w.meta.f).forEach(function (k) { if (w.meta.f[k] > since) out[k] = w.data[k] || ''; });
   var res = { ok: true, rev: w.meta.r, changed: out, now: now.getTime() };
   // Who is on this worksheet (website v0.27.3). What this phone typed was saved above even if it was removed.
+  if (hq) { res.hq = true; res.joinKey = escKey_(w.meta.e); return res; }
   var me = rosterCheckIn_('esc', id, d, d.lead ? 'lead' : '');
   if (me && !me.removed && me.role === 'co-lead') res.coLead = true;     // made a lead by a lead or HQ (website v0.27.24)
   if (me && me.removed) { res.removed = true; res.where = clean_(String(w.data.incident_addresses || '').split('\n')[0], 80); }
@@ -988,22 +1002,35 @@ function escStart_(d) {
   var denied = leadDenied_(d);
   if (denied) return denied;
   var store = {}, now = new Date(), nowText = stamp_(now);
-  store[ESC_META] = { r: 0, k: mark, f: {} };
+  store[ESC_META] = { r: 0, k: mark, f: {}, e: key };
   sh.appendRow([id, nowText, nowText, '', '', String(now.getTime()), JSON.stringify(store)]);
   return { ok: true };
 }
 
-// Read one worksheet back (the live view calls this every few seconds). HQ login needed.
+// Read one worksheet back (the Scene Summary calls this every few seconds). HQ login, or since website
+// v0.27.27 a LEAD of that worksheet (escLeadAuth_), so both forms work the same way for leads.
+// hq in the answer tells the page whether to show the HQ-only parts (Clear, removing a lead).
 function escGet_(d) {
-  var denied = escDenied_(d);
-  if (denied) return denied;
-  var id = escId_(d.id);
+  var id = escId_(d.id), hq = !!d.token && !escDenied_(d);
+  if (!hq && !(id && escLeadAuth_(id, d))) {
+    var denied = escDenied_(d);
+    if (denied) return denied;
+  }
   if (!id) return { ok: false, error: 'This worksheet link is not valid.' };
   var sh = escTab_(), row = escFindRow_(sh, id), now = new Date().getTime();
   if (!row) return { ok: true, found: false, cleared: escIsCleared_(id), now: now };
   var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0];
-  return { ok: true, found: true, id: id, started: iso_(r[1]), updated: iso_(r[2]), ms: Number(escText_(r[5])) || 0, now: now, data: escOpen_(r[6]).data,
+  return { ok: true, found: true, hq: hq, id: id, started: iso_(r[1]), updated: iso_(r[2]), ms: Number(escText_(r[5])) || 0, now: now, data: escOpen_(r[6]).data,
     roster: rosterPublic_('esc', id) };
+}
+/* IS THIS PHONE A LEAD of this worksheet? (website v0.27.27) The worksheet's edit key (d.key, which every
+   phone on it has) plus the phone's own code (d.me), marked "lead" or "co-lead" in the Responders tab. */
+function escLeadAuth_(id, d) {
+  var key = escKey_(d.key), dev = rosterDev_(d.me);
+  if (!key || !dev) return false;
+  var sh = escTab_(), row = escFindRow_(sh, id);
+  if (!row || escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta.k !== escKeyMark_(id, key)) return false;
+  return rosterGet_('esc', id).some(function (x) { return x.dev === dev && !x.removed && (x.role === 'lead' || x.role === 'co-lead'); });
 }
 
 // The most recent worksheets, newest first. HQ login needed.
@@ -1178,15 +1205,28 @@ function recStart_(d) {
    as HQ, or someone who types the HQ user name and password. Returns null when allowed. */
 function leadDenied_(d) {
   if (d.token && !escDenied_(d)) return null;
-  var s = escLoginSettings_();                // also makes sure the HQ login rows exist in Settings
-  if (!s.user || !s.pass) return { ok: false, leadLogin: true, locked: true, error: 'The HQ user name and password have not been set yet. The site admin sets them in the Google Sheet.' };
+  var s = escLoginSettings_(), l = leadLoginSettings_();    // also make sure the login rows exist in Settings
+  var hqSet = !!(s.user && s.pass), leadSet = !!(l.user && l.pass);
+  if (!hqSet && !leadSet) return { ok: false, leadLogin: true, locked: true, error: 'The lead user name and password have not been set yet. The site admin sets them in the Google Sheet.' };
   if (d.user == null && d.password == null) return { ok: false, leadLogin: true, error: '' };
-  if (tooManyTries_('esc-hq')) return { ok: false, leadLogin: true, error: 'Too many tries. Please wait 15 minutes and try again.' };
-  if (clean_(d.user, 60).toLowerCase() !== s.user.toLowerCase() || String(d.password || '') !== s.pass) {
-    noteFail_('esc-hq');
-    return { ok: false, leadLogin: true, error: 'That user name and password do not match.' };
+  if (tooManyTries_('lead-start')) return { ok: false, leadLogin: true, error: 'Too many tries. Please wait 15 minutes and try again.' };
+  var user = clean_(d.user, 60).toLowerCase(), pw = String(d.password || '');
+  // The lead login, or (as before) the HQ login.
+  if (leadSet && user === l.user.toLowerCase() && pw === l.pass) return null;
+  if (hqSet && user === s.user.toLowerCase() && pw === s.pass) return null;
+  noteFail_('lead-start');
+  return { ok: false, leadLogin: true, error: 'That user name and password do not match.' };
+}
+/* The lead user name and password from the Settings tab (rows added blank the first time). */
+function leadLoginSettings_() {
+  var sh = tab_('Settings'), data = sh.getDataRange().getValues(), out = { user: '', pass: '' }, seenUser = false, seenPass = false;
+  for (var i = 0; i < data.length; i++) {
+    if (String(data[i][0]).trim() === LEAD_USER_LABEL) { seenUser = true; out.user = escText_(data[i][1]).trim(); }
+    if (String(data[i][0]).trim() === LEAD_PASS_LABEL) { seenPass = true; out.pass = escText_(data[i][1]); }
   }
-  return null;
+  if (!seenUser) sh.appendRow([LEAD_USER_LABEL, '']);
+  if (!seenPass) sh.appendRow([LEAD_PASS_LABEL, '']);
+  return out;
 }
 
 // A phone checks in: is its center still open? (Joined phones ask this now and then.)
@@ -1235,7 +1275,9 @@ function recGet_(d) {
   var id = escId_(d.id);
   if (!id) return { ok: false, error: 'This reception center link is not valid.' };
   var a = recLeadAuth_(id, d), c = a && a.c;
-  if (!(a && a.ok)) {
+  // hq: is this an HQ login? The page shows Download for Excel only to HQ (website v0.27.26: leads never export).
+  var hq = !!d.token && !escDenied_(d);
+  if (!(a && a.ok) && !hq) {
     var denied = escDenied_(d);
     if (denied) return denied;
   }
@@ -1255,7 +1297,7 @@ function recGet_(d) {
       items.push(o);
     });
   }
-  return { ok: true, found: true, id: id, center: escText_(c.r[3]), lead: recLeadNames_(id, c), started: iso_(c.r[1]),
+  return { ok: true, found: true, hq: hq, id: id, center: escText_(c.r[3]), lead: recLeadNames_(id, c), started: iso_(c.r[1]),
     ms: Number(escText_(c.r[6])) || 0, keepDays: REC_KEEP_DAYS, now: now, items: items, roster: rosterPublic_('rec', id) };
 }
 

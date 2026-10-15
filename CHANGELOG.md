@@ -1,5 +1,40 @@
 # Changelog
 
+## v0.27.28 (Oct 15, 2026)
+- HQ CAN TYPE INTO AN ESCALATION WORKSHEET AND ADD RESPONDERS. NEEDS THE GOOGLE SCRIPT UPDATE (same paste and New version as v0.27.24-27; one deploy covers all five).
+  - In the Scene Summary, HQ now gets the Worksheet side of the switch. It opens the same worksheet, editable (address ends in &as=hq). Example: on a group call, HQ types the notes the lead reads out. Everyone on the worksheet sees it within seconds.
+  - HQ typing gets "Add a responder" (sends the normal join link). Not "Add a lead" (HQ does that from the Scene Summary list), not "Start a new blank worksheet", not the name box. HQ is not added to the "Who is on this worksheet" list.
+  - HQ still cannot START a worksheet this way. The phone's own worksheet (if any) is untouched.
+  - Google script: each worksheet now also keeps its real edit key (inside the coded last column) so the script can give it to an HQ login for the join link. Older worksheets pick it up automatically the next time a team phone on them checks in (every few seconds while open).
+  - Same box typed by HQ and someone on scene at the same moment: the later one wins (as between any two phones).
+- Version number is now ?v=0.27.28 on every page and the homepage footer reads v0.27.28
+
+## v0.27.27 (Oct 15, 2026)
+- VIEW SWITCH AND CHANGE CENTER / WORKSHEET on both forms. NEEDS THE GOOGLE SCRIPT UPDATE (same paste and New version as v0.27.24-26; one deploy covers all four).
+  - New pinned bar under the logo (js/view-bar.js), stays on screen while scrolling, switches in the SAME tab:
+    Reception Center: Intake | Summary. Escalation Form: Worksheet | Scene Summary.
+    Shown to leads, and to HQ when the phone is also on that event. Responders do not see it.
+  - HQ only: "Change center" / "Change worksheet" button in the bar. Lists the open events (most recent first); tap one to open it. No logging out.
+  - Leads can open the Escalation Scene Summary again (Sean, Oct 15: same features on both forms), with the worksheet's own code, not the HQ login. Clear, Log out and removing a lead stay HQ only.
+  - Removed: "See the summary" (Reception) and "Open the Scene Summary" (Escalation) buttons, which opened new tabs; the switch replaces them. "Send HQ the summary link" / "Share the Scene Summary" stay.
+  - Escalation Form: the two blank-PDF links at the bottom (Printable PDF / Download the PDF) are removed. The PDF file is still in documents/ but nothing links to it.
+- Version number is now ?v=0.27.27 on every page and the homepage footer reads v0.27.27
+
+## v0.27.26 (Oct 15, 2026)
+- LEADS NEVER EXPORT DATA (HQ only). NEEDS THE GOOGLE SCRIPT UPDATE (same paste and New version as v0.27.24/25; one deploy covers all three).
+  - Reception Center summary: "Download for Excel" now shows only to an HQ login (Admin). Leads still see the table, Edit and DDA. The Google script now tells the page whether the viewer is HQ.
+  - Escalation Form: when live sharing is off, "Share the Scene Summary" used to send the whole worksheet as text. It now just says the Scene Summary cannot be sent yet. (The Escalation Form has no other export; the Printable PDF links are the blank form.)
+- Version number is now ?v=0.27.26 on every page and the homepage footer reads v0.27.26
+
+## v0.27.25 (Oct 15, 2026)
+- SEPARATE LEAD LOGIN. NEEDS THE GOOGLE SCRIPT UPDATE (same paste and New version as v0.27.24; one deploy covers both).
+  - Starting an Escalation worksheet or a Reception Center now asks for the LEAD user name and password (Sean: lead / GiftOfLife). The HQ login (Admin / GiftOfLife) still works there too.
+  - The lead login does NOT open the Scene Summary, the HQ lists or Clear: those stay HQ only (Admin).
+  - Set in the Google Sheet, Settings tab: two new rows "Lead login (starting a worksheet or reception center only): user name" and "Lead login: password" appear after the script update. Until they are filled in, only the HQ login can start.
+  - Pop-up and Start screen wording now says "lead user name and password". Escalation "For HQ" note: only HQ opens the Scene Summary (the lead already sees everything on the worksheet).
+  - Wrong tries for the lead login are counted separately from the HQ login (8 wrong = 15-minute wait).
+- Version number is now ?v=0.27.25 on every page and the homepage footer reads v0.27.25
+
 ## v0.27.24 (Oct 15, 2026)
 - ADD A LEAD on the Escalation Form and the Reception Center Form. NEEDS THE GOOGLE SCRIPT UPDATE (deploy a New version BEFORE pushing).
   - New "Add a lead" button beside "Add a responder" (lead's phone only). It opens a list of the people already on the worksheet / reception center; tap "Make lead". Their phone gets the lead's buttons within about a minute (Reception reloads the page once; a half-typed intake is kept).

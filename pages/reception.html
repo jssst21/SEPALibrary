@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.24">
+<link rel="stylesheet" href="../css/style.css?v=0.27.28">
 </head>
 <body class="home" data-ask-form="reception">
 
@@ -19,7 +19,8 @@
                                    Only the lead (on the phone that started the center) and HQ (logged
                                    in) can see it.
        reception.html?view=list    HQ: all open reception centers
-     The HQ user name and password are the same as for the Escalation Form live view. They are set in
+     The HQ user name and password are the same as for the Escalation Form live view. Starting a center
+     uses the separate lead user name and password (v0.27.25; the HQ pair also works). All are set in
      the Google Sheet (Settings tab), never in these website files.
      Client details are deleted when HQ clears a center, or 5 days after its last intake. -->
 
@@ -49,7 +50,7 @@
     </div>
     <div id="rec-start-body">
     <h2 class="esc-login-title">Start a reception center</h2>
-    <p class="esc-how">The person who starts it is the <strong>lead</strong>. You can then add responders, and you and HQ can see every intake as it comes in. Starting one needs the HQ user name and password.</p>
+    <p class="esc-how">The person who starts it is the <strong>lead</strong>. You can then add responders, and you and HQ can see every intake as it comes in. Starting one needs the lead user name and password.</p>
     <form id="rec-start-form" novalidate>
       <label class="field">Reception center name or location
         <input id="rec-center" autocomplete="off" placeholder="e.g. Pottstown Middle School">
@@ -133,7 +134,6 @@
         <p class="esc-group-how" id="rec-lead-how"><strong>Add a responder</strong> sends a link for doing intakes. <strong>Add a lead</strong> gives someone already here the lead's buttons, for example if you are leaving the scene.</p>
         <p class="esc-group">Everyone's intakes</p>
         <div class="esc-buttons">
-          <a class="esc-btn" id="rec-open-summary" href="#" target="_blank" rel="noopener">See the summary</a>
           <button type="button" class="esc-btn" id="rec-share">Send HQ the summary link</button>
         </div>
         <p class="esc-note" id="rec-share-note" role="status" hidden></p>
@@ -230,7 +230,8 @@
     <!-- Who is on this reception center, with Remove (lead and HQ, v0.27.3) -->
     <div class="rost-box" id="rec-view-roster" hidden></div>
     <div class="esc-buttons" id="rec-view-buttons" hidden>
-      <button type="button" class="esc-btn rec-dl-solid" id="rec-download">Download for Excel</button>
+      <!-- HQ only (v0.27.26): leads never export. js/reception.js shows it only to an HQ login. -->
+      <button type="button" class="esc-btn rec-dl-solid" id="rec-download" hidden>Download for Excel</button>
     </div>
     <!-- HQ only: end of the event. v0.27.9: solid red, renamed, and it asks in a warning pop-up
          (rec-clear-modal, below) instead of on the page. -->
@@ -379,7 +380,7 @@
     <div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="rec-lead-modal-title">
       <button type="button" class="f-modal-x" id="rec-lead-x" aria-label="Close">&times;</button>
       <h2 id="rec-lead-modal-title">Become the lead</h2>
-      <p class="f-modal-note">Only Red Cross leadership can start a reception center. Enter the HQ user name and password.
+      <p class="f-modal-note">Only leads can start a reception center. Enter the <strong>lead</strong> user name and password.
         Responders: ask your lead for a join link instead.</p>
       <form id="rec-lead-form" novalidate>
         <label class="field">User name
@@ -420,10 +421,11 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.24"></script>
-<script src="../js/ask-lead.js?v=0.27.24"></script>
-<script src="../js/phone-format.js?v=0.27.24"></script>
-<script src="../js/reception.js?v=0.27.24"></script>
-<script src="../js/close-tab.js?v=0.27.24"></script>
+<script src="../js/config.js?v=0.27.28"></script>
+<script src="../js/ask-lead.js?v=0.27.28"></script>
+<script src="../js/phone-format.js?v=0.27.28"></script>
+<script src="../js/view-bar.js?v=0.27.28"></script>
+<script src="../js/reception.js?v=0.27.28"></script>
+<script src="../js/close-tab.js?v=0.27.28"></script>
 </body>
 </html>

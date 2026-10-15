@@ -1185,6 +1185,7 @@ body:not(.esc-viewing) .esc-flash { animation-name: esc-flash-edit; }
 /* v0.27.9: solid Download for Excel (navy) and solid Close Reception Center (red), and the warning pop-up */
 .esc-btn.rec-dl-solid { background: var(--navy); border-color: var(--navy); color: #fff; }
 .esc-btn.rec-dl-solid:hover { background: #162844; }
+.esc-btn.rec-dl-solid[hidden] { display: none; }   /* HQ only (v0.27.26) */
 .esc-btn.rec-close-solid { background: var(--red); border-color: var(--red); color: #fff; }
 .esc-btn.rec-close-solid:hover { background: #8f1f2f; }
 .esc-btn.rec-close-solid:disabled { opacity: .6; cursor: default; }
@@ -1627,3 +1628,23 @@ a.f-page:hover { border-color: var(--red); color: var(--red); }
 .side-app-txt em { font-style: normal; font-size: 14px; font-weight: 700; color: #ffd54a; }
 .side-app-new { position: absolute; top: -10px; right: 12px; padding: 2px 10px; border-radius: 999px; background: #ffd54a; color: #2a2420; font-size: 11px; font-weight: 800; letter-spacing: .08em; box-shadow: 0 2px 4px rgba(0,0,0,.3); }
 @media (prefers-reduced-motion: reduce) { .side-app-gl::after { animation: none; } .side-app { transition: none; } }
+
+/* ================================================================ VIEW BAR (website v0.27.27, js/view-bar.js)
+   Pinned under the logo on the Escalation and Reception Center forms: the Intake | Summary (or
+   Worksheet | Scene Summary) switch, and HQ's Change center / Change worksheet button. */
+.vt-bar { position: sticky; top: 0; z-index: 20; margin: 10px -20px 14px; padding: 10px 20px; background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .12); }
+.vt-bar[hidden] { display: none; }
+.vt { display: flex; border: 2px solid var(--navy); border-radius: 999px; overflow: hidden; }
+.vt a { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; font-size: 17px; font-weight: 700; color: var(--navy); text-decoration: none; background: #fff; }
+.vt a.on { background: var(--navy); color: #fff; }
+.vt a:focus-visible { outline: 3px solid var(--red); outline-offset: -5px; }
+.vt svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.vt-center { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 0; }
+.vt-center b { font-size: 16px; color: var(--ink, #2a2420); min-width: 0; overflow-wrap: anywhere; }
+.vt-change { flex: none; display: flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1.5px solid var(--red); border-radius: 999px; background: #fff; color: var(--red); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.vt-change svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; }
+.vt-item { display: block; padding: 12px 14px; margin: 0 0 8px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; text-decoration: none; }
+.vt-item strong { display: block; font-size: 17px; color: var(--navy); }
+.vt-item span { font-size: 14px; color: #6b625b; }
+.vt-item.on { border-color: var(--navy); background: #eef2f8; }
+@media (max-width: 380px) { .vt a { gap: 5px; padding: 0 6px; font-size: 15px; text-align: center; } .vt svg { width: 17px; height: 17px; flex: none; } .vt-change { padding: 6px 10px; font-size: 14px; } }

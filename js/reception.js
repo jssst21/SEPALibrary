@@ -100,6 +100,8 @@
       lsSet('sepaRecCurrent', urlId);
       current = urlId;
     }
+    // v0.27.27: the Intake | Summary switch links to ?id=CODE. If this phone is on that center, open it.
+    else if (urlId && goodKey(lsGet('sepaRecKey:' + urlId))) { lsSet('sepaRecCurrent', urlId); current = urlId; }
     try { history.replaceState(null, '', pageLink(current ? 'id=' + current : '')); } catch (e) {}   // the key never stays in the address bar
 
     if (!current || !goodKey(lsGet('sepaRecKey:' + current))) {
@@ -196,9 +198,13 @@
     function centerName() { return lsGet('sepaRecCenter:' + id) || 'Reception center'; }
     function count() { return num(lsGet('sepaRecCount:' + id)); }
     function header() {
+      if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.setName(centerName());
       $('rec-where-center').textContent = centerName();
       $('rec-where-me').textContent = ' · ' + me + (lead ? ' (lead)' : '') + ' · ' + count() + ' intake' + (count() === 1 ? '' : 's') + ' done on this phone';
     }
+    // The pinned Intake | Summary switch (v0.27.27): for leads, and for HQ whose phone is on this center.
+    if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.show({ on: 'a', showSwitch: lead || !!token(), name: centerName(),
+      a: { label: 'Intake', href: pageLink('id=' + id) }, b: { label: 'Summary', href: pageLink('view=' + id) } });
     header();
     if (!lead) $('rec-joined-how').textContent = 'You joined this reception center. Your intakes go to your lead and HQ. Only a lead can add responders and see the summary.';
     if (coLead) $('rec-lead-how').textContent = 'You are a lead on this reception center. Add a responder sends a link for doing intakes. Add a lead gives someone already here the lead\'s buttons, for example if you are leaving the scene.';
@@ -403,7 +409,6 @@
 
     // ---- lead tools: add a responder, see the summary, send HQ the summary link
     var summaryUrl = pageLink('view=' + id);
-    $('rec-open-summary').href = summaryUrl;
     function note(msg) { var n = $('rec-share-note'); n.textContent = msg; n.hidden = !msg; }
     function showLink(url, label) { $('rec-link-box').hidden = false; $('rec-link-label').textContent = label; $('rec-link').value = url; }
     function send(url, title, text, label, copied) {
@@ -480,6 +485,20 @@
     var coKey = !leadKey && lsGet('sepaRecCoLead:' + id) === '1' ? goodKey(lsGet('sepaRecKey:' + id)) : '';
     var asLead = !!(leadKey || coKey);
     function auth(o) { o.leadKey = leadKey; o.key = coKey; o.me = coKey && typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('rec', id) : ''; o.token = token(); return o; }
+    var barShown = false;
+    function changeCenter() {        // HQ: every open reception center, to jump between them (v0.27.27)
+      return { label: 'Change center', title: 'Change center', note: 'Open reception centers, most recent activity first.',
+        allHref: pageLink('view=list'), allLabel: 'See all centers on one page',
+        load: function (done) {
+          call({ action: 'recList', token: token() }).then(function (r) {
+            if (!(r && r.ok)) return done(null, r && r.login ? 'Please log in again as HQ.' : 'Could not load the centers. Please try again.');
+            done(r.items.map(function (it) {
+              return { href: pageLink('view=' + it.id), title: it.center || '(no name)', current: it.id === id,
+                sub: 'Lead: ' + (it.lead || '-') + ' · ' + it.count + ' intake' + (it.count === 1 ? '' : 's') + ' · last activity ' + ago((r.now || 0) - (it.ms || 0)) };
+            }));
+          });
+        } };
+    }
     var s = $('rec-view-status'), seen = null, waiting = false, done = false, last = null, justEdited = '';
     if (!id) { s.textContent = 'This link is not a valid reception center link.'; s.className = 'esc-status esc-warn'; return; }
 
@@ -564,10 +583,20 @@
         }
         $('rec-title').textContent = 'Reception Center: ' + (r.center || 'summary');
         $('rec-intro').textContent = ((r.lead || '').indexOf(',') >= 0 ? 'Leads: ' : 'Lead: ') + (r.lead || '') + '. Every intake for this reception center.';
-        $('rec-clear-line').hidden = asLead && !token();     // HQ only (a lead who is also logged in as HQ sees it too)
+        // HQ only (v0.27.26): leads never export, and only HQ clears. r.hq comes from the Google script;
+        // an older script does not send it, so then "not a lead and allowed in" counts as HQ.
+        var isHQ = r.hq === true || (r.hq === undefined && !asLead);
+        $('rec-clear-line').hidden = !isHQ;     // HQ only (a lead who is also logged in as HQ sees it too)
         var k = $('rec-keep'); k.hidden = false;
         k.textContent = 'Intakes are deleted when HQ clears this reception center, or automatically ' + (r.keepDays || 5) + ' days after the last intake.';
         draw(r);
+        $('rec-download').hidden = !isHQ;
+        if (!barShown && typeof SEPAViewBar !== 'undefined') {     // v0.27.27: the pinned switch, and Change center for HQ
+          barShown = true;
+          SEPAViewBar.show({ on: 'b', showSwitch: !!goodKey(lsGet('sepaRecKey:' + id)), name: r.center || 'Reception center',
+            a: { label: 'Intake', href: pageLink('id=' + id) }, b: { label: 'Summary', href: pageLink('view=' + id) },
+            change: isHQ ? changeCenter() : null });
+        } else if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.setName(r.center || 'Reception center');
         s.className = 'esc-status esc-ok';
         s.textContent = 'Live. ' + r.items.length + ' intake' + (r.items.length === 1 ? '' : 's') + '. Last activity ' + ago((r.now || 0) - (r.ms || 0)) + '.';
       });

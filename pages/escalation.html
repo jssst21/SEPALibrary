@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.24">
+<link rel="stylesheet" href="../css/style.css?v=0.27.28">
 </head>
 <body class="home" data-ask-form="escalation">
 
@@ -50,7 +50,7 @@
     <div id="esc-start-body">
     <p class="esc-status esc-warn" id="esc-start-note" role="status" hidden></p>
     <h2 class="esc-login-title">Start a worksheet</h2>
-    <p class="esc-how">The person who starts it is the <strong>lead</strong>. You can then add responders, who type into the same worksheet, and share the Scene Summary with HQ. Starting one needs the HQ user name and password.</p>
+    <p class="esc-how">The person who starts it is the <strong>lead</strong>. You can then add responders, who type into the same worksheet, and share the Scene Summary with HQ. Starting one needs the lead user name and password.</p>
     <p class="form-error" id="esc-start-error" hidden></p>
     <button type="button" class="primary-btn role-lead-btn" id="esc-start-btn">Leads: Click Here to Start an Escalation Worksheet</button>
     <!-- Waiting for a link from the lead? (v0.27.2, js/ask-lead.js) -->
@@ -93,13 +93,13 @@
     </div>
   </section>
 
-  <!-- Pop-up: the HQ user name and password, to become the lead. Typing them here starts the worksheet;
+  <!-- Pop-up: the lead user name and password (v0.27.25; the HQ pair also works), to become the lead. Typing them here starts the worksheet;
        it does not log this device in as HQ (so it cannot see the live view list or clear worksheets). -->
   <div class="f-modal" id="esc-lead-modal" hidden>
     <div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="esc-lead-modal-title">
       <button type="button" class="f-modal-x" id="esc-lead-x" aria-label="Close">&times;</button>
       <h2 id="esc-lead-modal-title">Become the lead</h2>
-      <p class="f-modal-note">Only Red Cross leadership can start a worksheet. Enter the HQ user name and password.
+      <p class="f-modal-note">Only leads can start a worksheet. Enter the <strong>lead</strong> user name and password.
         Responders: ask your lead for a join link instead.</p>
       <form id="esc-lead-form" novalidate>
         <label class="field">User name
@@ -144,9 +144,8 @@
     <div class="esc-buttons">
       <button type="button" class="primary-btn esc-share" data-esc="share">Share the Scene Summary</button>
       <button type="button" class="esc-btn" id="esc-copy">Copy the link</button>
-      <a class="esc-btn" id="esc-open-view" href="#" target="_blank" rel="noopener">Open the Scene Summary</a>
     </div>
-    <p class="esc-group-how">The Scene Summary is the whole worksheet, read only, updating by itself. Only the lead and HQ can open it, with the HQ log in.</p>
+    <p class="esc-group-how">The Scene Summary is the whole worksheet, read only, updating by itself. Leads open it with the Scene Summary switch at the top of the page. HQ opens the link with the HQ log in.</p>
     <p class="esc-note" id="esc-share-note" role="status" hidden></p>
     <label class="esc-link-box" id="esc-link-box" hidden><span id="esc-link-label">Scene Summary link</span>
       <input id="esc-link" readonly>
@@ -221,19 +220,19 @@
         <button type="button" class="link-btn" id="esc-new-no">Cancel</button>
       </span>
     </p>
-    <p class="esc-bottom-links"><span id="esc-recent-link"><a href="escalation.html?view=list" target="_blank" rel="noopener">See recent worksheets</a> &nbsp;|&nbsp;</span>
-      <a href="../documents/DAT-Response-Lead-Incident-Reporting-Worksheet-fillable-2026.2.8.pdf" target="_blank" rel="noopener">Printable PDF of this worksheet</a> &nbsp;|&nbsp;
-      <a href="../documents/DAT-Response-Lead-Incident-Reporting-Worksheet-fillable-2026.2.8.pdf" download="DAT Response Lead Incident Reporting Worksheet.pdf">Download the PDF</a></p>
+    <!-- v0.27.27: the two blank-PDF links (Printable PDF / Download the PDF) were removed (Sean, Oct 15). -->
+    <p class="esc-bottom-links"><span id="esc-recent-link"><a href="escalation.html?view=list" target="_blank" rel="noopener">See recent worksheets</a></span></p>
   </section>
 
   <p class="esc-foot" id="esc-foot">2026.2.8 DAT Response Lead Incident Reporting</p>
 
 </div>
 
-<script src="../js/config.js?v=0.27.24"></script>
-<script src="../js/ask-lead.js?v=0.27.24"></script>
-<script src="../js/phone-format.js?v=0.27.24"></script>
-<script src="../js/escalation.js?v=0.27.24"></script>
-<script src="../js/close-tab.js?v=0.27.24"></script>
+<script src="../js/config.js?v=0.27.28"></script>
+<script src="../js/ask-lead.js?v=0.27.28"></script>
+<script src="../js/phone-format.js?v=0.27.28"></script>
+<script src="../js/view-bar.js?v=0.27.28"></script>
+<script src="../js/escalation.js?v=0.27.28"></script>
+<script src="../js/close-tab.js?v=0.27.28"></script>
 </body>
 </html>
