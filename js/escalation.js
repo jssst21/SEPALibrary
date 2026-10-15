@@ -460,12 +460,12 @@
     function placeName() { return cur('incident_addresses').split('\n')[0] || 'Escalation worksheet'; }
     function showBar() {
       if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.show({ on: 'a', showSwitch: lead || !!token(), name: placeName(),
-        a: { label: 'Worksheet', href: pageLink('id=' + id + (hq ? '&as=hq' : '')) }, b: { label: 'Scene Summary', href: pageLink('view=' + id) } });
+        a: { label: 'Worksheet', href: pageLink('id=' + id + (hq ? '&as=hq' : '')) }, b: { label: 'Scene Summary', href: pageLink('view=' + id) },
+        actions: hq ? null : newSceneActions(lead) });
     }
     showBar();
     if (hq) {      // HQ typing: no name box, no "start a new worksheet" (that would be HQ's own worksheet)
       $('esc-myname').closest('label').style.display = 'none';
-      $('esc-new').style.display = 'none';
     }
     function addHow() {
       $('esc-add-how').hidden = !lead; $('esc-joined-how').hidden = lead;
@@ -534,14 +534,23 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { if (b.id !== 'esc-add-lead') b.addEventListener('click', add); });
     $('esc-copy').addEventListener('click', function () { claim = true; sync(); copy(viewUrl, function () { showLink(); note('Link copied.'); }); });
 
-    // ---- start a new worksheet (asks first, on the page, no pop-up)
-    $('esc-new').addEventListener('click', function () { $('esc-new-ask').hidden = false; $('esc-new').hidden = true; });
-    $('esc-new-no').addEventListener('click', function () { $('esc-new-ask').hidden = true; $('esc-new').hidden = false; });
-    $('esc-new-yes').addEventListener('click', function () {
-      var go = function () { var fresh = newId(); lsSet('sepaEscCurrent', fresh); location.href = pageLink('id=' + fresh); };
-      if (!changedHere().length || live !== 'on') return go();
-      sync(); setTimeout(go, 1500);      // give the last entries a moment to go out first (they are kept on this device either way)
-    });
+    // ---- "Starting a new scene?" (v0.27.29: the red button in the bar replaces the old link at the bottom)
+    function newSceneActions(isLead) {
+      return newScene(isLead, function () {
+        if (!changedHere().length || live !== 'on') return goNewScene();
+        sync(); setTimeout(goNewScene, 1500);      // give the last entries a moment to go out first (they are kept on this device either way)
+      });
+    }
+  }
+
+  // The red "Starting a new scene?" button and, for leads, "Switch to HQ view" (v0.27.29). Used on the
+  // worksheet and on a lead's Scene Summary. Going to a new scene opens the Start screen (lead log in).
+  function goNewScene() { var fresh = newId(); lsSet('sepaEscCurrent', fresh); location.href = pageLink('id=' + fresh); }
+  function newScene(isLead, yes) {
+    return { newLabel: 'Starting a new scene?', askTitle: 'Start a new scene?', yesLabel: 'Yes, new scene',
+      askText: isLead ? 'This worksheet stays saved and shared with HQ. You will go to the Start screen and log in as lead for the new one.'
+                      : 'This worksheet stays saved and shared with your team. You will go to the Start screen, where you can start a new one or ask to join another.',
+      onYes: function () { yes(); }, hqHref: isLead ? pageLink('view=list') : '' };
   }
 
   // ================================================================ STARTING A WORKSHEET (v0.27.1)
@@ -697,6 +706,7 @@
             barShown = true;
             SEPAViewBar.show({ on: 'b', showSwitch: !!myKey || isHQ, name: place,     // v0.27.28: HQ can type into the worksheet
               a: { label: 'Worksheet', href: pageLink('id=' + id + (myKey ? '' : '&as=hq')) }, b: { label: 'Scene Summary', href: pageLink('view=' + id) },
+              actions: leadHere && !isHQ ? newScene(true, goNewScene) : null,      // v0.27.29
               change: isHQ ? changeWorksheet() : null });
           } else if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.setName(place);
           if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.roster($('esc-view-roster'), r.roster || [], function (d, cb) {

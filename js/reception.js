@@ -204,7 +204,16 @@
     }
     // The pinned Intake | Summary switch (v0.27.27): for leads, and for HQ whose phone is on this center.
     if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.show({ on: 'a', showSwitch: lead || !!token(), name: centerName(),
-      a: { label: 'Intake', href: pageLink('id=' + id) }, b: { label: 'Summary', href: pageLink('view=' + id) } });
+      a: { label: 'Intake', href: pageLink('id=' + id) }, b: { label: 'Summary', href: pageLink('view=' + id) },
+      actions: newCenter(lead, function (back) {
+        // Intakes still waiting for a signal must not be lost: stay until they are sent.
+        if (queue().some(function (q) { return q.id === id; })) {
+          back();
+          $('rec-form-error').textContent = 'Some intakes have not been sent yet. Wait for a signal before leaving, so they are not lost.';
+          $('rec-form-error').hidden = false; return;
+        }
+        goNewCenter();
+      }) });
     header();
     if (!lead) $('rec-joined-how').textContent = 'You joined this reception center. Your intakes go to your lead and HQ. Only a lead can add responders and see the summary.';
     if (coLead) $('rec-lead-how').textContent = 'You are a lead on this reception center. Add a responder sends a link for doing intakes. Add a lead gives someone already here the lead\'s buttons, for example if you are leaving the scene.';
@@ -428,17 +437,7 @@
         'Summary link for HQ', 'The summary link was copied. Paste it into a message to HQ. They need the HQ log in to open it.');
     });
 
-    // ---- leave the center on this phone
-    $('rec-leave').addEventListener('click', function () { $('rec-leave-ask').hidden = false; $('rec-leave').hidden = true; });
-    $('rec-leave-no').addEventListener('click', function () { $('rec-leave-ask').hidden = true; $('rec-leave').hidden = false; });
-    $('rec-leave-yes').addEventListener('click', function () {
-      if (queue().some(function (q) { return q.id === id; })) {
-        $('rec-leave-ask').hidden = true; $('rec-leave').hidden = false;
-        $('rec-form-error').textContent = 'Some intakes have not been sent yet. Wait for a signal before leaving, so they are not lost.';
-        $('rec-form-error').hidden = false; return;
-      }
-      lsSet('sepaRecCurrent', ''); location.replace(pageLink(''));
-    });
+    // ---- leaving the center: the red "Starting a new reception center?" button in the bar (v0.27.29, see newCenter)
 
     var carried = lsGet('sepaRecNote');
     if (carried) { notice(carried); lsSet('sepaRecNote', ''); }
@@ -449,6 +448,16 @@
     document.addEventListener('visibilitychange', function () { if (!document.hidden) flush(); });
     setInterval(function () { if (!document.hidden) flush(); }, 20000);
     setInterval(function () { if (!document.hidden && queue().some(function (q) { return q.id === id; })) flush(); }, 5000);
+  }
+
+  // The red "Starting a new reception center?" button and, for leads, "Switch to HQ view" (v0.27.29).
+  // Leaving opens the Start screen (lead log in). The center stays open for the team and HQ.
+  function goNewCenter() { lsSet('sepaRecCurrent', ''); location.href = pageLink(''); }
+  function newCenter(isLead, yes) {
+    return { newLabel: 'Starting a new reception center?', askTitle: 'Start a new reception center?', yesLabel: 'Yes, new center',
+      askText: isLead ? 'This reception center stays open for your team and HQ. You will go to the Start screen and log in as lead for the new one.'
+                      : 'This reception center stays open for your team. You will go to the Start screen, where you can start a new one or ask to join another.',
+      onYes: yes, hqHref: isLead ? pageLink('view=list') : '' };
   }
 
   // ================================================================ HQ LOGIN (shared with the Escalation Form)
@@ -595,7 +604,13 @@
           barShown = true;
           SEPAViewBar.show({ on: 'b', showSwitch: !!goodKey(lsGet('sepaRecKey:' + id)), name: r.center || 'Reception center',
             a: { label: 'Intake', href: pageLink('id=' + id) }, b: { label: 'Summary', href: pageLink('view=' + id) },
-            change: isHQ ? changeCenter() : null });
+            change: isHQ ? changeCenter() : null,
+            actions: asLead && !isHQ ? newCenter(true, function (back) {      // v0.27.29
+              var waitingHere = false;
+              try { waitingHere = (JSON.parse(lsGet('sepaRecQueue') || '[]') || []).some(function (q) { return q.id === id; }); } catch (e) {}
+              if (waitingHere) { back(); s.className = 'esc-status esc-warn'; s.textContent = 'Some intakes on this phone have not been sent yet. Open Intake and wait for a signal before starting a new center.'; return; }
+              goNewCenter();
+            }) : null });
         } else if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.setName(r.center || 'Reception center');
         s.className = 'esc-status esc-ok';
         s.textContent = 'Live. ' + r.items.length + ' intake' + (r.items.length === 1 ? '' : 's') + '. Last activity ' + ago((r.now || 0) - (r.ms || 0)) + '.';

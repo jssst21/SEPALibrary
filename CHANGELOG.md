@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.27.30 (Oct 15, 2026)
+- HQ LOGIN NOW LASTS 24 HOURS on a device (was 30 days), or until Log out. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - After 24 hours, HQ pages (lists, Scene Summary as HQ, Change center/worksheet, Switch to HQ view, HQ typing) ask for Admin / GiftOfLife again.
+  - Only the HQ login changed. Forum logins are separate and unchanged. The lead login is asked each time a worksheet or center is started, so it has no timer.
+  - Admin Guide 2 updated (24 hours, and a note about the lead login rows).
+- Version number is now ?v=0.27.30 on every page and the homepage footer reads v0.27.30
+
+## v0.27.29 (Oct 15, 2026)
+- NEW SCENE AND HQ VIEW BUTTONS on both forms (no Google script change: push only).
+  - A second pill under the Worksheet | Scene Summary (Intake | Summary) switch, same shape:
+    left, in red: "Starting a new scene?" (Escalation) / "Starting a new reception center?" (Reception). Asks once (Yes / Cancel), then goes to the Start screen, which asks for the lead login. The old event stays open for the team and HQ. Reception still will not leave while intakes are waiting for a signal.
+    right: "Switch to HQ view" (leads only). Opens the HQ list of worksheets / centers, which asks for the HQ login (Admin). The lead login is refused there.
+  - Responders see only the red "Starting a new..." side. HQ does not see the pill (it has Change center / Change worksheet).
+  - Removed the old links at the bottom: "Start a new blank worksheet" (Escalation) and "Leave this reception center" (Reception).
+- Version number is now ?v=0.27.29 on every page and the homepage footer reads v0.27.29
+
 ## v0.27.28 (Oct 15, 2026)
 - HQ CAN TYPE INTO AN ESCALATION WORKSHEET AND ADD RESPONDERS. NEEDS THE GOOGLE SCRIPT UPDATE (same paste and New version as v0.27.24-27; one deploy covers all five).
   - In the Scene Summary, HQ now gets the Worksheet side of the switch. It opens the same worksheet, editable (address ends in &as=hq). Example: on a group call, HQ types the notes the lead reads out. Everyone on the worksheet sees it within seconds.

@@ -1647,4 +1647,21 @@ a.f-page:hover { border-color: var(--red); color: var(--red); }
 .vt-item strong { display: block; font-size: 17px; color: var(--navy); }
 .vt-item span { font-size: 14px; color: #6b625b; }
 .vt-item.on { border-color: var(--navy); background: #eef2f8; }
+/* v0.27.29: a second pill under the switch, the same shape: "Starting a new scene?" (red words, everyone
+   on the event) and "Switch to HQ view" (leads only; the HQ list still asks for the HQ log in). */
+.vt-acts { display: flex; margin: 10px 0 0; border: 2px solid var(--navy); border-radius: 999px; overflow: hidden; }
+.vt-acts[hidden], .vt-new-ask[hidden] { display: none; }
+.vt-new, .vt-hq { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 4px 10px; border: 0; border-radius: 0;
+  background: #fff; font: inherit; font-size: 16px; font-weight: 700; line-height: 1.2; text-align: center; text-decoration: none; cursor: pointer; }
+.vt-new { color: var(--red); }
+.vt-hq { color: var(--navy); border-left: 2px solid var(--navy); }
+.vt-new:active, .vt-hq:active { background: #eef2f8; }
+.vt-new:focus-visible, .vt-hq:focus-visible { outline: 3px solid var(--red); outline-offset: -5px; }
+.vt-new-ask { margin: 10px 0 0; padding: 12px 14px; border: 2px solid var(--red); border-radius: 14px; background: #fdf3f4; font-size: 15.5px; line-height: 1.4; color: var(--ink, #2a2420); }
+.vt-new-ask b { display: block; font-size: 17px; margin-bottom: 4px; }
+.vt-new-btns { display: flex; gap: 10px; margin-top: 10px; }
+.vt-new-btns button { flex: 1; min-height: 44px; border-radius: 999px; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+.vt-yes { border: 0; background: var(--red); color: #fff; }
+.vt-no { border: 1.5px solid var(--navy); background: #fff; color: var(--navy); }
+@media (max-width: 380px) { .vt-new, .vt-hq { font-size: 14px; } }
 @media (max-width: 380px) { .vt a { gap: 5px; padding: 0 6px; font-size: 15px; text-align: center; } .vt svg { width: 17px; height: 17px; flex: none; } .vt-change { padding: 6px 10px; font-size: 14px; } }

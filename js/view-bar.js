@@ -5,6 +5,9 @@
 //       Reception Center: Intake | Summary        Escalation: Worksheet | Scene Summary
 //     Shown to leads, and to HQ when the phone is also on that event.
 //   - CHANGE CENTER / CHANGE WORKSHEET (HQ only): a pop-up list of the open events; tap one to open it.
+//   - v0.27.29, under the switch: a red "Starting a new scene?" / "Starting a new reception center?"
+//     button (everyone on the event; asks once, then goes to the Start screen), and beside it
+//     "Switch to HQ view" (leads only; opens the HQ list, which asks for the HQ log in if needed).
 // The page calls SEPAViewBar.show({...}) once it knows who is looking. Nothing here talks to Google
 // itself: the page passes a load() function for the Change list.
 var SEPAViewBar = (function () {
@@ -20,7 +23,10 @@ var SEPAViewBar = (function () {
   //       a: { label, href }, b: { label, href },   the two views (a = Intake / Worksheet, b = Summary)
   //       showSwitch: true/false,
   //       name: 'Norristown Rec Center',
-  //       change: null, or { label: 'Change center', title, note, load(done), allHref, allLabel } }
+  //       change: null, or { label: 'Change center', title, note, load(done), allHref, allLabel },
+  //       actions: null, or { newLabel, askTitle, askText, yesLabel, onYes(back), hqHref } }
+  //       onYes(back): the page does the leaving; it calls back() if it has to stay (shows the button again).
+  //       hqHref: the HQ list, or '' to leave out the Switch to HQ view button.
   // load(done) must call done([{ href, title, sub, current }]) or done(null, 'error message').
   function show(o) {
     opts = o;
@@ -34,10 +40,21 @@ var SEPAViewBar = (function () {
       '<a href="' + esc(o.a.href) + '"' + (o.on === 'a' ? ' class="on" aria-current="page"' : '') + '>' + ICON.form + esc(o.a.label) + '</a>' +
       '<a href="' + esc(o.b.href) + '"' + (o.on === 'b' ? ' class="on" aria-current="page"' : '') + '>' + ICON.chart + esc(o.b.label) + '</a></nav>' : '';
     var ch = o.change ? '<button type="button" class="vt-change">' + esc(o.change.label) + ' ' + ICON.chev + '</button>' : '';
-    if (!sw && !ch) { bar.hidden = true; return; }
+    var A = o.actions, acts = A ? '<div class="vt-acts"><button type="button" class="vt-new">' + esc(A.newLabel) + '</button>' +
+      (A.hqHref ? '<a class="vt-hq" href="' + esc(A.hqHref) + '">Switch to HQ view</a>' : '') + '</div>' +
+      '<div class="vt-new-ask" hidden><b>' + esc(A.askTitle) + '</b>' + esc(A.askText) +
+      '<div class="vt-new-btns"><button type="button" class="vt-yes">' + esc(A.yesLabel) + '</button><button type="button" class="vt-no">Cancel</button></div></div>' : '';
+    if (!sw && !ch && !acts) { bar.hidden = true; return; }
     bar.hidden = false;
-    bar.innerHTML = sw + '<div class="vt-center"><b class="vt-name">' + esc(o.name || '') + '</b>' + ch + '</div>';
+    bar.innerHTML = sw + '<div class="vt-center"><b class="vt-name">' + esc(o.name || '') + '</b>' + ch + '</div>' + acts;
     if (o.change) bar.querySelector('.vt-change').addEventListener('click', function () { openChange(o.change); });
+    if (A) {
+      var row = bar.querySelector('.vt-acts'), ask = bar.querySelector('.vt-new-ask');
+      var back = function () { ask.hidden = true; row.hidden = false; bar.querySelector('.vt-yes').disabled = false; };
+      bar.querySelector('.vt-new').addEventListener('click', function () { row.hidden = true; ask.hidden = false; bar.querySelector('.vt-no').focus(); });
+      bar.querySelector('.vt-no').addEventListener('click', back);
+      bar.querySelector('.vt-yes').addEventListener('click', function () { this.disabled = true; A.onYes(back); });
+    }
   }
   function setName(n) { if (bar) { var b = bar.querySelector('.vt-name'); if (b) b.textContent = n || ''; } }
 

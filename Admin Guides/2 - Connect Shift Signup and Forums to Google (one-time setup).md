@@ -108,8 +108,11 @@ You set them in the Sheet:
 
 While either box is empty, nobody can open the live view. To change the password, type a new one in
 the same box: everyone who was logged in has to log in again. Capital letters matter in the password
-but not in the user name. Everyone at HQ shares the one user name and password, and a login lasts 30
-days on each device.
+but not in the user name. Everyone at HQ shares the one user name and password, and a login lasts 24
+hours on each device (since website v0.27.30), or until someone taps Log out.
+
+Leads have their own login, used only to start a worksheet or reception center. It is in the two
+"Lead login" rows of the same Settings tab (Sean set lead / GiftOfLife). It cannot open HQ pages.
 
 ### Clearing a worksheet at the end of an event
 

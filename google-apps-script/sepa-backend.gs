@@ -820,7 +820,7 @@ var ESC_MAX_CHARS = 45000;   // a single spreadsheet cell holds 50,000 character
 
 var ESC_USER_LABEL = 'Escalation Form live view: user name (while blank, the live view is locked to everyone)';
 var ESC_PASS_LABEL = 'Escalation Form live view: password';
-var ESC_SESSION_DAYS = 30;
+var ESC_SESSION_DAYS = 1;    // how long an HQ login lasts on one device: 24 hours (Sean, Oct 15, website v0.27.30; was 30 days)
 /* LEAD LOGIN (website v0.27.25). A second user name and password, ONLY for starting an Escalation worksheet or a
    Reception Center (becoming its lead). It does not open the Scene Summary, the HQ lists or Clear: those
    stay with the HQ login above. The HQ login also still works to start one. Typed into the Settings tab
