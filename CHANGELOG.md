@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.13 (Oct 15, 2026)
+- AMBER back to the original light shade (#fdf3df fill / #ecd3a2 border) on both calendars and both keys. The stronger amber from v0.27.12 was too dark. The darker date text added with it is removed too.
+- Version number is now ?v=0.27.13 on every page and the homepage footer reads v0.27.13
+
 ## v0.27.12 (Oct 14, 2026)
 - SHIFT SIGN-UP CALENDAR (pages/shifts.html, also what the app's Shift Sign Up button opens): upcoming days with no one signed up are now amber, so the gaps are obvious. (A NEED label on those days was tried and removed as too much.) Before, only the homepage calendar showed amber.
   - The date now sits at the top of each day so the green number no longer covers it on phones.
