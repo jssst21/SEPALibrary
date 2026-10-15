@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SEPA Tools</title>
 <meta name="description" content="One place for the Red Cross SEPA DAT tools.">
-<meta name="theme-color" content="#ae273a">
+<meta name="theme-color" content="#1d4f91">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SEPA Tools">
@@ -24,7 +24,7 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; min-height: 100%; }
   body {
-    background: var(--red); color: #fff;
+    background: #1d4f91; color: #fff;   /* TEST: blue background; standard look is var(--red) */
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     padding: calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 18px);
     -webkit-tap-highlight-color: transparent;
@@ -45,6 +45,10 @@
   .tile svg { width: 38px; height: 38px; fill: none; stroke: var(--red); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tile span { font-size: 14.5px; font-weight: 700; line-height: 1.15; }
   .tile.help svg { stroke: #1e8e3e; }
+  /* TEST: Volunteer of the Month (Debbie) under the buttons */
+  .votm { margin: 22px 0 0; text-align: center; }
+  .votm img { display: block; width: 110px; height: 110px; margin: 0 auto; border-radius: 50%; object-fit: cover; border: 4px solid #fff; background: #fff; box-shadow: 0 3px 8px rgba(0, 0, 0, .35); }
+  .votm figcaption { margin-top: 8px; font-size: 17px; font-weight: 800; letter-spacing: .02em; }
   /* ANNOUNCEMENTS BAR (v0.27.19): a slim bar above the buttons. Leadership posts in the Google Sheet's
      Announcements tab; a small red number shows how many this phone has not opened yet. Nothing pops up. */
   .ann { margin: 0 0 12px; }
@@ -147,7 +151,7 @@
   <section class="ann" aria-label="Announcements">
     <button class="ann-bar" id="ann-bar" type="button" aria-expanded="false" aria-controls="ann-list">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l6 4V6L6 10H3zM16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>
-      <span class="ann-label">Announcements</span>
+      <span class="ann-label" lang="es">Anuncios</span>
       <span class="ann-count" id="ann-count" hidden></span>
       <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
     </button>
@@ -160,22 +164,27 @@
     <a class="tile" href="https://ops-rcview-redcross.nogginapp.io/signin">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2zM10 20a2 2 0 0 0 4 0"/></svg><span>Noggin</span></a>
     <a class="tile" href="/pages/shifts.html">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8.5 14.5l2 2 4-4"/></svg><span>Shift Sign Up</span></a>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8.5 14.5l2 2 4-4"/></svg><span lang="es">Inscripción a Turnos</span></a>
     <a class="tile" href="https://www.redcross.org/scia">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span>SCIA</span></a>
     <a class="tile" href="/pages/escalation.html">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9.5 17h-19L12 3z"/><path d="M12 10v4.5M12 17.5v.01"/></svg><span>Escalation</span></a>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9.5 17h-19L12 3z"/><path d="M12 10v4.5M12 17.5v.01"/></svg><span lang="es">Escalamiento</span></a>
     <a class="tile" href="/pages/reception.html">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3.5 19c.5-3.5 3-5.5 5.5-5.5s5 2 5.5 5.5M14.5 14.5c.8-.6 1.6-.9 2.5-.9 2 0 3.6 1.5 4 5.4"/></svg><span>Reception Center</span></a>
-    <a class="tile practice" href="https://rccare--training3.sandbox.my.site.com/RCCare/login?ec=302&amp;startURL=%2FRCCare%2Fs%2F"><em>Practice</em>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 14h7M8.5 18h4"/></svg><span>Practice RC Care</span></a>
-    <a class="tile practice" href="https://www.redcross.org/scia-training"><em>Practice</em>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span>Practice SCIA</span></a>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3.5 19c.5-3.5 3-5.5 5.5-5.5s5 2 5.5 5.5M14.5 14.5c.8-.6 1.6-.9 2.5-.9 2 0 3.6 1.5 4 5.4"/></svg><span lang="es">Centro de Recepción</span></a>
+    <a class="tile practice" href="https://rccare--training3.sandbox.my.site.com/RCCare/login?ec=302&amp;startURL=%2FRCCare%2Fs%2F"><em lang="es">Práctica</em>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 14h7M8.5 18h4"/></svg><span lang="es">Práctica RC Care</span></a>
+    <a class="tile practice" href="https://www.redcross.org/scia-training"><em lang="es">Práctica</em>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span lang="es">Práctica SCIA</span></a>
     <a class="tile" target="_blank" rel="noopener" href="https://volunteerconnection.redcross.org/?nd=gs_registration_v5_view&amp;registration_type_id=12577&amp;group_id=40083">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M12 12.5v5M9.5 15h5"/></svg><span>Register for Events</span></a>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M12 12.5v5M9.5 15h5"/></svg><span lang="es">Inscripción a Eventos</span></a>
     <a class="tile help" style="grid-column: 2" href="help.html">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span>Call for Help</span></a>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span lang="es">Pedir Ayuda</span></a>
   </nav>
+
+  <figure class="votm">
+    <img src="../images/people/debbie-tevlin.jpg" alt="Debbie Tevlin" width="110" height="110">
+    <figcaption>Volunteer of the Month</figcaption>
+  </figure>
 
   <p class="note">Each button opens that tool's own site. You sign in there, as usual.</p>
 
@@ -183,7 +192,7 @@
 
   <p class="foot"><a href="/index.html">SEPA Resource Library website</a></p>
 </div>
-<script src="../js/config.js?v=0.27.20"></script>
+<script src="../js/config.js?v=0.27.21"></script>
 <script>
   /* ANNOUNCEMENTS (v0.27.19). Read from the Google Sheet's Announcements tab (see sepa-backend.gs,
      ANNOUNCEMENTS). The last list is kept on the phone so the bar still works with a weak signal.

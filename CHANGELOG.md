@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.21 (Oct 15, 2026)
+- FIX for v0.27.20: the app's button screen (app/index.html) did not actually get the blue / Spanish / Volunteer of the Month changes in v0.27.20 (only the version numbers, cache number and phone top-bar color went up). They are in now, exactly as described under v0.27.20.
+  - App cache is now sepa-tools-12 so phones pick up the change.
+- Version number is now ?v=0.27.21 on every page and the homepage footer reads v0.27.21
+
 ## v0.27.20 (Oct 15, 2026)
 - SEPA TOOLS APP, TEST (website unchanged): blue background (#1d4f91, phone top bar too), Spanish button labels, and Debbie Tevlin's photo under the buttons with "Volunteer of the Month".
   - Spanish: Inscripción a Turnos, Escalamiento, Centro de Recepción, Práctica RC Care / Práctica SCIA (tag PRÁCTICA), Inscripción a Eventos, Pedir Ayuda, Anuncios. RC Care, Noggin, SCIA unchanged. Title, subtitle, footer and announcement text stay English.
