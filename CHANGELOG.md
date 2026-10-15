@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.27.12 (Oct 14, 2026)
+- SHIFT SIGN-UP CALENDAR (pages/shifts.html, also what the app's Shift Sign Up button opens): upcoming days with no one signed up are now amber and say NEED at the bottom, so the gaps are obvious. Before, only the homepage calendar showed amber.
+  - The date now sits at the top of each day so the green number no longer covers it on phones.
+  - A picked day stays solid red even when it is empty.
+- AMBER made stronger everywhere (was #fdf3df / #ecd3a2, now #fbe0a6 / #d99a2b), homepage calendar included.
+- BOTH CALENDAR KEYS: the green sample is now a plain dot with no number, so it does not suggest 2 is the target. The sign-up page key reads "no one yet, help needed".
+- Version number is now ?v=0.27.12 on every page and the homepage footer reads v0.27.12
+
 ## v0.27.11 (Oct 15, 2026)
 - SEPA TOOLS APP: new "Call for Help" button (centered on its own row below the other buttons). It opens app/help.html, a page of large cards with a photo and name. At the top, an Intake Hotline card (833-583-3115); below it, tapping a card calls that person: Debbie Tevlin, Marty Westermann, Michael Bradley, Sean Snyder, Irvin Diaz. "Back to Tools" returns to the app.
   - App-only: not linked from the website, and marked noindex so search engines skip it.

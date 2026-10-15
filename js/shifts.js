@@ -151,12 +151,13 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
       var t = toText(viewYear, viewMonth, d), open = isOpen(t), n = open ? signupsStarting(t) : 0;
       var b = document.createElement('button');
       b.type = 'button';
-      b.className = 'cal-day ' + (open ? 'open' : 'closed') + (t === pickedDate ? ' picked' : '') + (t === data.today ? ' today' : '');
+      b.className = 'cal-day ' + (open ? 'open' : 'closed') + (open && !n ? ' empty' : '') + (t === pickedDate ? ' picked' : '') + (t === data.today ? ' today' : '');
       b.disabled = !open;
       b.dataset.date = t;
       b.appendChild(document.createTextNode(d));
       if (n) { var c = document.createElement('span'); c.className = 'count-badge'; c.textContent = n; b.appendChild(c); }
-      b.setAttribute('aria-label', niceDate(t) + (n ? ', ' + n + ' signed up' : ''));
+      else if (open) { var g = document.createElement('span'); g.className = 'need-tag'; g.setAttribute('aria-hidden', 'true'); g.textContent = 'Need'; b.appendChild(g); }
+      b.setAttribute('aria-label', niceDate(t) + (open ? (n ? ', ' + n + ' signed up' : ', no one signed up yet') : ''));
       b.addEventListener('click', function () { pickDay(this.dataset.date); });
       box.appendChild(b);
     }

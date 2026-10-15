@@ -446,8 +446,20 @@ body.no-scroll { overflow: hidden; }
 }
 
 /* upcoming days with no one signed up */
-.cal-day.open.empty { background: #fdf3df; border-color: #ecd3a2; }
+.cal-day.open.empty { background: #fbe0a6; border-color: #d99a2b; color: #5a3a00; }
 .cal-day.open.empty:hover { border-color: var(--red); background: var(--red-tint); }
+/* v0.27.12: the sign-up page (and the app, which opens it) shows the same amber days. The amber was
+   made stronger (was #fdf3df / #ecd3a2) so empty days are obvious, on the homepage too. A picked day
+   stays solid red even when it is empty. The key sits on one centered line like the homepage's. */
+.cal-day.open.empty.picked { background: var(--red); border-color: var(--red); color: #fff; }
+#step-day .cal-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px; font-weight: 700; color: var(--ink); }
+/* Sign-up page days: date at the top so the green number never covers it (the homepage does the
+   same), and empty days say "Need" at the bottom so they stand out as needing help. */
+#days .cal-day { display: flex; align-items: flex-start; justify-content: center; padding-top: 7px; line-height: 1; }
+#days .cal-day .need-tag { position: absolute; left: 0; right: 0; bottom: 6px; font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #a8762a; }
+#days .cal-day.picked .need-tag { color: rgba(255,255,255,.85); }
+/* The key shows a plain green dot, no number, so it does not suggest a target of 2 (Sean, v0.27.12). */
+.count-badge.key-dot { padding: 0; }
 
 /* The key for the homepage calendar. Since v0.16.14 it sits under the days, centered, and is a
    little more eye-catching: larger and bolder words (16px, was 14px) and larger samples of the green
@@ -471,7 +483,7 @@ body.no-scroll { overflow: hidden; }
 .key-item { display: inline-flex; align-items: center; gap: 6px; }
 .key-empty {
   display: inline-block; width: 18px; height: 18px; border-radius: 5px;
-  background: #fdf3df; border: 1.5px solid #ecd3a2;
+  background: #fbe0a6; border: 1.5px solid #d99a2b;
 }
 
 @media (min-width: 900px) {
