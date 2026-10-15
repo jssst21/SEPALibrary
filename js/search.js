@@ -30,7 +30,7 @@ var SEPASearch = (function () {
     { t: 'RC Reserve', u: 'https://auth.agilquest.com/eas-saml/saml/web/auth/americanredcross', d: 'Red Cross login', k: 'rc reserve reservation room rooms car vehicle book' },
     { t: 'Practice RC Care', u: 'https://rccare--training3.sandbox.my.site.com/RCCare/login?ec=302&startURL=%2FRCCare%2Fs%2F', d: 'Training copy, Red Cross login', k: 'practice training sandbox rc care' },
     { t: 'Practice SCIA', u: 'https://www.redcross.org/scia-training', d: 'Training copy, Red Cross login', k: 'practice training scia' },
-    { t: 'Register for Classes and Events', u: 'https://www.redcross.org/sso/vc.html?resume=%2Fidp%2F8dKrrmyECH%2FresumeSAML20%2Fidp%2FSSO.ping&spentity=http%3A%2F%2Fpingone.com%2Fd5b109be-ce0e-4a23-b2ea-171a180ac2a5', d: 'Red Cross login', k: 'classes class events register training course courses edge' }
+    { t: 'Register for Classes and Events', u: 'https://volunteerconnection.redcross.org/?nd=gs_registration_v5_view&registration_type_id=12577&group_id=40083', d: 'Red Cross login', k: 'classes class events register training course courses edge' }
   ];
 
   var STOP = ' a an the to for of and or in on at with how does i me my is are was what where when why which who can could find get need about from by it this that you your we our be want looking look show please there any some ';
