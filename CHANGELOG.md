@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.27.32 (Oct 15, 2026)
+- SLOWER SYNCING, ESCALATION EXCEL DOWNLOAD, ESCALATION AUTO-CLEAR. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - Once a minute (Sean: quick refreshes were locking things up; losing up to a minute is acceptable): the Escalation worksheet sync (was 5-15 seconds, plus 1 second after typing), Scene Summary and Reception summary (6 seconds), HQ lists (15 seconds), Reception check-in (20 seconds, plus 5 seconds while intakes waited), lead's join-request check (10 seconds), "waiting for the lead" (5-20 seconds).
+    Still immediate: saving a Reception intake, and anything typed when the page is closed or put in the background. Typing on the Escalation Form now reaches others within about 1 to 2 minutes.
+  - Escalation Scene Summary: "Download for Excel" (HQ only), one row per box, and "Download for Excel first" inside "Clear this worksheet". Leads never see it.
+  - Escalation worksheets with no change for 5 days are cleared automatically, the same as HQ pressing Clear (moved to "Escalations cleared", marked automatic; phones on it go back to Start). Reception centers already deleted themselves 5 days after the last intake; that check now also runs when phones check in.
+  - Both checks run at most every 10 minutes while the forms are used, and every night at 3 AM if startAutoDelete has been run once in the script editor.
+- Version number is now ?v=0.27.32 on every page and the homepage footer reads v0.27.32
+
+## v0.27.31 (Oct 15, 2026)
+- SPANISH ONBOARDING (no Google script change). Neutral Spanish; a fluent speaker will review it.
+  - New page pages/new-es.html: the whole Onboarding page in Spanish. An "English | Español" switch sits under the logo on both pages (same pill style as the form switches).
+  - The 10 Getting Started documents are translated, same layout and screenshots as the current (Oct 12) versions:
+    Expectativas para miembros de DAT, Cómo encontrar sus capacitaciones asignadas, Cómo se ve una solicitud en su teléfono,
+    Cómo ponerse de guardia con la app Noggin, Cómo ponerse de guardia en el sitio web, Guía de bolsillo del DAT,
+    Su primera vez en una escena, Qué información reunir en una escena (picture), Consejos para tratar con los clientes (Word),
+    Cómo iniciar sesión en RC Care.
+    They are on Sean's Mac in "Library Documents/Español (arrastrar a Getting Started en Drive)" (not on GitHub) and go into Google Drive in a new folder "Español" inside "Getting Started".
+  - Until a Spanish file is in Drive, its links on the Spanish page open the English file instead (data-doc-en).
+  - The video stays English (marked "video en inglés").
+  - Screenshots inside the guides stay English (the apps are English). System names stay English (RC Care, Noggin, Volunteer Connection, EDGE, button names), with a Spanish explanation.
+  - Spanish preview pictures in images/onboarding/es.
+  - js/library.js: file names with accents now match however the Mac stored them (Unicode NFC).
+  - Site search: "español" / "Spanish" finds the Spanish Onboarding page.
+  - Pocket Guide page 12 said "see page 6" for Resource and Referral cases; that section is on page 7. The Spanish copy says page 7.
+- Version number is now ?v=0.27.31 on every page and the homepage footer reads v0.27.31
+
 ## v0.27.30 (Oct 15, 2026)
 - HQ LOGIN NOW LASTS 24 HOURS on a device (was 30 days), or until Log out. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - After 24 hours, HQ pages (lists, Scene Summary as HQ, Change center/worksheet, Switch to HQ view, HQ typing) ask for Admin / GiftOfLife again.

@@ -111,7 +111,7 @@ var SEPAAskLead = (function () {
           '<button type="button" class="esc-btn esc-danger rost-yes">Yes, remove</button> <button type="button" class="link-btn rost-no">Cancel</button></p>' : '') + '</div>';
     }).join('') + '<p class="rost-err form-error" hidden></p><p class="esc-group-how">' +
       (opt.makeLead ? 'Make lead gives someone the lead\'s buttons too, for example when you are leaving the scene. Nobody stops being a lead. ' : '') +
-      'Remove takes someone off this ' + what + ', for example to free them to start a second one. What they already entered stays here. Their phone leaves within about a minute.' +
+      'Remove takes someone off this ' + what + ', for example to free them to start a second one. What they already entered stays here. Their phone leaves within a minute or two.' +
       (opt.hq ? '' : ' Only HQ can remove a lead.') + '</p>';
     Array.prototype.forEach.call(box.querySelectorAll('.rost-row'), function (row) {
       var acts = row.querySelector('.rost-acts');
@@ -148,7 +148,7 @@ var SEPAAskLead = (function () {
     var leads = lastList.filter(isLead).map(function (x) { return x.name || 'Name not given'; });
     m.innerHTML = '<div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="ask-lead-pick-t">' +
       '<button type="button" class="f-modal-x" aria-label="Close">&times;</button><h2 id="ask-lead-pick-t">Add a lead</h2>' +
-      '<p class="f-modal-note">Tap the person who should also be a lead. Their phone gets the lead\'s buttons within about a minute. You stay a lead too.' +
+      '<p class="f-modal-note">Tap the person who should also be a lead. Their phone gets the lead\'s buttons within a minute or two. You stay a lead too.' +
       (leads.length ? ' Leads now: ' + esc(leads.join(', ')) + '.' : '') + '</p>' +
       (people.length ? people.map(function (x) {
         var nm = x.name || 'Name not given';
@@ -175,7 +175,7 @@ var SEPAAskLead = (function () {
           y.disabled = false;
           if (!newList) { var e = m.querySelector('.pick-err'); e.textContent = err || 'Could not make them a lead. Please try again.'; e.hidden = false; return; }
           cf.hidden = true;
-          row.innerHTML = '<p class="rost-who"><strong>' + row.querySelector('strong').innerHTML + '</strong> is now a lead. Their phone gets the lead\'s buttons within about a minute.</p>';
+          row.innerHTML = '<p class="rost-who"><strong>' + row.querySelector('strong').innerHTML + '</strong> is now a lead. Their phone gets the lead\'s buttons within a minute or two.</p>';
           if (onDone) onDone(newList);
         });
       });
@@ -223,7 +223,7 @@ var SEPAAskLead = (function () {
             return;
           }
           var age = Date.now() - (p.at || Date.now());
-          if (age < 6 * 3600 * 1000) timer = setTimeout(check, age < 10 * 60 * 1000 ? 5000 : 20000);
+          if (age < 6 * 3600 * 1000) timer = setTimeout(check, 60000);     // once a minute (v0.27.32)
         });
       };
       check();

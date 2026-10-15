@@ -1665,3 +1665,8 @@ a.f-page:hover { border-color: var(--red); color: var(--red); }
 .vt-no { border: 1.5px solid var(--navy); background: #fff; color: var(--navy); }
 @media (max-width: 380px) { .vt-new, .vt-hq { font-size: 14px; } }
 @media (max-width: 380px) { .vt a { gap: 5px; padding: 0 6px; font-size: 15px; text-align: center; } .vt svg { width: 17px; height: 17px; flex: none; } .vt-change { padding: 6px 10px; font-size: 14px; } }
+
+/* English | Español switch on the Onboarding page (v0.27.31): the same pill as the form switch, on the red page */
+.lang-vt { max-width: 300px; margin: 16px auto 0; border-color: #fff; }
+.lang-vt a { min-height: 42px; font-size: 16px; }
+.lang-vt a.on { background: var(--navy); color: #fff; }

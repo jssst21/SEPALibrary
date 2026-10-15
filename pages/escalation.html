@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.30">
+<link rel="stylesheet" href="../css/style.css?v=0.27.32">
 </head>
 <body class="home" data-ask-form="escalation">
 
@@ -165,10 +165,14 @@
 
   <!-- Shown in the Scene Summary -->
   <section class="esc-tools" id="esc-view-tools" hidden>
-    <p class="esc-how"><strong>Read only.</strong> This page shows the worksheet as it is being filled in and updates by itself every few seconds. Boxes that just changed flash yellow.</p>
+    <p class="esc-how"><strong>Read only.</strong> This page shows the worksheet as it is being filled in and updates by itself once a minute. Boxes that just changed flash yellow.</p>
     <p class="esc-status" id="esc-view-status" role="status">Connecting...</p>
     <!-- Who is on this worksheet, with Remove (HQ, v0.27.3) -->
     <div class="rost-box" id="esc-view-roster" hidden></div>
+    <!-- HQ only (v0.27.32): the whole worksheet as a file that opens in Excel. Shown by js/escalation.js. -->
+    <div class="esc-buttons" id="esc-dl-line" style="display:none">
+      <button type="button" class="esc-btn rec-dl-solid" id="esc-download">Download for Excel</button>
+    </div>
     <!-- End of the event: HQ clears the worksheet. It asks first. -->
     <p class="esc-clear-line" id="esc-clear-line" hidden>
       <button type="button" class="esc-btn esc-danger" id="esc-clear">Clear this worksheet (end of event)</button>
@@ -176,6 +180,7 @@
         <span class="esc-clear-buttons">
           <button type="button" class="esc-btn esc-danger" id="esc-clear-yes">Yes, clear it</button>
           <button type="button" class="esc-btn" id="esc-clear-no">Cancel</button>
+          <button type="button" class="esc-btn rec-dl-solid" id="esc-clear-dl">Download for Excel first</button>
         </span>
       </span>
       <span class="form-error" id="esc-clear-error" hidden></span>
@@ -222,11 +227,11 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.30"></script>
-<script src="../js/ask-lead.js?v=0.27.30"></script>
-<script src="../js/phone-format.js?v=0.27.30"></script>
-<script src="../js/view-bar.js?v=0.27.30"></script>
-<script src="../js/escalation.js?v=0.27.30"></script>
-<script src="../js/close-tab.js?v=0.27.30"></script>
+<script src="../js/config.js?v=0.27.32"></script>
+<script src="../js/ask-lead.js?v=0.27.32"></script>
+<script src="../js/phone-format.js?v=0.27.32"></script>
+<script src="../js/view-bar.js?v=0.27.32"></script>
+<script src="../js/escalation.js?v=0.27.32"></script>
+<script src="../js/close-tab.js?v=0.27.32"></script>
 </body>
 </html>

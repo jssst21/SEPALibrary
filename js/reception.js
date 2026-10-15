@@ -392,7 +392,7 @@
     });
     $('rec-blank').addEventListener('click', function () { blank(); $('rec-form-error').hidden = true; });
 
-    // ---- join requests from responders who asked in the app (v0.27.2), checked every 10 seconds
+    // ---- join requests from responders who asked in the app (v0.27.2), checked once a minute (v0.27.32)
     if (lead && typeof SEPAAskLead !== 'undefined') {
       var showAsks = function (list) {
         SEPAAskLead.render($('rec-asks'), list, function (rid, yes) {
@@ -411,7 +411,7 @@
         if (!document.hidden) call(auth({ action: 'recAsks', id: id })).then(function (r) {
           if (r && r.ok) { showAsks(r.asks || []); drawRoster(r.roster || []); }
         });
-        setTimeout(pollAsks, 10000);
+        setTimeout(pollAsks, 60000);     // once a minute (v0.27.32)
       };
       pollAsks();
     }
@@ -446,8 +446,9 @@
     flush();
     window.addEventListener('online', flush);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) flush(); });
-    setInterval(function () { if (!document.hidden) flush(); }, 20000);
-    setInterval(function () { if (!document.hidden && queue().some(function (q) { return q.id === id; })) flush(); }, 5000);
+    // v0.27.32: once a minute (was every 20 seconds, plus every 5 seconds while intakes waited for a signal).
+    // A saved intake still goes out straight away; this only retries and checks the center is open.
+    setInterval(function () { if (!document.hidden) flush(); }, 60000);
   }
 
   // The red "Starting a new reception center?" button and, for leads, "Switch to HQ view" (v0.27.29).
@@ -559,7 +560,7 @@
         COLS.forEach(function (c) { tr.appendChild(el('td', c[0] === 'dda' ? 'rec-dda-tag' : '', c[0] === 'saved' ? clock(i.saved) : (i[c[0]] || ''))); });
         body.appendChild(tr);
       });
-      if (!items.length) { var tr = el('tr'), td = el('td', 'rec-empty', 'No intakes yet. This page checks every few seconds.'); td.colSpan = COLS.length + 1; tr.appendChild(td); body.appendChild(tr); }
+      if (!items.length) { var tr = el('tr'), td = el('td', 'rec-empty', 'No intakes yet. This page checks once a minute.'); td.colSpan = COLS.length + 1; tr.appendChild(td); body.appendChild(tr); }
       tb.appendChild(body);
       seen = {}; items.forEach(function (i) { seen[i.iid] = true; });
       justEdited = '';
@@ -573,7 +574,7 @@
           needLogin(r, function () { waiting = false; load(); }); return;
         }
         if (oldScript(r)) { s.className = 'esc-status esc-warn'; s.textContent = 'The Reception Center Form is not switched on yet (the Google script needs its update).'; return; }
-        if (!(r && r.ok)) { s.className = 'esc-status esc-warn'; s.textContent = 'Could not connect. Trying again in a few seconds.'; return; }
+        if (!(r && r.ok)) { s.className = 'esc-status esc-warn'; s.textContent = 'Could not connect. Trying again in a minute.'; return; }
         if (!asLead) loggedIn();
         if (!r.found) {
           done = true; $('rec-summary').hidden = true; $('rec-view-buttons').hidden = true; $('rec-clear-line').hidden = true; $('rec-keep').hidden = true;
@@ -772,7 +773,7 @@
       });
     });
     load();
-    setInterval(function () { if (!document.hidden) load(); }, 6000);
+    setInterval(function () { if (!document.hidden) load(); }, 60000);     // once a minute (v0.27.32)
     document.addEventListener('visibilitychange', function () { if (!document.hidden) load(); });
   }
 
@@ -800,6 +801,6 @@
         });
       });
     }
-    load(); setInterval(function () { if (!document.hidden) load(); }, 15000);
+    load(); setInterval(function () { if (!document.hidden) load(); }, 60000);     // once a minute (v0.27.32)
   }
 })();

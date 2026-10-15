@@ -15,6 +15,7 @@ var SEPASearch = (function () {
   // Paths are from the site's top folder. To add one, copy a line.
   var PAGES = [
     { t: 'Onboarding', u: 'pages/new.html', d: 'New volunteer? Start here.', k: 'new volunteer welcome getting started orientation first time induction join' },
+    { t: 'Incorporación (en español)', u: 'pages/new-es.html', d: '¿Voluntario nuevo? Empiece aquí. Onboarding in Spanish.', k: 'español espanol spanish nuevo voluntario bienvenida incorporación incorporacion guías guias' },
     { t: 'Sign up for DAT shifts', u: 'pages/shifts.html', d: 'Field Responder and Duty Officer calendars', k: 'shift shifts signup sign up schedule calendar on call availability duty officer field responder' },
     { t: 'Browse Library', u: 'pages/library.html', d: 'Every guide, form and training file', k: 'library documents files browse all guides forms' },
     { t: 'Mass Care', u: 'pages/masscare.html', d: 'Shelter, feeding and reception resources', k: 'mass care shelter sheltering feeding reception' },

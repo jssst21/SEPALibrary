@@ -364,8 +364,8 @@ function startDailyReport() {
 /* RECEPTION CENTER FORM: the 5-day automatic delete, every morning, with NO email (v0.21).
    Run startAutoDelete ONCE from the editor (pick it in the box next to Debug, then Run). Safe to run
    again. This sends nothing to anyone; it only deletes reception centers 5 days after their last
-   intake. (The delete also happens whenever anyone uses the form, so this is the backstop for quiet
-   weeks.) It is separate from the daily signup report on purpose: Sean wants no reports yet. */
+   intake, and (since website v0.27.32) clears Escalation worksheets with no change for 5 days. (This also
+   happens whenever anyone uses the forms, so this is the backstop for quiet weeks.) It is separate from the daily signup report on purpose: Sean wants no reports yet. */
 function startAutoDelete() {
   ScriptApp.getProjectTriggers().forEach(function (t) {
     if (t.getHandlerFunction() === 'autoDelete') ScriptApp.deleteTrigger(t);
@@ -376,7 +376,7 @@ function startAutoDelete() {
 function autoDelete() {
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
-  try { recPurge_(); } finally { lock.releaseLock(); }
+  try { recPurge_(true); escPurge_(true); } finally { lock.releaseLock(); }     // escalation worksheets too since v0.27.32
 }
 
 /* Emails everything submitted since the last report. Runs automatically each morning. */
@@ -812,7 +812,8 @@ function fRemove_(d) {
      - One shared user name and password for everyone at HQ (Sean's choice for the proof of concept).
      - CLEARING a worksheet at the end of an event (the button in the live view) also needs the HQ
        login. Nothing is destroyed: the row moves to the tab "Escalations cleared", so there is still a
-       record. Every responder's page notices within a few seconds and starts a new blank worksheet.
+       record. Every responder's page notices within a minute and starts a new blank worksheet.
+       A worksheet with no change for 5 days is cleared the same way automatically (escPurge_, v0.27.32).
        To really delete a worksheet, delete its row in "Escalations cleared" (or in "Escalations").
    ========================================================= */
 var ESC_HEADERS = ['ID', 'Started', 'Last update', 'Incident address', 'Date/ Time (as typed)', 'Updated ms (do not edit)', 'Worksheet (do not edit)'];
@@ -928,6 +929,7 @@ function escOpen_(cell) {
    d.key is the edit key. The first device to save a worksheet sets its key; after that only devices
    with the same key (those sent the join link) get in. No login. */
 function escSync_(d) {
+  escPurge_();
   var id = escId_(d.id), key = escKey_(d.key);
   // HQ TYPING INTO A WORKSHEET (website v0.27.28): no edit key, but the HQ login. For example HQ on a
   // group call types the notes the lead reads out. HQ cannot start a worksheet this way, and is not
@@ -1011,6 +1013,7 @@ function escStart_(d) {
 // v0.27.27 a LEAD of that worksheet (escLeadAuth_), so both forms work the same way for leads.
 // hq in the answer tells the page whether to show the HQ-only parts (Clear, removing a lead).
 function escGet_(d) {
+  escPurge_();
   var id = escId_(d.id), hq = !!d.token && !escDenied_(d);
   if (!hq && !(id && escLeadAuth_(id, d))) {
     var denied = escDenied_(d);
@@ -1037,6 +1040,7 @@ function escLeadAuth_(id, d) {
 function escList_(d) {
   var denied = escDenied_(d);
   if (denied) return denied;
+  escPurge_();
   var sh = escTab_(), last = sh.getLastRow(), now = new Date().getTime(), items = [];
   if (last >= 2) {
     sh.getRange(2, 1, last - 1, 6).getValues().forEach(function (r, i) {
@@ -1059,11 +1063,33 @@ function escClear_(d) {
   if (!id) return { ok: false, error: 'This worksheet link is not valid.' };
   var sh = escTab_(), row = escFindRow_(sh, id);
   if (!row) return { ok: true, cleared: escIsCleared_(id) };
+  escClearRow_(sh, row, id, stamp_());
+  return { ok: true, cleared: true };
+}
+// Moves one worksheet to "Escalations cleared" (how = what goes in the Cleared column).
+function escClearRow_(sh, row, id, how) {
   var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0].map(function (v) { return v instanceof Date ? stamp_(v) : safe_(escText_(v)); });
-  escClearedTab_().appendRow(r.concat([stamp_()]));
+  escClearedTab_().appendRow(r.concat([how]));
   sh.deleteRow(row);
   rosterDelete_('esc', id);
-  return { ok: true, cleared: true };
+}
+
+/* AUTOMATIC CLEAR AFTER 5 DAYS (website v0.27.32, Sean: in case HQ forgets). A worksheet with no change
+   for ESC_KEEP_DAYS days is cleared exactly as if HQ had pressed Clear: it moves to "Escalations
+   cleared", marked "automatic", and the phones on it go back to the Start screen. Runs at most once
+   every 10 minutes, when someone opens a worksheet, the Scene Summary or the list. */
+var ESC_KEEP_DAYS = 5;
+function escPurge_(force) {
+  var cache = CacheService.getScriptCache();
+  if (!force && cache.get('escPurged')) return;
+  cache.put('escPurged', '1', 600);
+  var sh = escTab_(), last = sh.getLastRow(), cutoff = Date.now() - ESC_KEEP_DAYS * 86400000;
+  if (last < 2) return;
+  var v = sh.getRange(2, 1, last - 1, 6).getValues();
+  for (var i = v.length - 1; i >= 0; i--) {
+    var id = escId_(v[i][0]), ms = Number(escText_(v[i][5])) || 0;
+    if (id && ms && ms < cutoff) escClearRow_(sh, i + 2, id, stamp_() + ' (automatic, no changes for ' + ESC_KEEP_DAYS + ' days)');
+  }
 }
 
 /* =========================================================
@@ -1134,7 +1160,11 @@ function recDelete_(id, how) {
 }
 
 /* The 5-day automatic delete. Also removes intakes whose center is gone (a row deleted by hand). */
-function recPurge_() {
+function recPurge_(force) {
+  // v0.27.32: at most once every 10 minutes (it is now also run when phones check in); the nightly run always goes
+  var cache = CacheService.getScriptCache();
+  if (!force && cache.get('recPurged')) return;
+  cache.put('recPurged', '1', 600);
   var csh = recCenters_(), last = csh.getLastRow(), cutoff = Date.now() - REC_KEEP_DAYS * 86400000, keep = {}, old = [];
   if (last >= 2) {
     csh.getRange(2, 1, last - 1, 7).getValues().forEach(function (r) {
@@ -1231,6 +1261,7 @@ function leadLoginSettings_() {
 
 // A phone checks in: is its center still open? (Joined phones ask this now and then.)
 function recPing_(d) {
+  recPurge_();
   var id = escId_(d.id), key = escKey_(d.key);
   if (!id) return { ok: false, error: 'Not a valid reception center.' };
   if (recIsCleared_(id)) return { ok: true, cleared: true };

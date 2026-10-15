@@ -125,11 +125,14 @@ var SEPALib = (function () {
       ' <span class="mc-count">' + n + '</span></h2>' + body + '</section>' };
   }
 
+  // v0.27.31: accented names (Español, Guía...) can be stored two ways (a Mac writes "e + accent mark");
+  // norm() makes both the same before comparing.
+  function norm(t) { t = String(t || ''); return (t.normalize ? t.normalize('NFC') : t).toLowerCase().replace(/\s+/g, ' '); }
   function find(list, path) {
-    var want = path.toLowerCase().replace(/\s+/g, ' ');
+    var want = norm(path);
     for (var i = 0; i < list.files.length; i++) {
       var f = list.files[i];
-      if ((f.path ? f.path + '/' : '') .toLowerCase() + f.title.toLowerCase() === want) return f;
+      if (norm((f.path ? f.path + '/' : '') + f.title) === want) return f;
     }
     return null;
   }
