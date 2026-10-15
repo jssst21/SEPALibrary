@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.16 (Oct 15, 2026)
+- SEPA TOOLS APP: "Register for Events" now opens in full Safari (or the phone's browser) instead of the app's built-in viewer. In the app's viewer, Volunteer Connection did not keep the sign-in, so it showed "page expired" and then looped back to login. The same link worked in regular Safari (tested by Sean). The other buttons are unchanged.
+  - App cache is now sepa-tools-7 so phones pick up the change.
+- Version number is now ?v=0.27.16 on every page and the homepage footer reads v0.27.16
+
 ## v0.27.15 (Oct 15, 2026)
 - REGISTER FOR CLASSES AND EVENTS LINK FIXED. The old address carried a sign-in code from one past login, so after signing in people got "page expired". All four places now use the direct Volunteer Connection Groupshare calendar address Sean sent (DCS: SEPA All Disaster Workforce): https://volunteerconnection.redcross.org/?nd=gs_registration_v5_view&registration_type_id=12577&group_id=40083
   - SEPA Tools app "Register for Events" button, homepage "Register for Classes and Events" button, the link on the New Volunteers page, and site search.
