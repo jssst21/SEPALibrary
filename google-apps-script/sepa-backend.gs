@@ -32,6 +32,8 @@
  *               client details: they are DELETED (not archived) when HQ clears the center, or
  *               automatically 5 days after its last intake. See RECEPTION CENTER FORM below.
  *   Reception cleared - just the code and time of each center that was cleared (no client details).
+ *   Announcements - messages shown on the SEPA Tools app's Announcements bar (website v0.27.19).
+ *               One row per announcement. See ANNOUNCEMENTS at the end. Appears by itself.
  *   Responders - who is on each worksheet and reception center (website v0.27.3). YES in "Removed"
  *               removes someone. See WHO IS ON AN EVENT at the end.
  *
@@ -144,11 +146,13 @@ function json_(obj) {
 
 // GET = shift calendar data (public: counts only, never names).
 // ...exec?team=do gives the Duty Officers calendar; anything else gives Field Responders.
+// ...exec?ann=1 gives the SEPA Tools app's announcements (website v0.27.19). See ANNOUNCEMENTS at the end.
 // ...exec?lib=1 gives the list of library documents (website v0.27), and ...exec?find=[...] searches
 // inside them. See LIBRARY FILES at the end.
 function doGet(e) {
   var p = (e && e.parameter) || {};
   try {
+    if (p.ann) return json_(annList_());
     if (p.lib) return json_(libPublic_(libList_(false)));
     if (p.find) return json_(libSearch_(p.find));
   } catch (err) {
@@ -1767,3 +1771,34 @@ function rosterDelete_(form, id) {
   rosterForget_(form, id);
 }
 
+/* =========================================================
+   ANNOUNCEMENTS (website v0.27.19)
+   The SEPA Tools app shows an "Announcements" bar above its buttons. Leadership posts by adding a
+   row to the Announcements tab in this Sheet:
+     Posted       - the date, like 2026-10-15 (newest shows first)
+     Title        - one short line, shown in bold
+     Message      - optional, a sentence or two
+     Link         - optional. If filled in (must start with https://), tapping the announcement opens it.
+     Show until   - optional date. After that day it disappears by itself. Blank = until removed.
+     Hidden       - type YES to take it down without deleting the row.
+   Phones show a small number on the bar for announcements that person has not opened yet. Nothing
+   pops up. Changing an announcement's Title makes it count as new again.
+   The tab is made the first time the app asks for announcements, with one example row in it.
+   ========================================================= */
+var ANN_HEADERS = ['Posted (date)', 'Title', 'Message (optional)', 'Link (optional, https://...)', 'Show until (date, optional)', 'Hidden (type YES)'];
+
+function annList_() {
+  makeTab_('Announcements', ANN_HEADERS, [[today_(), 'Register for the DAT Tabletop', 'Sign up in Volunteer Connection.',
+    'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=22380983', '', '']]);
+  var today = today_(), out = [];
+  rows_('Announcements').forEach(function (r) {
+    var title = clean_(r[1], 120);
+    if (!title || isYes_(r[5])) return;
+    var until = asDateText_(r[4]);
+    if (until && until < today) return;
+    var link = clean_(r[3], 600);
+    out.push({ d: asDateText_(r[0]), t: title, m: clean_(r[2], 600), u: /^https:\/\//i.test(link) ? link : '' });
+  });
+  out.sort(function (a, b) { return a.d < b.d ? 1 : a.d > b.d ? -1 : 0; });
+  return { ok: true, items: out.slice(0, 20) };
+}

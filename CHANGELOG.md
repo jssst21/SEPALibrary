@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.27.19 (Oct 15, 2026)
+- SEPA TOOLS APP: ANNOUNCEMENTS BAR above the buttons. Glossy navy with the same one-time gleam as the homepage "Sign up for DAT Shifts" bar. A small red number shows announcements this phone has not opened; nothing pops up. Tapping the bar opens the list; an announcement with a link opens it in Safari (keeps the VC sign-in). With none, the bar stays and the list says "No announcements right now."
+  - Leadership posts in the SEPA Library Data Sheet, new "Announcements" tab: Posted, Title, Message, Link, Show until, Hidden. The tab makes itself the first time the app asks, with one row: "Register for the DAT Tabletop", linking to the VC registration page (registration_id=22380983).
+  - google-apps-script/sepa-backend.gs: new ...exec?ann=1 (see ANNOUNCEMENTS at the end). Must be pasted into Apps Script and deployed as a new version.
+  - The app now loads js/config.js for the backend address. The last announcements are kept on the phone for weak signal.
+  - App cache is now sepa-tools-10 so phones pick up the change.
+- Version number is now ?v=0.27.19 on every page and the homepage footer reads v0.27.19
+
 ## v0.27.18 (Oct 15, 2026)
 - SEPA TOOLS APP back to the last known good (v0.27.16): red background, English labels. The green + German test (v0.27.17) worked and is done.
   - Kept from the test: the button grid can no longer be pushed wider than the screen by a long word (minmax). No visible change in English.

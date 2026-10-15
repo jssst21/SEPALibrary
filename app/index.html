@@ -45,6 +45,40 @@
   .tile svg { width: 38px; height: 38px; fill: none; stroke: var(--red); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tile span { font-size: 14.5px; font-weight: 700; line-height: 1.15; }
   .tile.help svg { stroke: #1e8e3e; }
+  /* ANNOUNCEMENTS BAR (v0.27.19): a slim bar above the buttons. Leadership posts in the Google Sheet's
+     Announcements tab; a small red number shows how many this phone has not opened yet. Nothing pops up. */
+  .ann { margin: 0 0 12px; }
+  /* Glossy navy with the same one-time gleam as the website's "Sign up for DAT Shifts" bar and SEPA
+     Tools card (css/style.css, SHINE ON THE TWO NAVY BARS): it sweeps across once when the app opens. */
+  .ann-bar {
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; gap: 10px; width: 100%; min-height: 46px; padding: 8px 14px;
+    border: 2px solid #fff; border-radius: 12px; color: #fff; font: inherit; font-size: 16px; font-weight: 700;
+    text-align: left; cursor: pointer; text-shadow: 0 1px 2px rgba(0, 0, 0, .45);
+    background: linear-gradient(180deg, #33548a 0%, #223b62 52%, #182b48 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38), 0 4px 12px rgba(20, 4, 10, .5);
+  }
+  .ann-bar::after {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 30%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.42) 50%, rgba(255,255,255,0) 100%);
+    transform: translateX(-130%) skewX(-18deg); animation: ann-gleam 1.3s ease-in-out .7s 1 both;
+  }
+  @keyframes ann-gleam { from { transform: translateX(-130%) skewX(-18deg); } to { transform: translateX(480%) skewX(-18deg); } }
+  @media (prefers-reduced-motion: reduce) { .ann-bar::after { animation: none; } }
+  .ann-bar svg { flex: none; width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .ann-bar .ann-label { flex: 1; }
+  .ann-count { flex: none; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px; background: var(--red); border: 2px solid #fff; color: #fff; font-size: 13px; line-height: 20px; text-align: center; text-shadow: none; }
+  .ann-count[hidden] { display: none; }
+  .ann-bar .chev { width: 18px; height: 18px; stroke: #dfe6f2; transition: transform .2s; }
+  .ann-bar[aria-expanded="true"] .chev { transform: rotate(180deg); }
+  .ann-list { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  .ann-list[hidden] { display: none; }
+  .ann-item { display: block; padding: 12px 14px; border-radius: 12px; background: #fff; color: var(--ink); text-decoration: none; box-shadow: 0 3px 8px rgba(60, 8, 16, .25); }
+  .ann-item b { display: block; font-size: 16px; }
+  .ann-item p { margin: 4px 0 0; font-size: 15px; line-height: 1.4; }
+  .ann-item small { display: block; margin-top: 6px; font-size: 12.5px; color: #7a6f68; }
+  .ann-item .go { color: var(--red); font-weight: 700; }
+  .ann-none { padding: 12px 14px; border-radius: 12px; background: rgba(255, 255, 255, .92); color: var(--ink); font-size: 15px; }
   .tile.practice { background: #fdf3f4; }
   .tile.practice svg { stroke: var(--navy); }
   .tile.practice em { position: absolute; top: 7px; right: 7px; padding: 1px 6px; border-radius: 999px; background: var(--navy); color: #fff; font-size: 10px; font-style: normal; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
@@ -110,6 +144,16 @@
     </div>
   </section>
 
+  <section class="ann" aria-label="Announcements">
+    <button class="ann-bar" id="ann-bar" type="button" aria-expanded="false" aria-controls="ann-list">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l6 4V6L6 10H3zM16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>
+      <span class="ann-label">Announcements</span>
+      <span class="ann-count" id="ann-count" hidden></span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <ul class="ann-list" id="ann-list" hidden></ul>
+  </section>
+
   <nav class="grid" aria-label="Tools">
     <a class="tile" href="https://rccare.my.site.com/RCCare/login?ec=302&amp;startURL=%2FRCCare%2Fs%2F">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 14h7M8.5 18h4"/></svg><span>RC Care</span></a>
@@ -139,6 +183,40 @@
 
   <p class="foot"><a href="/index.html">SEPA Resource Library website</a></p>
 </div>
+<script src="../js/config.js?v=0.27.19"></script>
+<script>
+  /* ANNOUNCEMENTS (v0.27.19). Read from the Google Sheet's Announcements tab (see sepa-backend.gs,
+     ANNOUNCEMENTS). The last list is kept on the phone so the bar still works with a weak signal.
+     "Opened" announcements are remembered on this phone only; changing a Title makes it new again. */
+  (function () {
+    var bar = document.getElementById('ann-bar'), list = document.getElementById('ann-list'), count = document.getElementById('ann-count');
+    var items = [];
+    function get(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+    function put(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+    function key(a) { return a.d + '|' + a.t; }
+    function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function nice(d) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); if (!m) return d || ''; return new Date(+m[1], m[2] - 1, +m[3]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+    function draw() {
+      var seen = get('sepaAnnSeen', []), unread = items.filter(function (a) { return seen.indexOf(key(a)) < 0; }).length;
+      count.hidden = !unread; count.textContent = unread;
+      bar.setAttribute('aria-label', 'Announcements' + (unread ? ', ' + unread + ' new' : ''));
+      list.innerHTML = items.length ? items.map(function (a) {
+        var inner = '<b>' + esc(a.t) + '</b>' + (a.m ? '<p>' + esc(a.m) + '</p>' : '') +
+          '<small>' + esc(nice(a.d)) + (a.u ? ' &middot; <span class="go">Tap to open &rsaquo;</span>' : '') + '</small>';
+        // target=_blank so Volunteer Connection opens in Safari and keeps the sign-in (see v0.27.16)
+        return '<li>' + (a.u ? '<a class="ann-item" target="_blank" rel="noopener" href="' + esc(a.u) + '">' + inner + '</a>' : '<div class="ann-item">' + inner + '</div>') + '</li>';
+      }).join('') : '<li class="ann-none">No announcements right now.</li>';
+    }
+    bar.addEventListener('click', function () {
+      var open = list.hidden; list.hidden = !open; bar.setAttribute('aria-expanded', open);
+      if (open) { put('sepaAnnSeen', items.map(key)); draw(); }
+    });
+    items = get('sepaAnnLast', []); draw();
+    if (window.SEPA_BACKEND_URL) fetch(SEPA_BACKEND_URL + '?ann=1').then(function (r) { return r.json(); }).then(function (d) {
+      if (d && d.ok && d.items) { items = d.items; put('sepaAnnLast', items); draw(); }
+    }).catch(function () {});
+  })();
+</script>
 <script>
   // Lets the button screen open even with a weak signal (see sw.js). Harmless if the phone does not support it.
   if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('sw.js'); } catch (e) {} }
