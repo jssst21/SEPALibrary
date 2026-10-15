@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.27.23 (Oct 15, 2026)
+- SEPA TOOLS APP: new "Share SEPA Tools with someone" bar under the buttons (Call for Help still alone in its row).
+  - Tapping it opens a full screen with a big QR code for sepalibrary.org/app. The other person points their phone's camera at it and lands on the install page.
+  - "Send the link" opens the phone's own share menu (text, AirDrop, email, WhatsApp). On a computer it copies the link instead.
+  - The QR screen is saved on the phone with the app, so it works with a weak signal.
+  - App cache is now sepa-tools-14 so phones pick up the change.
+- Version number is now ?v=0.27.23 on every page and the homepage footer reads v0.27.23
+
 ## v0.27.22 (Oct 15, 2026)
 - SEPA TOOLS APP back to the STANDARD LOOK (v0.27.19): red background, English labels, Announcements bar, Call for Help alone at the bottom, no Volunteer of the Month. The blue / Spanish test (v0.27.20-21) is done.
   - App cache is now sepa-tools-13 so phones pick up the change.

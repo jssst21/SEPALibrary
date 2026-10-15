@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<!-- SEPA TOOLS (website v0.27.6). A one-screen "app" people add to their phone's home screen
+<!-- SEPA TOOLS (website v0.27.6; Share bar and QR screen added v0.27.23). A one-screen "app" people add to their phone's home screen
      (sepalibrary.org/app). It is only a set of buttons: each opens that tool's own site. It logs in to
      nothing and stores nothing. To change a button, edit its line in the grid below (the address is in
      href="..."). The buttons appear in the order they are listed.
@@ -108,6 +108,27 @@
   .inst-qr p { margin: 0; font-size: 15px; }
   @media (min-width: 700px) { .inst-cols { grid-template-columns: 1fr 1fr; } .inst-col + .inst-col { border-top: 0; border-left: 1px solid #eee3d0; } .inst-qr { display: flex; } }
   @media (display-mode: standalone) { .inst { display: none; } }
+  /* SHARE (v0.27.23): the "Share SEPA Tools with someone" bar under the buttons opens a full screen with a
+     big QR code (qr.svg, for sepalibrary.org/app) that the other person scans with their camera, plus a
+     "Send the link" button that opens the phone's own share menu (text, AirDrop, email...). */
+  .share-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; margin: 26px 0 0; padding: 8px 14px;
+    border: 2px solid #fff; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #fff; font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; }
+  .share-btn:active { background: rgba(255, 255, 255, .28); }
+  .share-btn svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .sh { position: fixed; inset: 0; z-index: 10; overflow-y: auto; display: flex; flex-direction: column; align-items: center; text-align: center;
+    padding: calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 22px); background: #fff; color: var(--ink); }
+  .sh[hidden] { display: none; }
+  .sh h2 { margin: 8px 0 4px; font-size: 26px; color: var(--red); }
+  .sh .lead { margin: 0 0 18px; font-size: 17px; line-height: 1.35; }
+  .sh .qr { width: 270px; max-width: 78vw; height: auto; aspect-ratio: 1 / 1; padding: 12px; border: 4px solid var(--red); border-radius: 18px; background: #fff; }
+  .sh .url { margin: 12px 0 0; font-size: 20px; font-weight: 800; }
+  .sh .or { margin: 22px 0 10px; font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #7a6f68; }
+  .sh .send { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; max-width: 340px; min-height: 56px; border: 0; border-radius: 14px;
+    background: var(--navy); color: #fff; font: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
+  .sh .send svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .sh .hint { margin: 8px 0 20px; font-size: 14px; color: #7a6f68; min-height: 1.3em; }
+  .sh .done { margin-top: auto; width: 100%; max-width: 340px; min-height: 50px; border: 2px solid var(--red); border-radius: 14px; background: #fff;
+    color: var(--red); font: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -177,13 +198,26 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span>Call for Help</span></a>
   </nav>
 
+  <button class="share-btn" id="share-btn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg>Share SEPA Tools with someone</button>
+
+  <div class="sh" id="sh" role="dialog" aria-modal="true" aria-labelledby="sh-title" hidden>
+    <h2 id="sh-title">Get SEPA Tools</h2>
+    <p class="lead">Have them point their phone's <strong>camera</strong> at this code.</p>
+    <img class="qr" src="qr.svg" alt="QR code for sepalibrary.org/app" width="270" height="270">
+    <p class="url">sepalibrary.org/app</p>
+    <p class="or">or</p>
+    <button class="send" id="sh-send" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg>Send the link</button>
+    <p class="hint" id="sh-hint">Text, AirDrop, email or WhatsApp</p>
+    <button class="done" id="sh-done" type="button">Done</button>
+  </div>
+
   <p class="note">Each button opens that tool's own site. You sign in there, as usual.</p>
 
 
 
   <p class="foot"><a href="/index.html">SEPA Resource Library website</a></p>
 </div>
-<script src="../js/config.js?v=0.27.22"></script>
+<script src="../js/config.js?v=0.27.23"></script>
 <script>
   /* ANNOUNCEMENTS (v0.27.19). Read from the Google Sheet's Announcements tab (see sepa-backend.gs,
      ANNOUNCEMENTS). The last list is kept on the phone so the bar still works with a weak signal.
@@ -215,6 +249,26 @@
     if (window.SEPA_BACKEND_URL) fetch(SEPA_BACKEND_URL + '?ann=1').then(function (r) { return r.json(); }).then(function (d) {
       if (d && d.ok && d.items) { items = d.items; put('sepaAnnLast', items); draw(); }
     }).catch(function () {});
+  })();
+</script>
+<script>
+  /* SHARE (v0.27.23). Opens the QR screen; "Send the link" uses the phone's share menu, or copies the
+     link where there is none (most computers). */
+  (function () {
+    var LINK = 'https://sepalibrary.org/app/';
+    var sh = document.getElementById('sh'), hint = document.getElementById('sh-hint'), btn = document.getElementById('share-btn');
+    var HINT = hint.textContent;
+    function close() { sh.hidden = true; document.body.style.overflow = ''; btn.focus(); }
+    btn.addEventListener('click', function () { hint.textContent = HINT; sh.hidden = false; document.body.style.overflow = 'hidden'; document.getElementById('sh-done').focus(); });
+    document.getElementById('sh-done').addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !sh.hidden) close(); });
+    document.getElementById('sh-send').addEventListener('click', function () {
+      var msg = 'Get the Red Cross SEPA Tools app: open this link, then add it to your home screen.';
+      if (navigator.share) { navigator.share({ title: 'SEPA Tools', text: msg, url: LINK }).catch(function () {}); return; }
+      function copied() { hint.textContent = 'Link copied. Paste it into a text or email.'; }
+      if (navigator.clipboard) navigator.clipboard.writeText(LINK).then(copied, function () { hint.textContent = LINK; });
+      else hint.textContent = LINK;
+    });
   })();
 </script>
 <script>
