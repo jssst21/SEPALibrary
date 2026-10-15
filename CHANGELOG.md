@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.27.20 (Oct 15, 2026)
+- SEPA TOOLS APP, TEST (website unchanged): blue background (#1d4f91, phone top bar too), Spanish button labels, and Debbie Tevlin's photo under the buttons with "Volunteer of the Month".
+  - Spanish: Inscripción a Turnos, Escalamiento, Centro de Recepción, Práctica RC Care / Práctica SCIA (tag PRÁCTICA), Inscripción a Eventos, Pedir Ayuda, Anuncios. RC Care, Noggin, SCIA unchanged. Title, subtitle, footer and announcement text stay English.
+  - "Revert to the standard look" = v0.27.19 (red, English, Announcements bar, nothing under Call for Help).
+  - App cache is now sepa-tools-11 so phones pick up the change.
+- Version number is now ?v=0.27.20 on every page and the homepage footer reads v0.27.20
+
 ## v0.27.19 (Oct 15, 2026)
 - SEPA TOOLS APP: ANNOUNCEMENTS BAR above the buttons. Glossy navy with the same one-time gleam as the homepage "Sign up for DAT Shifts" bar. A small red number shows announcements this phone has not opened; nothing pops up. Tapping the bar opens the list; an announcement with a link opens it in Safari (keeps the VC sign-in). With none, the bar stays and the list says "No announcements right now."
   - Leadership posts in the SEPA Library Data Sheet, new "Announcements" tab: Posted, Title, Message, Link, Show until, Hidden. The tab makes itself the first time the app asks, with one row: "Register for the DAT Tabletop", linking to the VC registration page (registration_id=22380983).
