@@ -454,10 +454,8 @@ body.no-scroll { overflow: hidden; }
 .cal-day.open.empty.picked { background: var(--red); border-color: var(--red); color: #fff; }
 #step-day .cal-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px; font-weight: 700; color: var(--ink); }
 /* Sign-up page days: date at the top so the green number never covers it (the homepage does the
-   same), and empty days say "Need" at the bottom so they stand out as needing help. */
+   same). A "NEED" label on empty days was tried in v0.27.12 and removed at Sean's request (too much). */
 #days .cal-day { display: flex; align-items: flex-start; justify-content: center; padding-top: 7px; line-height: 1; }
-#days .cal-day .need-tag { position: absolute; left: 0; right: 0; bottom: 6px; font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #a8762a; }
-#days .cal-day.picked .need-tag { color: rgba(255,255,255,.85); }
 /* The key shows a plain green dot, no number, so it does not suggest a target of 2 (Sean, v0.27.12). */
 .count-badge.key-dot { padding: 0; }
 

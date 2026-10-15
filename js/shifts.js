@@ -156,7 +156,6 @@ var SIGNUP_URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
       b.dataset.date = t;
       b.appendChild(document.createTextNode(d));
       if (n) { var c = document.createElement('span'); c.className = 'count-badge'; c.textContent = n; b.appendChild(c); }
-      else if (open) { var g = document.createElement('span'); g.className = 'need-tag'; g.setAttribute('aria-hidden', 'true'); g.textContent = 'Need'; b.appendChild(g); }
       b.setAttribute('aria-label', niceDate(t) + (open ? (n ? ', ' + n + ' signed up' : ', no one signed up yet') : ''));
       b.addEventListener('click', function () { pickDay(this.dataset.date); });
       box.appendChild(b);

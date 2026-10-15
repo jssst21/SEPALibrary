@@ -1,7 +1,7 @@
 # Changelog
 
 ## v0.27.12 (Oct 14, 2026)
-- SHIFT SIGN-UP CALENDAR (pages/shifts.html, also what the app's Shift Sign Up button opens): upcoming days with no one signed up are now amber and say NEED at the bottom, so the gaps are obvious. Before, only the homepage calendar showed amber.
+- SHIFT SIGN-UP CALENDAR (pages/shifts.html, also what the app's Shift Sign Up button opens): upcoming days with no one signed up are now amber, so the gaps are obvious. (A NEED label on those days was tried and removed as too much.) Before, only the homepage calendar showed amber.
   - The date now sits at the top of each day so the green number no longer covers it on phones.
   - A picked day stays solid red even when it is empty.
 - AMBER made stronger everywhere (was #fdf3df / #ecd3a2, now #fbe0a6 / #d99a2b), homepage calendar included.
