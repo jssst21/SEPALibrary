@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.27.33 (Oct 15, 2026)
+- REFRESH RATES BACK TO WHAT THEY WERE BEFORE v0.27.32 (Sean: back to 5 or 6 seconds). No Google script change: push only.
+  - Escalation worksheet: sends 1 second after typing stops, checks every 5 seconds while busy (15 seconds after 2 quiet minutes). Scene Summary and Reception summary every 6 seconds. HQ lists every 15 seconds. Reception check-in every 20 seconds (every 5 while intakes wait for a signal). Lead's join requests every 10 seconds. "Waiting for the lead" every 5 seconds (20 after 10 minutes).
+  - Kept from v0.27.32: HQ-only Escalation Excel download, Escalation 5-day auto-clear, and the script's at-most-every-10-minutes auto-delete check.
+- Version number is now ?v=0.27.33 on every page and the homepage footer reads v0.27.33
+
 ## v0.27.32 (Oct 15, 2026)
 - SLOWER SYNCING, ESCALATION EXCEL DOWNLOAD, ESCALATION AUTO-CLEAR. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - Once a minute (Sean: quick refreshes were locking things up; losing up to a minute is acceptable): the Escalation worksheet sync (was 5-15 seconds, plus 1 second after typing), Scene Summary and Reception summary (6 seconds), HQ lists (15 seconds), Reception check-in (20 seconds, plus 5 seconds while intakes waited), lead's join-request check (10 seconds), "waiting for the lead" (5-20 seconds).

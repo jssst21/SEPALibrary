@@ -7,7 +7,7 @@
 //   - Shared worksheets: "Add a responder" sends a join link, and everyone who opens it types into
 //     the same worksheet. See the notes above editMode() further down.
 //   - Live view (same page with ?view=CODE on the end): a read-only copy that re-reads the Google
-//     Sheet once a minute (v0.27.32), so someone else can watch the worksheet fill in.
+//     Sheet every few seconds, so someone else can watch the worksheet fill in.
 //   - ?view=list shows the most recent worksheets.
 // STARTING a worksheet (becoming its lead) needs the HQ user name and password since v0.27.1, asked in
 // a pop-up; a device already logged in as HQ skips it. Responders who join with the lead's link need
@@ -238,7 +238,7 @@
   //     opens the join link keeps the key too, and from then on types into the same worksheet.
   //   - The address bar never keeps the key, and the live view link never contains it. So a link
   //     copied from the address bar, or a forwarded live view link, lets nobody in.
-  //   - Once a minute (v0.27.32) this page sends Google the boxes that changed here and gets back the boxes
+  //   - Every few seconds this page sends Google the boxes that changed here and gets back the boxes
   //     that changed on the other phones (one call: escSync). Boxes are sent one at a time, so two
   //     people in different boxes never overwrite each other. In the same box the later entry wins.
   //   - What is typed is always kept on this device first. With no connection it waits here and goes
@@ -370,8 +370,8 @@
         else if (r && !r.offline && /unknown request/i.test(r.error || '')) live = 'off';
         else live = 'offline';
         status();
-        if (again) queue(200);     // asked again while this one was on its way (rare)
-        // v0.27.32: no quick follow-up send. What is typed goes out with the next once-a-minute check.
+        if (again) queue(200);
+        else if (live === 'on' && !problem && changedHere().length) queue(1200);
       });
     }
     function queue(ms) { clearTimeout(timer); timer = setTimeout(sync, ms); }
@@ -478,13 +478,17 @@
       if (!lead) whose();
       if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.setName(placeName());
       lastActive = Date.now();
-      // v0.27.32 (Sean: quick refreshes were locking things up): typing no longer sends after 1 second.
-      // It goes out with the next once-a-minute check, and straight away when the page is closed or hidden.
+      if (live !== 'off' && live !== 'nokey') queue(1200);
     });
     window.addEventListener('online', function () { sync(); });
     document.addEventListener('visibilitychange', function () { if (!document.hidden || changedHere().length) sync(); });
-    // Check in once a minute (v0.27.32; was every 5 to 15 seconds). Sends what changed here, gets the rest.
-    setInterval(function () { ticks++; if (!document.hidden) sync(); }, 60000);
+    // Check in every 5 seconds while the worksheet is busy, every 15 seconds once it has been quiet for 2 minutes.
+    // (v0.27.33: back to this after a day at once a minute, Sean Oct 15.)
+    setInterval(function () {
+      ticks++;
+      if (document.hidden) return;
+      if (Date.now() - lastActive < 120000 || ticks % 3 === 0) sync();
+    }, 5000);
 
     var carried = lsGet('sepaEscNote'), cn = $('esc-cleared-note');
     if (wrongLink) { carried = 'That link cannot be used to join a worksheet. Ask the person who started it to tap "Add a responder" and send you the link. This is a separate worksheet of your own.'; }
@@ -719,11 +723,11 @@
           base = Math.max(0, (r.now || 0) - (r.ms || 0)); at = Date.now();
           s.className = 'esc-status esc-ok'; tick();
         } else if (r && r.ok) {
-          s.className = 'esc-status'; s.textContent = 'Waiting for the first entry. This page checks once a minute.';
+          s.className = 'esc-status'; s.textContent = 'Waiting for the first entry. This page checks every few seconds.';
         } else if (r && /unknown request/i.test(r.error || '')) {
           s.className = 'esc-status esc-warn'; s.textContent = 'The Scene Summary is not switched on yet (the Google script needs its update).';
         } else {
-          s.className = 'esc-status esc-warn'; s.textContent = 'Could not connect. Trying again in a minute.';
+          s.className = 'esc-status esc-warn'; s.textContent = 'Could not connect. Trying again in a few seconds.';
         }
       });
     }
@@ -758,7 +762,7 @@
       });
     });
     load();
-    setInterval(function () { if (!document.hidden) load(); }, 60000);     // once a minute (v0.27.32)
+    setInterval(function () { if (!document.hidden) load(); }, 6000);
     setInterval(tick, 1000);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) load(); });
   }
@@ -786,6 +790,6 @@
         });
       });
     }
-    load(); setInterval(function () { if (!document.hidden) load(); }, 60000);     // once a minute (v0.27.32)
+    load(); setInterval(function () { if (!document.hidden) load(); }, 15000);
   }
 })();
