@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.27.11 (Oct 15, 2026)
+- SEPA TOOLS APP: new "Call for Help" button (centered on its own row below the other buttons). It opens app/help.html, a page of large cards with a photo and name. At the top, an Intake Hotline card (833-583-3115); below it, tapping a card calls that person: Debbie Tevlin, Marty Westermann, Michael Bradley, Sean Snyder, Irvin Diaz. "Back to Tools" returns to the app.
+  - App-only: not linked from the website, and marked noindex so search engines skip it.
+  - App cache is now sepa-tools-4 so phones pick up the new button; help.html is saved for weak signal.
+- Version number is now ?v=0.27.11 on every page and the homepage footer reads v0.27.11
+
 ## v0.27.10 (Oct 14, 2026)
 - Reception Center Form: the lead's red start button now reads "Start a Reception Center" (was "Leads: Click Here to Start a Reception Center Intake"). It starts the center; intakes are the individual records inside it.
 - Version number is now ?v=0.27.10 on every page and the homepage footer reads v0.27.10

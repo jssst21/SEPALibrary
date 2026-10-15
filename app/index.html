@@ -44,6 +44,7 @@
   .tile:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
   .tile svg { width: 38px; height: 38px; fill: none; stroke: var(--red); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tile span { font-size: 14.5px; font-weight: 700; line-height: 1.15; }
+  .tile.help svg { stroke: #1e8e3e; }
   .tile.practice { background: #fdf3f4; }
   .tile.practice svg { stroke: var(--navy); }
   .tile.practice em { position: absolute; top: 7px; right: 7px; padding: 1px 6px; border-radius: 999px; background: var(--navy); color: #fff; font-size: 10px; font-style: normal; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
@@ -128,6 +129,8 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span>Practice SCIA</span></a>
     <a class="tile" href="https://auth.agilquest.com/eas-saml/saml/web/auth/americanredcross">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2.5"/></svg><span>RC Reserve</span></a>
+    <a class="tile help" style="grid-column: 2" href="help.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span>Call for Help</span></a>
   </nav>
 
   <p class="note">Each button opens that tool's own site. You sign in there, as usual.</p>

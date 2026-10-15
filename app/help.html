@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Call for Help | SEPA Tools</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#ae273a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<!-- CALL FOR HELP (website v0.27.11). App-only page, reached from the "Call for Help" button in the SEPA Tools
+     app. Not linked from the public website and marked noindex. Each card is a tel: link, so tapping it
+     dials that person. To add someone, copy one <a class="person"> block and change the number (twice:
+     the tel: address and the aria-label), the photo and the name. Photos come from images/people/. -->
+<style>
+  :root { --red: #ae273a; --ink: #2a2420; --navy: #1f3556; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--red); color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 18px);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  .back { display: inline-flex; align-items: center; gap: 4px; padding: 8px 12px 8px 6px; margin-left: -6px; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 700; text-decoration: none; }
+  .back svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .back:active { background: rgba(0,0,0,.15); }
+  h1 { margin: 6px 0 2px; font-size: 30px; letter-spacing: .02em; text-align: center; }
+  .sub { margin: 0 0 18px; text-align: center; font-size: 15px; opacity: .9; }
+  .list { display: flex; flex-direction: column; gap: 12px; }
+  .person {
+    display: flex; align-items: center; gap: 16px; min-height: 88px; padding: 12px 14px 12px 12px; border-radius: 18px;
+    background: #fff; color: var(--ink); text-decoration: none;
+    box-shadow: 0 3px 8px rgba(60, 8, 16, .35); transition: transform .1s;
+  }
+  .person:active { transform: scale(.98); }
+  .person:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .person img { flex: none; width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: #eee; }
+  .person .name { flex: 1; min-width: 0; font-size: 21px; font-weight: 700; line-height: 1.2; }
+  .person .call { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: #1e8e3e; }
+  .person .call svg { width: 26px; height: 26px; fill: #fff; }
+  .person .badge { flex: none; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--navy); }
+  .person .badge svg { width: 34px; height: 34px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .person.hotline { margin-bottom: 8px; }
+  .note { margin: 18px 0 0; font-size: 13.5px; text-align: center; opacity: .9; }
+  @media (max-width: 340px) { .person .name { font-size: 18px; } .person img { width: 54px; height: 54px; } }
+  @media (prefers-reduced-motion: reduce) { .person { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Back to Tools</a>
+  <h1>Call for Help</h1>
+  <p class="sub">Tap to call</p>
+
+  <nav class="list" aria-label="People to call">
+    <a class="person hotline" href="tel:+18335833115" aria-label="Call the Intake Hotline, 833-583-3115">
+      <span class="badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13a8 8 0 0 1 16 0"/><rect x="2.5" y="13" width="4" height="6" rx="1.5"/><rect x="17.5" y="13" width="4" height="6" rx="1.5"/><path d="M20 19c0 1.5-2 2.5-5 2.5h-2"/></svg></span><span class="name">Intake Hotline</span>
+      <span class="call" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></span></a>
+    <a class="person" href="tel:+14846802888" aria-label="Call Debbie Tevlin, 484-680-2888">
+      <img src="../images/people/debbie-tevlin.jpg" alt="" width="64" height="64"><span class="name">Debbie Tevlin</span>
+      <span class="call" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></span></a>
+    <a class="person" href="tel:+16108502192" aria-label="Call Marty Westermann, 610-850-2192">
+      <img src="../images/people/marty-westermann.jpg" alt="" width="64" height="64"><span class="name">Marty Westermann</span>
+      <span class="call" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></span></a>
+    <a class="person" href="tel:+12676480314" aria-label="Call Michael Bradley, 267-648-0314">
+      <img src="../images/people/michael-bradley.jpg" alt="" width="64" height="64"><span class="name">Michael Bradley</span>
+      <span class="call" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></span></a>
+    <a class="person" href="tel:+12674323792" aria-label="Call Sean Snyder, 267-432-3792">
+      <img src="../images/people/sean-snyder.jpg" alt="" width="64" height="64"><span class="name">Sean Snyder</span>
+      <span class="call" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></span></a>
+    <a class="person" href="tel:+12675819495" aria-label="Call Irvin Diaz, 267-581-9495">
+      <img src="../images/people/irvin-diaz.jpg" alt="" width="64" height="64"><span class="name">Irvin Diaz</span>
+      <span class="call" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></span></a>
+  </nav>
+
+  <p class="note">Tapping a card opens your phone's dialer.</p>
+</div>
+<script>
+  if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('sw.js'); } catch (e) {} }
+</script>
+</body>
+</html>
