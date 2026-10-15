@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.27.18 (Oct 15, 2026)
+- SEPA TOOLS APP back to the last known good (v0.27.16): red background, English labels. The green + German test (v0.27.17) worked and is done.
+  - Kept from the test: the button grid can no longer be pushed wider than the screen by a long word (minmax). No visible change in English.
+  - App cache is now sepa-tools-9 so phones pick up the change.
+- Version number is now ?v=0.27.18 on every page and the homepage footer reads v0.27.18
+
 ## v0.27.17 (Oct 15, 2026)
 - SEPA TOOLS APP, TEST ONLY (website unchanged): green background (#1f6e43, phone top bar too) and German button labels. RC Care, Noggin and SCIA stay as they are. Shift Sign Up = Schichtanmeldung, Escalation = Eskalation, Reception Center = Aufnahmezentrum, Practice RC Care / Practice SCIA = RC Care üben / SCIA üben, PRACTICE tag = ÜBUNG, Register for Events = Kurse & Termine, Call for Help = Hilfe rufen. Title, subtitle, footer and the Call for Help page stay English.
   - Last known good for the app is v0.27.16 (commit 9f54111). To go back: restore the red background and English labels.
