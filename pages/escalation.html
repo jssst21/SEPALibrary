@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.23">
+<link rel="stylesheet" href="../css/style.css?v=0.27.24">
 </head>
 <body class="home" data-ask-form="escalation">
 
@@ -132,10 +132,12 @@
     <p class="esc-group">For your team on scene</p>
     <div class="esc-buttons">
       <button type="button" class="primary-btn esc-add" data-esc="add">Add a responder</button>
+      <!-- v0.27.24: makes someone already on this worksheet a lead too (pop-up from js/ask-lead.js) -->
+      <button type="button" class="primary-btn esc-add add-lead-btn" data-esc="add" id="esc-add-lead">Add a lead</button>
     </div>
     <!-- Only the phone that started the worksheet (the lead) gets the button. A phone that joined
          gets the second line instead, filled in by js/escalation.js. -->
-    <p class="esc-group-how" id="esc-add-how">You started this worksheet, so you are its lead. This sends a link. Whoever opens it types into this same worksheet with you.</p>
+    <p class="esc-group-how" id="esc-add-how">You started this worksheet, so you are its lead. <strong>Add a responder</strong> sends a link; whoever opens it types into this same worksheet with you. <strong>Add a lead</strong> gives someone already on it the lead's buttons, for example if you are leaving the scene.</p>
     <p class="esc-group-how" id="esc-joined-how" hidden></p>
     <div id="esc-hq-tools">
     <p class="esc-group">For HQ</p>
@@ -228,10 +230,10 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.23"></script>
-<script src="../js/ask-lead.js?v=0.27.23"></script>
-<script src="../js/phone-format.js?v=0.27.23"></script>
-<script src="../js/escalation.js?v=0.27.23"></script>
-<script src="../js/close-tab.js?v=0.27.23"></script>
+<script src="../js/config.js?v=0.27.24"></script>
+<script src="../js/ask-lead.js?v=0.27.24"></script>
+<script src="../js/phone-format.js?v=0.27.24"></script>
+<script src="../js/escalation.js?v=0.27.24"></script>
+<script src="../js/close-tab.js?v=0.27.24"></script>
 </body>
 </html>

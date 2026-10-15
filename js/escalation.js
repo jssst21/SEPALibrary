@@ -274,6 +274,7 @@
     }
     var key = (id === urlId && urlKey) || hadKey;
     var lead = lsGet('sepaEscLead:' + id) === '1';
+    var coLead = lsGet('sepaEscCoLead:' + id) === '1';     // made a lead with "Add a lead" (v0.27.24)
     lsSet('sepaEscKey:' + id, key);
     lsSet('sepaEscCurrent', id);
     lsSet('sepaEscSeen:' + id, '1');
@@ -297,7 +298,7 @@
     function store() { lsSet('sepaEsc:' + id, JSON.stringify(read())); lsSet('sepaEscSync:' + id, JSON.stringify(meta)); }
     function setBox(k, v) { var i = inputs[k]; i.value = v; i.classList.remove('esc-flash'); void i.offsetWidth; i.classList.add('esc-flash'); }
     function cleared() {            // HQ ended the event: forget this worksheet and start a blank one
-      lsSet('sepaEsc:' + id, ''); lsSet('sepaEscSync:' + id, ''); lsSet('sepaEscKey:' + id, ''); lsSet('sepaEscLead:' + id, '');
+      lsSet('sepaEsc:' + id, ''); lsSet('sepaEscSync:' + id, ''); lsSet('sepaEscKey:' + id, ''); lsSet('sepaEscLead:' + id, ''); lsSet('sepaEscCoLead:' + id, '');
       var fresh = newId(); lsSet('sepaEscCurrent', fresh);
       lsSet('sepaEscNote', 'HQ cleared the last worksheet at the end of the event. Start a new one below when you need it.'); lsSet('sepaEscNoteOk', '');
       location.href = pageLink('id=' + fresh);
@@ -320,7 +321,8 @@
           live = 'on'; problem = '';
           if (claiming) claim = false;
           if (lead && r.asks) showAsks(r.asks);
-          if (lead && r.roster && typeof SEPAAskLead !== 'undefined') SEPAAskLead.roster($('esc-roster'), r.roster, removeOne, 'worksheet');
+          if (r.coLead && !lead) becomeLead();
+          if (lead && r.roster && typeof SEPAAskLead !== 'undefined') drawRoster(r.roster);
           if (r.removed) { removedSignal(r.where); }
           if ((r.rev || 0) < meta.rev) {
             meta = { rev: 0, base: {} }; again = true;      // Google holds less than this phone thought (a row was removed by hand): send everything again
@@ -368,11 +370,28 @@
     function removeOne(d, done) {
       call({ action: 'rosterRemove', form: 'esc', id: id, key: key, dev: d }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
     }
+    // ---- ADD A LEAD (v0.27.24): a lead makes someone already on this worksheet a lead too.
+    function makeLead(d, done) {
+      call({ action: 'makeLead', form: 'esc', id: id, key: key, dev: d, me: myDev() }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
+    }
+    function drawRoster(list) { SEPAAskLead.roster($('esc-roster'), list, removeOne, 'worksheet', { makeLead: makeLead }); }
+    $('esc-add-lead').addEventListener('click', function () { if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.leadPicker(makeLead, drawRoster); });
+    // A lead or HQ made THIS phone a lead: show the lead's buttons straight away (no reload needed here).
+    function becomeLead() {
+      lead = true; coLead = true;
+      lsSet('sepaEscLead:' + id, '1'); lsSet('sepaEscCoLead:' + id, '1');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.hidden = false; });
+      leadOnly(); addHow();
+      var cn = $('esc-cleared-note');
+      cn.textContent = 'You are now a lead on this worksheet. You can add responders and leads, and share the Scene Summary.';
+      cn.className = 'esc-status esc-cleared-note esc-ok'; cn.hidden = false;
+      queue(300);          // fetch join requests and the list of who is on it
+    }
     // The lead or HQ removed this phone. Everything typed here has been sent first; then it leaves.
     var removing = false;
     function removedSignal(where) {
       if (changedHere().length && !removing) { removing = true; queue(200); return; }
-      lsSet('sepaEsc:' + id, ''); lsSet('sepaEscSync:' + id, ''); lsSet('sepaEscKey:' + id, ''); lsSet('sepaEscLead:' + id, '');
+      lsSet('sepaEsc:' + id, ''); lsSet('sepaEscSync:' + id, ''); lsSet('sepaEscKey:' + id, ''); lsSet('sepaEscLead:' + id, ''); lsSet('sepaEscCoLead:' + id, '');
       if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.forgetDevice('esc', id);
       lsSet('sepaEscCurrent', newId());
       lsSet('sepaEscRemoved', 'You have been removed from the worksheet' + (where ? ' for ' + where : '') + '. Thank you so much for your help!');
@@ -408,7 +427,7 @@
     // joined is told whose worksheet it is on, using the name in the "ARC DAT Event Lead" box.
     function whose() {
       var name = cur('leaders_arc_lead_1').split('\n')[0];
-      $('esc-joined-how').textContent = 'You joined this worksheet' + (name ? '. Lead: ' + name : '') + '. Only the lead, who started it, can add responders.';
+      $('esc-joined-how').textContent = 'You joined this worksheet' + (name ? '. Lead: ' + name : '') + '. Only a lead can add responders.';
     }
     Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.hidden = !lead; });
     // v0.27.3: buttons a responder cannot use are not shown to them (Scene Summary, the HQ list).
@@ -417,7 +436,11 @@
       $('esc-hq-tools').hidden = !lead; $('esc-recent-link').hidden = !lead;
     }
     leadOnly();
-    $('esc-add-how').hidden = !lead; $('esc-joined-how').hidden = lead;
+    function addHow() {
+      $('esc-add-how').hidden = !lead; $('esc-joined-how').hidden = lead;
+      if (coLead) $('esc-add-how').innerHTML = 'You are a lead on this worksheet. <strong>Add a responder</strong> sends a link; whoever opens it types into this same worksheet. <strong>Add a lead</strong> gives someone already on it the lead\'s buttons, for example if you are leaving the scene.';
+    }
+    addHow();
 
     root.addEventListener('input', function () {
       lsSet('sepaEsc:' + id, JSON.stringify(read()));
@@ -470,7 +493,7 @@
     }
     function add() {
       if (live === 'off' || !URL) { note('A responder cannot be added yet: live sharing is not switched on.'); return; }
-      if (!lead || live === 'nokey') { note('Only the lead, who started this worksheet, can add a responder.'); return; }
+      if (!lead || live === 'nokey') { note('Only a lead can add a responder.'); return; }
       claim = true; sync();
       var link = joinUrl();
       var msg = { title: 'Join the DAT escalation form', text: 'Join the DAT escalation form' + where() + '. Open this link to type into the same worksheet.', url: link };
@@ -478,7 +501,7 @@
       else copy(link, function () { showLink(link, 'Join link for a responder'); note('The join link was copied. Paste it into a text or email to your teammate.'); }, link, 'Join link for a responder');
     }
     Array.prototype.forEach.call(document.querySelectorAll('[data-esc="share"]'), function (b) { b.addEventListener('click', share); });
-    Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.addEventListener('click', add); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { if (b.id !== 'esc-add-lead') b.addEventListener('click', add); });
     $('esc-copy').addEventListener('click', function () { claim = true; sync(); copy(viewUrl, function () { showLink(); note('Link copied.'); }); });
     $('esc-open-view').href = viewUrl;
 
@@ -622,7 +645,9 @@
           $('esc-clear-line').hidden = false;
           if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.roster($('esc-view-roster'), r.roster || [], function (d, cb) {
             call({ action: 'rosterRemove', form: 'esc', id: id, dev: d, token: token() }).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
-          }, 'worksheet');
+          }, 'worksheet', { hq: true, makeLead: function (d, cb) {     // v0.27.24: HQ can make someone a lead (the Scene Summary is HQ only)
+            call({ action: 'makeLead', form: 'esc', id: id, dev: d, token: token() }).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
+          } });
           var text = JSON.stringify(r.data);
           fill(r.data, !first && text !== lastText);
           first = false; lastText = text;

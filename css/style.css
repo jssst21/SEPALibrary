@@ -1578,6 +1578,15 @@ a.f-page:hover { border-color: var(--red); color: var(--red); }
 .rost-row:first-of-type { border-top: 0; }
 .rost-who { margin: 0; }
 .rost-rm { padding: 6px 14px; font-size: 14px; }
+.rost-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.rost-acts[hidden] { display: none; }
+/* Add a lead (v0.27.24): the pop-up list, and the navy "Add a lead" button beside Add a responder */
+.pick-row { padding: 12px 0; }
+.pick-row .primary-btn { padding: 8px 18px; font-size: 15px; }
+.pick-row .rost-confirm .esc-btn, .rost-lead-yes { background: var(--navy); border-color: var(--navy); color: #fff; }
+.pick-none { margin: 10px 0; color: var(--muted, #6b625b); }
+.pick-close { width: 100%; margin-top: 6px; }
+.primary-btn.add-lead-btn { background: var(--navy); border-color: var(--navy); }
 .rost-confirm { flex-basis: 100%; margin: 0; font-size: 15px; }
 .rost-confirm .esc-btn { padding: 6px 14px; font-size: 14px; }
 .rost-removed { margin-bottom: 18px; }

@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.27.24 (Oct 15, 2026)
+- ADD A LEAD on the Escalation Form and the Reception Center Form. NEEDS THE GOOGLE SCRIPT UPDATE (deploy a New version BEFORE pushing).
+  - New "Add a lead" button beside "Add a responder" (lead's phone only). It opens a list of the people already on the worksheet / reception center; tap "Make lead". Their phone gets the lead's buttons within about a minute (Reception reloads the page once; a half-typed intake is kept).
+  - Also a "Make lead" button next to each person in the "Who is on this..." list, and on the HQ Scene Summary / reception summary, so HQ can make someone a lead (for example if the lead left without handing over).
+  - Nobody stops being a lead: two or more leads can work at once, or the first lead can add a new one and leave.
+  - Only HQ can remove an added lead (Remove, from the summary while logged in). The lead who started it still cannot be removed. What a removed lead entered stays.
+  - Reception: added leads can see the summary, edit intakes and set DDA (edits are marked with their name). Summary and responders' screens say "Leads: Sean Snyder, Bob Jones" when there is more than one.
+  - In the Google Sheet, an added lead shows as "co-lead" in the Role column of the Responders tab.
+- Files: google-apps-script/sepa-backend.gs, js/ask-lead.js, js/reception.js, js/escalation.js, pages/reception.html, pages/escalation.html, css/style.css
+- Version number is now ?v=0.27.24 on every page and the homepage footer reads v0.27.24
+
 ## v0.27.23 (Oct 15, 2026)
 - SEPA TOOLS APP: new "Share SEPA Tools with someone" bar under the buttons (Call for Help still alone in its row).
   - Tapping it opens a full screen with a big QR code for sepalibrary.org/app. The other person points their phone's camera at it and lands on the install page.

@@ -183,7 +183,11 @@
 
   function work(id) {
     var key = goodKey(lsGet('sepaRecKey:' + id)), leadKey = goodKey(lsGet('sepaRecLead:' + id));
-    var lead = !!leadKey, me = lsGet('sepaRecName') || '';
+    // v0.27.24: a phone made a lead with "Add a lead" (a co-lead) has no lead key; it proves itself with
+    // the join key plus its own phone code (see recLeadAuth_ in the Google script).
+    var coLead = !leadKey && lsGet('sepaRecCoLead:' + id) === '1';
+    var lead = !!leadKey || coLead, me = lsGet('sepaRecName') || '';
+    function auth(o) { o.leadKey = leadKey; o.key = key; o.me = dev(); return o; }
     var form = $('rec-form');
     $('rec-work').hidden = false;
     $('rec-lead-tools').hidden = !lead;
@@ -196,7 +200,9 @@
       $('rec-where-me').textContent = ' · ' + me + (lead ? ' (lead)' : '') + ' · ' + count() + ' intake' + (count() === 1 ? '' : 's') + ' done on this phone';
     }
     header();
-    if (!lead) $('rec-joined-how').textContent = 'You joined this reception center. Your intakes go to your lead and HQ. Only the lead can add responders and see the summary.';
+    if (!lead) $('rec-joined-how').textContent = 'You joined this reception center. Your intakes go to your lead and HQ. Only a lead can add responders and see the summary.';
+    if (coLead) $('rec-lead-how').textContent = 'You are a lead on this reception center. Add a responder sends a link for doing intakes. Add a lead gives someone already here the lead\'s buttons, for example if you are leaving the scene.';
+    function leadsLine(names) { return (names.indexOf(',') >= 0 ? 'Leads: ' : 'Lead: ') + names; }
 
     // ---- the choice buttons (Yes / No ...) and the follow-up boxes they open
     var choices = {};
@@ -275,7 +281,7 @@
     }
     function closed() {          // HQ cleared this center, or it was deleted after 5 days
       var was = centerName();
-      ['sepaRecKey:', 'sepaRecLead:', 'sepaRecCenter:', 'sepaRecCount:', 'sepaRecDraft:', 'sepaRecJoined:'].forEach(function (p) { lsSet(p + id, ''); });
+      ['sepaRecKey:', 'sepaRecLead:', 'sepaRecCoLead:', 'sepaRecCenter:', 'sepaRecCount:', 'sepaRecDraft:', 'sepaRecJoined:'].forEach(function (p) { lsSet(p + id, ''); });
       setQueue(queue().filter(function (q) { return q.id !== id; }));
       lsSet('sepaRecCurrent', '');
       lsSet('sepaRecNote', 'Your last reception center (' + was + ') was closed.');
@@ -285,7 +291,7 @@
     // intake is half done, it can still be finished and saved first.
     function removed() {
       var was = centerName();
-      ['sepaRecKey:', 'sepaRecLead:', 'sepaRecCenter:', 'sepaRecCount:', 'sepaRecDraft:', 'sepaRecJoined:'].forEach(function (p) { lsSet(p + id, ''); });
+      ['sepaRecKey:', 'sepaRecLead:', 'sepaRecCoLead:', 'sepaRecCenter:', 'sepaRecCount:', 'sepaRecDraft:', 'sepaRecJoined:'].forEach(function (p) { lsSet(p + id, ''); });
       if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.forgetDevice('rec', id);
       lsSet('sepaRecCurrent', '');
       lsSet('sepaRecRemoved', 'You have been removed from ' + was + '. Thank you so much for your help!');
@@ -310,10 +316,17 @@
           busy = false;
           if (r && r.ok && r.cleared) return closed();
           if (r && r.ok && r.removed) return removedSignal();
+          // Made a lead by a lead or HQ (v0.27.24): this phone gets the lead's buttons. The page reloads
+          // to show them; an intake being typed is kept (it is saved as a draft on the phone).
+          if (r && r.ok && r.coLead && !lead) {
+            lsSet('sepaRecCoLead:' + id, '1');
+            lsSet('sepaRecNote', 'You are now a lead on this reception center. You can add responders and leads, and see the summary.');
+            return location.reload();
+          }
           if (r && r.ok) {
             state = 'on';
             if (r.center && r.center !== lsGet('sepaRecCenter:' + id)) { lsSet('sepaRecCenter:' + id, r.center); header(); }
-            if (!lead && r.lead) $('rec-joined-how').textContent = 'You joined this reception center. Lead: ' + r.lead + '. Your intakes go to your lead and HQ. Only the lead can add responders and see the summary.';
+            if (!lead && r.lead) $('rec-joined-how').textContent = 'You joined this reception center. ' + leadsLine(r.lead) + '. Your intakes go to your lead and HQ. Only a lead can add responders and see the summary.';
           } else if (r && r.nokey) state = 'nokey';
           else if (oldScript(r)) state = 'off';
           else state = 'offline';
@@ -368,15 +381,20 @@
     if (lead && typeof SEPAAskLead !== 'undefined') {
       var showAsks = function (list) {
         SEPAAskLead.render($('rec-asks'), list, function (rid, yes) {
-          call({ action: 'askAnswer', form: 'rec', id: id, key: key, leadKey: leadKey, rid: rid, yes: yes }).then(function (r) { if (r && r.ok) showAsks(r.asks || []); });
+          call(auth({ action: 'askAnswer', form: 'rec', id: id, rid: rid, yes: yes })).then(function (r) { if (r && r.ok) showAsks(r.asks || []); });
         });
       };
       var removeOne = function (d, done) {
-        call({ action: 'rosterRemove', form: 'rec', id: id, dev: d, leadKey: leadKey }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
+        call(auth({ action: 'rosterRemove', form: 'rec', id: id, dev: d })).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
       };
+      var makeLead = function (d, done) {     // v0.27.24
+        call(auth({ action: 'makeLead', form: 'rec', id: id, dev: d })).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
+      };
+      var drawRoster = function (list) { SEPAAskLead.roster($('rec-roster'), list, removeOne, 'reception center', { makeLead: makeLead }); };
+      $('rec-add-lead').addEventListener('click', function () { SEPAAskLead.leadPicker(makeLead, drawRoster); });
       var pollAsks = function () {
-        if (!document.hidden) call({ action: 'recAsks', id: id, leadKey: leadKey }).then(function (r) {
-          if (r && r.ok) { showAsks(r.asks || []); SEPAAskLead.roster($('rec-roster'), r.roster || [], removeOne, 'reception center'); }
+        if (!document.hidden) call(auth({ action: 'recAsks', id: id })).then(function (r) {
+          if (r && r.ok) { showAsks(r.asks || []); drawRoster(r.roster || []); }
         });
         setTimeout(pollAsks, 10000);
       };
@@ -458,6 +476,10 @@
     $('rec-intro').textContent = 'Every intake for this reception center.';
     $('rec-view-tools').hidden = false;
     var leadKey = goodKey(lsGet('sepaRecLead:' + id));
+    // v0.27.24: an added lead (co-lead) opens the summary with the join key plus this phone's code.
+    var coKey = !leadKey && lsGet('sepaRecCoLead:' + id) === '1' ? goodKey(lsGet('sepaRecKey:' + id)) : '';
+    var asLead = !!(leadKey || coKey);
+    function auth(o) { o.leadKey = leadKey; o.key = coKey; o.me = coKey && typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('rec', id) : ''; o.token = token(); return o; }
     var s = $('rec-view-status'), seen = null, waiting = false, done = false, last = null, justEdited = '';
     if (!id) { s.textContent = 'This link is not a valid reception center link.'; s.className = 'esc-status esc-warn'; return; }
 
@@ -517,26 +539,32 @@
     }
     function load() {
       if (waiting || done) return;
-      call({ action: 'recGet', id: id, leadKey: leadKey, token: token() }).then(function (r) {
+      call(auth({ action: 'recGet', id: id })).then(function (r) {
         if (r && r.login) {
-          waiting = true; s.className = 'esc-status'; s.textContent = leadKey ? 'Could not open the summary on this phone. HQ can log in below.' : 'Log in to see this reception center.';
+          waiting = true; s.className = 'esc-status'; s.textContent = asLead ? 'Could not open the summary on this phone. HQ can log in below.' : 'Log in to see this reception center.';
           needLogin(r, function () { waiting = false; load(); }); return;
         }
         if (oldScript(r)) { s.className = 'esc-status esc-warn'; s.textContent = 'The Reception Center Form is not switched on yet (the Google script needs its update).'; return; }
         if (!(r && r.ok)) { s.className = 'esc-status esc-warn'; s.textContent = 'Could not connect. Trying again in a few seconds.'; return; }
-        if (!leadKey) loggedIn();
+        if (!asLead) loggedIn();
         if (!r.found) {
           done = true; $('rec-summary').hidden = true; $('rec-view-buttons').hidden = true; $('rec-clear-line').hidden = true; $('rec-keep').hidden = true;
           s.className = 'esc-status'; s.textContent = r.cleared ? 'This reception center was closed and its intakes were deleted.' : 'This reception center was not found.';
           return;
         }
         last = r;
-        if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.roster($('rec-view-roster'), r.roster || [], function (d, cb) {
-          call({ action: 'rosterRemove', form: 'rec', id: id, dev: d, leadKey: leadKey, token: token() }).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
-        }, 'reception center');
+        if (typeof SEPAAskLead !== 'undefined') {
+          var vRemove = function (d, cb) {
+            call(auth({ action: 'rosterRemove', form: 'rec', id: id, dev: d })).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
+          };
+          var vMake = function (d, cb) {     // v0.27.24: HQ (or a lead) can make someone a lead from here
+            call(auth({ action: 'makeLead', form: 'rec', id: id, dev: d })).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
+          };
+          SEPAAskLead.roster($('rec-view-roster'), r.roster || [], vRemove, 'reception center', { makeLead: vMake, hq: !!token() });
+        }
         $('rec-title').textContent = 'Reception Center: ' + (r.center || 'summary');
-        $('rec-intro').textContent = 'Lead: ' + (r.lead || '') + '. Every intake for this reception center.';
-        $('rec-clear-line').hidden = !!leadKey && !token();     // HQ only (a lead who is also logged in as HQ sees it too)
+        $('rec-intro').textContent = ((r.lead || '').indexOf(',') >= 0 ? 'Leads: ' : 'Lead: ') + (r.lead || '') + '. Every intake for this reception center.';
+        $('rec-clear-line').hidden = asLead && !token();     // HQ only (a lead who is also logged in as HQ sees it too)
         var k = $('rec-keep'); k.hidden = false;
         k.textContent = 'Intakes are deleted when HQ clears this reception center, or automatically ' + (r.keepDays || 5) + ' days after the last intake.';
         draw(r);
@@ -615,7 +643,7 @@
         shelter: eChoices.shelter || '', needs: eVal('needs'), concerns: eVal('concerns')
       };
       var btn = $('rec-edit-save'), iid = editing.iid; btn.disabled = true; eErr('');
-      call({ action: 'recEdit', id: id, iid: iid, intake: it, leadKey: leadKey, token: token() }).then(function (r) { afterChange(r, btn, iid); });
+      call(auth({ action: 'recEdit', id: id, iid: iid, intake: it })).then(function (r) { afterChange(r, btn, iid); });
     });
     $('rec-del').onclick = function () { $('rec-del-ask').hidden = false; this.hidden = true; };
     $('rec-del-no').onclick = function () { $('rec-del-ask').hidden = true; $('rec-del').hidden = false; };
@@ -656,7 +684,7 @@
       if (!ddaFor) return;
       var picks = ddaBoxes.filter(function (b) { return b.checked; }).map(function (b) { return b.value; });
       var btn = $('rec-dda-save'), iid = ddaFor.iid; btn.disabled = true; dErr('');
-      call({ action: 'recDda', id: id, iid: iid, picks: picks, other: picks.indexOf('Other') >= 0 ? $('rec-dda-other').value.trim() : '', leadKey: leadKey, token: token() }).then(function (r) {
+      call(auth({ action: 'recDda', id: id, iid: iid, picks: picks, other: picks.indexOf('Other') >= 0 ? $('rec-dda-other').value.trim() : '' })).then(function (r) {
         btn.disabled = false;
         if (r && r.login) { closeDda(); waiting = true; needLogin(r, function () { waiting = false; load(); }); return; }
         if (r && r.ok) { closeDda(); justEdited = iid; load(); return; }

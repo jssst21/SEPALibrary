@@ -86,36 +86,101 @@ var SEPAAskLead = (function () {
   }
   function forgetDevice(form, id) { lsSet('sepaDev:' + form + ':' + id, ''); }
   // The list the lead and HQ see, with Remove (asks first, on the page). list: [{dev, name, role, lastMs}].
+  // role: 'lead' = started the event, 'co-lead' = made a lead with "Add a lead" (v0.27.24), '' = responder.
   // remove(dev, done) must call done(newList) when removed, or done(null, 'error message').
-  function roster(box, list, remove, what) {
+  // opt (v0.27.24, optional): opt.makeLead(dev, done) works like remove and adds a "Make lead" button;
+  // opt.hq = true when HQ is looking, which also shows Remove for added leads (only HQ may remove them).
+  var lastList = [], lastOpt = null, lastWhat = '';
+  function isLead(x) { return x.role === 'lead' || x.role === 'co-lead'; }
+  function roster(box, list, remove, what, opt) {
     if (!box) return;
-    list = list || [];
+    list = list || []; opt = opt || {};
+    lastList = list; lastOpt = opt; lastWhat = what;
     if (box.querySelector('.rost-confirm:not([hidden])') || box.getAttribute('data-busy')) return;   // do not redraw under someone's finger
     if (!list.length) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false;
     box.innerHTML = '<p class="rost-head">Who is on this ' + what + ' (' + list.length + ')</p>' + list.map(function (x) {
-      var nm = x.name || 'Name not given';
-      return '<div class="rost-row" data-dev="' + esc(x.dev) + '"><p class="rost-who"><strong>' + esc(nm) + '</strong>' + (x.role === 'lead' ? ' (lead)' : '') +
+      var nm = x.name || 'Name not given', canRm = !isLead(x) || (x.role === 'co-lead' && opt.hq), canLead = !isLead(x) && opt.makeLead;
+      return '<div class="rost-row" data-dev="' + esc(x.dev) + '"><p class="rost-who"><strong>' + esc(nm) + '</strong>' + (isLead(x) ? ' (lead)' : '') +
         (x.lastMs ? ' <span class="ask-req-when">seen ' + ago(x.lastMs) + '</span>' : '') + '</p>' +
-        (x.role === 'lead' ? '' : '<button type="button" class="esc-btn rost-rm">Remove</button>' +
-          '<p class="rost-confirm" hidden>Remove ' + esc(nm) + '? What they entered stays here. ' +
-          '<button type="button" class="esc-btn esc-danger rost-yes">Yes, remove</button> <button type="button" class="link-btn rost-no">Cancel</button></p>') + '</div>';
-    }).join('') + '<p class="rost-err form-error" hidden></p><p class="esc-group-how">Remove takes someone off this ' + what +
-      ', for example to free them to start a second one. What they already entered stays here. Their phone leaves within about a minute.</p>';
+        ((canLead || canRm) ? '<span class="rost-acts">' + (canLead ? '<button type="button" class="esc-btn rost-rm rost-mk">Make lead</button>' : '') +
+          (canRm ? '<button type="button" class="esc-btn rost-rm rost-rmv">Remove</button>' : '') + '</span>' : '') +
+        (canLead ? '<p class="rost-confirm rost-confirm-lead" hidden>Make ' + esc(nm) + ' a lead? They get the lead\'s buttons on their phone. ' +
+          '<button type="button" class="esc-btn rost-lead-yes">Yes, make lead</button> <button type="button" class="link-btn rost-no">Cancel</button></p>' : '') +
+        (canRm ? '<p class="rost-confirm rost-confirm-rm" hidden>Remove ' + esc(nm) + (isLead(x) ? ' (a lead)' : '') + '? What they entered stays here. ' +
+          '<button type="button" class="esc-btn esc-danger rost-yes">Yes, remove</button> <button type="button" class="link-btn rost-no">Cancel</button></p>' : '') + '</div>';
+    }).join('') + '<p class="rost-err form-error" hidden></p><p class="esc-group-how">' +
+      (opt.makeLead ? 'Make lead gives someone the lead\'s buttons too, for example when you are leaving the scene. Nobody stops being a lead. ' : '') +
+      'Remove takes someone off this ' + what + ', for example to free them to start a second one. What they already entered stays here. Their phone leaves within about a minute.' +
+      (opt.hq ? '' : ' Only HQ can remove a lead.') + '</p>';
     Array.prototype.forEach.call(box.querySelectorAll('.rost-row'), function (row) {
-      var rm = row.querySelector('.rost-rm'), cf = row.querySelector('.rost-confirm');
-      if (!rm) return;
-      rm.addEventListener('click', function () { rm.hidden = true; cf.hidden = false; });
-      row.querySelector('.rost-no').addEventListener('click', function () { cf.hidden = true; rm.hidden = false; });
-      row.querySelector('.rost-yes').addEventListener('click', function () {
-        var y = this; y.disabled = true; box.setAttribute('data-busy', '1');
-        remove(row.getAttribute('data-dev'), function (newList, err) {
-          box.removeAttribute('data-busy'); y.disabled = false;
-          if (newList) { cf.hidden = true; roster(box, newList, remove, what); return; }
-          var e = box.querySelector('.rost-err'); e.textContent = err || 'Could not remove. Please try again.'; e.hidden = false;
+      var acts = row.querySelector('.rost-acts');
+      if (!acts) return;
+      var dev = row.getAttribute('data-dev');
+      function wire(btnSel, cfSel, yesSel, fn, fail) {
+        var b = row.querySelector(btnSel), cf = row.querySelector(cfSel);
+        if (!b) return;
+        b.addEventListener('click', function () { acts.hidden = true; cf.hidden = false; });
+        cf.querySelector('.rost-no').addEventListener('click', function () { cf.hidden = true; acts.hidden = false; });
+        cf.querySelector(yesSel).addEventListener('click', function () {
+          var y = this; y.disabled = true; box.setAttribute('data-busy', '1');
+          fn(dev, function (newList, err) {
+            box.removeAttribute('data-busy'); y.disabled = false;
+            if (newList) { cf.hidden = true; roster(box, newList, remove, what, opt); return; }
+            var e = box.querySelector('.rost-err'); e.textContent = err || fail; e.hidden = false;
+          });
+        });
+      }
+      wire('.rost-rmv', '.rost-confirm-rm', '.rost-yes', remove, 'Could not remove. Please try again.');
+      if (opt.makeLead) wire('.rost-mk', '.rost-confirm-lead', '.rost-lead-yes', opt.makeLead, 'Could not make them a lead. Please try again.');
+    });
+  }
+
+  // ---------------------------------------------------------------- "ADD A LEAD" POP-UP (v0.27.24)
+  // Opened by the "Add a lead" button on a lead's phone. Lists the people on the event who are not leads
+  // yet (from the last list the page fetched), each with Make lead. makeLead(dev, done) as in roster().
+  // onDone(newList) is called after someone was made a lead, so the page can redraw its own list.
+  function leadPicker(makeLead, onDone) {
+    var what = lastWhat || (formName === 'reception' ? 'reception center' : 'worksheet');
+    var old = document.getElementById('ask-lead-pick'); if (old) old.remove();
+    var m = document.createElement('div'); m.className = 'f-modal'; m.id = 'ask-lead-pick';
+    var people = lastList.filter(function (x) { return !isLead(x); });
+    var leads = lastList.filter(isLead).map(function (x) { return x.name || 'Name not given'; });
+    m.innerHTML = '<div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="ask-lead-pick-t">' +
+      '<button type="button" class="f-modal-x" aria-label="Close">&times;</button><h2 id="ask-lead-pick-t">Add a lead</h2>' +
+      '<p class="f-modal-note">Tap the person who should also be a lead. Their phone gets the lead\'s buttons within about a minute. You stay a lead too.' +
+      (leads.length ? ' Leads now: ' + esc(leads.join(', ')) + '.' : '') + '</p>' +
+      (people.length ? people.map(function (x) {
+        var nm = x.name || 'Name not given';
+        return '<div class="rost-row pick-row" data-dev="' + esc(x.dev) + '"><p class="rost-who"><strong>' + esc(nm) + '</strong></p>' +
+          '<button type="button" class="primary-btn pick-btn">Make lead</button>' +
+          '<p class="rost-confirm" hidden>Make <strong>' + esc(nm) + '</strong> a lead? <button type="button" class="esc-btn pick-yes">Yes, make lead</button> ' +
+          '<button type="button" class="link-btn pick-no">Cancel</button></p></div>';
+      }).join('') : '<p class="pick-none">Nobody else is on this ' + esc(what) + ' yet.</p>') +
+      '<p class="form-error pick-err" hidden></p>' +
+      '<p class="esc-group-how">Not on the list? Tap <strong>Add a responder</strong> and send them the link first. Once they open it, they show up here.</p>' +
+      '<button type="button" class="esc-btn pick-close">Close</button></div>';
+    document.body.appendChild(m);
+    function close() { m.remove(); }
+    m.querySelector('.f-modal-x').addEventListener('click', close);
+    m.querySelector('.pick-close').addEventListener('click', close);
+    m.addEventListener('click', function (e) { if (e.target === m) close(); });
+    Array.prototype.forEach.call(m.querySelectorAll('.pick-row'), function (row) {
+      var b = row.querySelector('.pick-btn'), cf = row.querySelector('.rost-confirm');
+      b.addEventListener('click', function () { b.hidden = true; cf.hidden = false; });
+      row.querySelector('.pick-no').addEventListener('click', function () { cf.hidden = true; b.hidden = false; });
+      row.querySelector('.pick-yes').addEventListener('click', function () {
+        var y = this; y.disabled = true;
+        makeLead(row.getAttribute('data-dev'), function (newList, err) {
+          y.disabled = false;
+          if (!newList) { var e = m.querySelector('.pick-err'); e.textContent = err || 'Could not make them a lead. Please try again.'; e.hidden = false; return; }
+          cf.hidden = true;
+          row.innerHTML = '<p class="rost-who"><strong>' + row.querySelector('strong').innerHTML + '</strong> is now a lead. Their phone gets the lead\'s buttons within about a minute.</p>';
+          if (onDone) onDone(newList);
         });
       });
     });
+    var first = m.querySelector('.pick-btn') || m.querySelector('.pick-close'); if (first) first.focus();
   }
 
   // ---------------------------------------------------------------- the RESPONDER's Start screen
@@ -226,5 +291,5 @@ var SEPAAskLead = (function () {
   }
 
   if (F) Array.prototype.forEach.call(document.querySelectorAll('.ask-lead'), function (box) { responder(box); texter(box); });
-  return { render: render, roster: roster, device: device, forgetDevice: forgetDevice };
+  return { render: render, roster: roster, leadPicker: leadPicker, device: device, forgetDevice: forgetDevice };
 })();

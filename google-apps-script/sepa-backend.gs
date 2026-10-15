@@ -192,6 +192,7 @@ function doPost(e) {
       askAnswer: askAnswer_,
       recAsks: recAsks_,
       rosterRemove: rosterRemove_,
+      makeLead: makeLead_,
       escSync: escSync_,
       escLogin: escLogin_,
       escGet: escGet_,
@@ -966,6 +967,7 @@ function escSync_(d) {
   var res = { ok: true, rev: w.meta.r, changed: out, now: now.getTime() };
   // Who is on this worksheet (website v0.27.3). What this phone typed was saved above even if it was removed.
   var me = rosterCheckIn_('esc', id, d, d.lead ? 'lead' : '');
+  if (me && !me.removed && me.role === 'co-lead') res.coLead = true;     // made a lead by a lead or HQ (website v0.27.24)
   if (me && me.removed) { res.removed = true; res.where = clean_(String(w.data.incident_addresses || '').split('\n')[0], 80); }
   if (d.asks) { res.asks = askWaiting_('esc', id); res.roster = rosterPublic_('esc', id); }
   return res;
@@ -1131,6 +1133,28 @@ function recCenter_(id, key, which) {
   return { row: row, r: r, ok: !!key && mark === recMark_(which, id, key) };
 }
 
+/* IS THIS PHONE A LEAD of this center? (website v0.27.24) Either the phone that started it (it holds the
+   lead key, d.leadKey) or a phone a lead or HQ made a lead with "Add a lead": it proves itself with the
+   join key (d.key) plus its own phone code (d.me), which the Responders tab marks "co-lead".
+   Returns null when the center is not there, otherwise { c: the center, ok: true/false, who: name }. */
+function recLeadAuth_(id, d) {
+  var c = recCenter_(id, escKey_(d.leadKey), 'lead');
+  if (!c) return null;
+  if (c.ok) return { c: c, ok: true, who: escText_(c.r[4]) };
+  var dev = rosterDev_(d.me), key = escKey_(d.key);
+  if (dev && key && escText_(c.r[7]) === recMark_('join', id, key)) {
+    var me = rosterGet_('rec', id).filter(function (x) { return x.dev === dev && !x.removed && x.role === 'co-lead'; })[0];
+    if (me) return { c: c, ok: true, who: me.name || 'Lead' };
+  }
+  return { c: c, ok: false };
+}
+// The names of everyone leading a center: the one who started it, then any added leads.
+function recLeadNames_(id, c) {
+  var names = [escText_(c.r[4])].filter(String);
+  rosterPublic_('rec', id).forEach(function (x) { if (x.role === 'co-lead' && x.name && names.indexOf(x.name) < 0) names.push(x.name); });
+  return names.join(', ');
+}
+
 // The lead starts a reception center (or starts it again: safe to repeat).
 function recStart_(d) {
   recPurge_();
@@ -1175,7 +1199,8 @@ function recPing_(d) {
   if (!c.ok) return { ok: false, nokey: true, error: 'This link cannot open the reception center.' };
   var lc = d.leadKey ? recCenter_(id, escKey_(d.leadKey), 'lead') : null;
   var me = rosterCheckIn_('rec', id, d, lc && lc.ok ? 'lead' : '');
-  return { ok: true, found: true, center: escText_(c.r[3]), lead: escText_(c.r[4]), removed: !!(me && me.removed) };
+  return { ok: true, found: true, center: escText_(c.r[3]), lead: recLeadNames_(id, c), removed: !!(me && me.removed),
+    coLead: !!(me && !me.removed && me.role === 'co-lead') };
 }
 
 // One finished intake. The same intake sent twice (a phone that lost signal and tried again) is saved once.
@@ -1209,8 +1234,8 @@ function recGet_(d) {
   recPurge_();
   var id = escId_(d.id);
   if (!id) return { ok: false, error: 'This reception center link is not valid.' };
-  var c = recCenter_(id, escKey_(d.leadKey), 'lead');
-  if (!(c && c.ok)) {
+  var a = recLeadAuth_(id, d), c = a && a.c;
+  if (!(a && a.ok)) {
     var denied = escDenied_(d);
     if (denied) return denied;
   }
@@ -1230,7 +1255,7 @@ function recGet_(d) {
       items.push(o);
     });
   }
-  return { ok: true, found: true, id: id, center: escText_(c.r[3]), lead: escText_(c.r[4]), started: iso_(c.r[1]),
+  return { ok: true, found: true, id: id, center: escText_(c.r[3]), lead: recLeadNames_(id, c), started: iso_(c.r[1]),
     ms: Number(escText_(c.r[6])) || 0, keepDays: REC_KEEP_DAYS, now: now, items: items, roster: rosterPublic_('rec', id) };
 }
 
@@ -1241,8 +1266,8 @@ function recGet_(d) {
 function recEdit_(d) {
   var id = escId_(d.id), iid = escId_(d.iid), it = (d.intake && typeof d.intake === 'object') ? d.intake : {};
   if (!id || !iid) return { ok: false, error: 'This intake could not be found.' };
-  var c = recCenter_(id, escKey_(d.leadKey), 'lead'), who;
-  if (c && c.ok) who = escText_(c.r[4]) + ' (lead)';
+  var a = recLeadAuth_(id, d), c = a && a.c, who;
+  if (a && a.ok) who = a.who + ' (lead)';
   else {
     var denied = escDenied_(d);
     if (denied) return denied;
@@ -1265,8 +1290,8 @@ function recEdit_(d) {
 function recDda_(d) {
   var id = escId_(d.id), iid = escId_(d.iid);
   if (!id || !iid) return { ok: false, error: 'This intake could not be found.' };
-  var c = recCenter_(id, escKey_(d.leadKey), 'lead'), who;
-  if (c && c.ok) who = escText_(c.r[4]) + ' (lead)';
+  var a = recLeadAuth_(id, d), c = a && a.c, who;
+  if (a && a.ok) who = a.who + ' (lead)';
   else {
     var denied = escDenied_(d);
     if (denied) return denied;
@@ -1655,7 +1680,7 @@ function askAnswer_(d) {
     if (w.meta.k !== escKeyMark_(id, key)) return { ok: false, error: 'Not allowed.' };
     give = key;
   } else if (form === 'rec') {
-    var lead = recCenter_(id, escKey_(d.leadKey), 'lead'), join = recCenter_(id, escKey_(d.key), 'join');
+    var lead = recLeadAuth_(id, d), join = recCenter_(id, escKey_(d.key), 'join');
     if (!lead || !lead.ok || !join || !join.ok) return { ok: false, error: 'Only the lead can answer requests.' };
     give = escKey_(d.key);
   } else return { ok: false, error: 'Unknown form.' };
@@ -1667,7 +1692,7 @@ function askAnswer_(d) {
 
 // Reception lead's phone checks for requests (proven with the lead key).
 function recAsks_(d) {
-  var id = escId_(d.id), c = recCenter_(id, escKey_(d.leadKey), 'lead');
+  var id = escId_(d.id), c = recLeadAuth_(id, d);
   if (!c || !c.ok) return { ok: false, error: 'Only the lead can see requests.' };
   return { ok: true, asks: askWaiting_('rec', id), roster: rosterPublic_('rec', id) };
 }
@@ -1718,6 +1743,7 @@ function rosterCheckIn_(form, id, d, role) {
   var list = rosterGet_(form, id), me = null, name = clean_(d.who, 60).replace(/\s+/g, ' ');
   list.forEach(function (x) { if (x.dev === dev) me = x; });
   if (me && me.removed) return me;
+  if (me && me.role === 'co-lead') role = 'co-lead';     // an added lead stays one (website v0.27.24)
   var cache = CacheService.getScriptCache(), seenKey = 'seen:' + form + ':' + dev, nowText = stamp_();
   if (!me) {
     rosterTab_().appendRow([form, id, dev, safe_(name), role || '', nowText, nowText, '', '']);
@@ -1738,9 +1764,10 @@ function rosterCheckIn_(form, id, d, role) {
 // What the lead and HQ see: everyone not removed, lead first, then by name.
 function rosterPublic_(form, id) {
   return rosterGet_(form, id).filter(function (x) { return !x.removed; })
-    .sort(function (a, b) { return (a.role === 'lead' ? 0 : 1) - (b.role === 'lead' ? 0 : 1) || a.name.localeCompare(b.name); })
+    .sort(function (a, b) { return rosterRank_(a.role) - rosterRank_(b.role) || a.name.localeCompare(b.name); })
     .map(function (x) { return { dev: x.dev, name: x.name, role: x.role, lastMs: x.lastMs }; });
 }
+function rosterRank_(role) { return role === 'lead' ? 0 : role === 'co-lead' ? 1 : 2; }
 // Remove a responder. The lead (Escalation: the worksheet's edit key; Reception: the lead key) or HQ (logged in).
 function rosterRemove_(d) {
   var form = askForm_(d.form), id = escId_(d.id), dev = rosterDev_(d.dev), by = '';
@@ -1749,16 +1776,43 @@ function rosterRemove_(d) {
     var key = escKey_(d.key), sh = escTab_(), row = escFindRow_(sh, id);
     if (row && key && escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta.k === escKeyMark_(id, key)) by = 'Lead';
   } else {
-    var lc = recCenter_(id, escKey_(d.leadKey), 'lead');
+    var lc = recLeadAuth_(id, d);
     if (lc && lc.ok) by = 'Lead';
   }
-  if (!by && d.token && !escDenied_(d)) by = 'HQ';
+  if (d.token && !escDenied_(d)) by = 'HQ';      // HQ wins: only HQ may remove an added lead
   if (!by) return { ok: false, login: true, error: 'Only the lead or HQ can remove a responder.' };
   var me = null;
   rosterRows_(form, id).forEach(function (x) { if (x.dev === dev) me = x; });
   if (!me) return { ok: false, error: 'That person is not on this event any more.' };
-  if (me.role === 'lead') return { ok: false, error: 'The lead cannot be removed.' };
+  if (me.role === 'lead') return { ok: false, error: 'The lead who started this cannot be removed.' };
+  if (me.role === 'co-lead' && by !== 'HQ') return { ok: false, error: 'Only HQ can remove a lead.' };
   rosterTab_().getRange(me.row, 8, 1, 2).setValues([['YES', by + ' ' + stamp_()]]);
+  rosterForget_(form, id);
+  return { ok: true, roster: rosterPublic_(form, id) };
+}
+/* ADD A LEAD (website v0.27.24). A lead or HQ makes someone already on the event a lead too ("co-lead"
+   in the Role column). Their phone gets the lead's buttons the next time it checks in. Nobody stops
+   being a lead: two or more can work at once, or the first lead can hand over and leave the scene.
+   Only HQ can take an added lead off (Remove); the lead who started the event cannot be removed.
+   d.dev = the person being made a lead. Who is asking: Escalation, the worksheet's edit key plus the
+   asking phone's code (d.me), which must be a lead; Reception, see recLeadAuth_. Or HQ, logged in. */
+function makeLead_(d) {
+  var form = askForm_(d.form), id = escId_(d.id), dev = rosterDev_(d.dev), by = '';
+  if (!form || !id || !dev) return { ok: false, error: 'Bad request.' };
+  if (form === 'esc') {
+    var key = escKey_(d.key), sh = escTab_(), row = escFindRow_(sh, id), asker = rosterDev_(d.me);
+    if (row && key && asker && escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta.k === escKeyMark_(id, key) &&
+        rosterGet_('esc', id).some(function (x) { return x.dev === asker && !x.removed && (x.role === 'lead' || x.role === 'co-lead'); })) by = 'Lead';
+  } else {
+    var lc = recLeadAuth_(id, d);
+    if (lc && lc.ok) by = 'Lead';
+  }
+  if (!by && d.token && !escDenied_(d)) by = 'HQ';
+  if (!by) return { ok: false, login: true, error: 'Only a lead or HQ can add a lead.' };
+  var me = null;
+  rosterRows_(form, id).forEach(function (x) { if (x.dev === dev) me = x; });
+  if (!me || me.removed) return { ok: false, error: 'That person is not on this event any more.' };
+  if (me.role !== 'lead' && me.role !== 'co-lead') rosterTab_().getRange(me.row, 5).setValue('co-lead');
   rosterForget_(form, id);
   return { ok: true, roster: rosterPublic_(form, id) };
 }
