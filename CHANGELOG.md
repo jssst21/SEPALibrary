@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.22 (Oct 15, 2026)
+- SEPA TOOLS APP back to the STANDARD LOOK (v0.27.19): red background, English labels, Announcements bar, Call for Help alone at the bottom, no Volunteer of the Month. The blue / Spanish test (v0.27.20-21) is done.
+  - App cache is now sepa-tools-13 so phones pick up the change.
+- Version number is now ?v=0.27.22 on every page and the homepage footer reads v0.27.22
+
 ## v0.27.21 (Oct 15, 2026)
 - FIX for v0.27.20: the app's button screen (app/index.html) did not actually get the blue / Spanish / Volunteer of the Month changes in v0.27.20 (only the version numbers, cache number and phone top-bar color went up). They are in now, exactly as described under v0.27.20.
   - App cache is now sepa-tools-12 so phones pick up the change.
