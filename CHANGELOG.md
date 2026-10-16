@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.27.38 (Oct 16, 2026)
+- SEPA TOOLS APP: LOGO MADE SMALL SO "SHARE SEPA TOOLS" IS ON SCREEN AGAIN (Sean: the v0.27.37 logo card pushed the Share button off the bottom; it is crucial people see it). No Google script change: push only.
+  - The logo is now a slim white pill (small cross and SEPA TOOLS side by side), no taller than the old "SEPA Tools" heading. The Share button sits where it did before v0.27.37 (checked on 375, 390 and 430 wide phones).
+  - Kept: Onboarding button, raised buttons (the shadows take no extra room), glossy home-screen icon.
+  - App cache number now sepa-tools-17.
+- Version number is now ?v=0.27.38 on every page and the homepage footer reads v0.27.38
+
 ## v0.27.37 (Oct 16, 2026)
 - SEPA TOOLS APP: NEW LOGO, RAISED BUTTONS, NEW HOME-SCREEN ICON. No Google script change: push only. (v0.27.36 below goes out in the same push.)
   - The "SEPA Tools" heading is now the SEPA Resource Library logo reading SEPA TOOLS, in a white card like the website's (drawn in the page, no new file). "Red Cross SEPA Disaster Action Team" stays under it.
