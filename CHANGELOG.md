@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.27.37 (Oct 16, 2026)
+- SEPA TOOLS APP: NEW LOGO, RAISED BUTTONS, NEW HOME-SCREEN ICON. No Google script change: push only. (v0.27.36 below goes out in the same push.)
+  - The "SEPA Tools" heading is now the SEPA Resource Library logo reading SEPA TOOLS, in a white card like the website's (drawn in the page, no new file). "Red Cross SEPA Disaster Action Team" stays under it.
+  - Buttons look raised (Sean: like a drop shadow in Word): softer, deeper shadow, slightly darker bottom edge, faint shine on top; a tapped button sinks down a little. No mouse-over effect.
+  - New home-screen icon (Sean chose option A, glossy): the logo with SEPA TOOLS on a glossy white background. icon-512, icon-192, apple-touch-icon, icon-512-maskable and favicon-32 replaced. New installs get it at once; Android updates it on its own (usually within a day); an iPhone that already has the app keeps the old icon until the app is deleted and added again.
+  - "Then tap the red SEPA Tools icon" now reads "Then tap the SEPA Tools icon" (app, iPhone and Android instruction pages), as the icon is no longer red.
+  - App cache number now sepa-tools-16.
+- Version number is now ?v=0.27.37 on every page and the homepage footer reads v0.27.37
+
+## v0.27.36 (Oct 16, 2026)
+- SEPA TOOLS APP: "Register for Events" is now "Onboarding" (Sean: the Volunteer Connection calendar it opened looks awful). Same spot, graduation-cap picture, opens the site's Onboarding page (pages/new.html). The picture of the app on the Get the App page (get-app/index.html) matches. No Google script change: push only.
+  - App cache number now sepa-tools-15 (app/sw.js) so phones pick it up; the app description (manifest) no longer mentions RC Reserve.
+  - A seasonal look (colours changing by date) was mocked up and turned down: changing colours would only confuse people.
+- Version number is now ?v=0.27.36 on every page and the homepage footer reads v0.27.36
+
 ## v0.27.35 (Oct 16, 2026)
 - DISCUSSION FORUMS EASIER TO TELL APART (Sean: boards and threads looked too alike). No Google script change: push only.
   - Each board has its own colour and picture: New to the Red Cross teal (question mark), General Discussion navy (speech bubbles), Odd or unusual responses amber (warning sign), Photos and shout outs purple (camera), Suggestions green (light bulb), RC Platform Help blue (computer screen). Set in css/style.css (.fb-<board id>) and js/forums.js (ICONS, SHORT). A board added later gets the navy look until it is added there.
