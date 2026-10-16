@@ -1801,3 +1801,40 @@ a.f-chip:hover { background: var(--bt); }
 .sr-box.sr-carry { border: 2px solid var(--red); background: #fffafa; }
 .sr-box.sr-carry .sr-h { color: var(--red); }
 .sr-box.sr-carry .sr-log { margin-top: 10px; }
+
+/* =========================================================
+   CURRENT OPERATIONS (js/current-ops.js, website v0.27.42): the open events at the top of the Start
+   screen of the Escalation, Reception Center and Daily Shelter Report forms.
+   ========================================================= */
+.co-box { margin: 16px 0 0; padding: 14px 16px; border: 2px solid var(--navy); border-radius: 12px; background: #eef2f8; }
+.co-box[hidden], .co-or[hidden] { display: none; }
+.co-h { margin: 0 0 4px; font-family: "Source Serif 4", Georgia, serif; font-size: 22px; color: var(--navy); }
+.co-how { margin: 0 0 10px; font-size: 15px; color: var(--ink-soft); }
+.co-sub { margin: 12px 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.co-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 8px; padding: 12px 14px; border-radius: 10px; background: var(--navy); color: #fff; text-decoration: none; }
+.co-item:hover { background: #162844; }
+.co-text { min-width: 0; }
+.co-text strong { display: block; font-size: 17px; overflow-wrap: anywhere; }
+.co-text span { display: block; margin-top: 2px; font-size: 13.5px; opacity: .88; }
+.co-item b { flex: none; padding: 6px 14px; border-radius: 999px; background: #fff; color: var(--navy); font-size: 15px; }
+.co-item.co-hq { background: #fff; color: var(--navy); border: 1.5px solid #c9d6e8; }
+.co-item.co-hq:hover { border-color: var(--navy); }
+.co-item.co-hq b { background: var(--navy); color: #fff; }
+.co-or { margin: 18px 0 0; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); text-align: center; }
+
+/* Log box: flagged + 3 newest visible, older ones scroll inside (v0.27.43) */
+.sr-log-wrap { position: relative; }
+.sr-log-wrap.sr-scrolls { overflow-y: auto; -webkit-overflow-scrolling: touch; border-bottom: 2px solid var(--line); box-shadow: inset 0 -14px 12px -12px rgba(0, 0, 0, .22); }
+.sr-log-more { margin: 8px 0 0; font-size: 14px; color: var(--ink-soft); }
+.sr-log-more[hidden], .sr-log-all[hidden] { display: none; }
+.esc-btn.sr-log-all { display: block; width: 100%; margin-top: 10px; }
+.esc-btn.sr-log-all[hidden] { display: none; }
+.f-modal.sr-all-modal .f-modal-box { max-width: 640px; max-height: 88vh; overflow-y: auto; }
+
+/* "Please explain" under some Yes / No questions (v0.27.43) */
+.sr-q.sr-explain { margin: 10px 0 0 14px; padding: 8px 0 0 12px; border-top: 0; border-left: 3px solid var(--red); }
+.sr-q.sr-explain[hidden] { display: none; }
+.sr-explain-label { display: block; font-size: 15px; font-weight: 700; color: var(--red); }
+
+/* A greyed-out side of the view switch (v0.27.43: Previous days before the shelter has an earlier day) */
+.vt .vt-off { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; font-size: 17px; font-weight: 700; color: #a3aab6; background: #f1f3f6; cursor: not-allowed; }

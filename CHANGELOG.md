@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.27.43 (Oct 16, 2026)
+- DAILY SHELTER REPORT: THREE CHANGES. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version): the script now accepts the explanation answers (q7x, q9x, q10x, q15x).
+  - Running log stays a fixed size (Sean: entries were pushing the rest of the form down): flagged issues plus the 3 newest entries show; older ones scroll inside the box (soft shadow at the bottom, "N earlier entries" line). New "See all of today's entries" button opens every entry in one pop-up (read only; flagged first, then newest first). Entries saved in the same second now always sort newest first.
+  - "Please explain:" box opens under question 7 on Yes, 9 on No, 10 on Yes and 15 on Yes. Saves as you type with name and time; stays open if something is typed even if the answer changes. Excel: an Explanation column next to each of those four questions.
+  - Bug fix (Sean): on a shelter's first day, "Previous days" opened an empty screen. The switch is now greyed out and cannot be tapped until there is an earlier day, and comes alive by itself after midnight (js/view-bar.js: a greyed-out side, used only here).
+- Version number is now ?v=0.27.43 on every page and the homepage footer reads v0.27.43
+
+## v0.27.42 (Oct 16, 2026)
+- "CURRENT OPERATIONS" AT THE TOP OF THE ESCALATION, RECEPTION CENTER AND DAILY SHELTER REPORT START SCREENS (Sean: if you open the page you are probably looking for the one happening right now; he named the box). No Google script change: push only.
+  - New js/current-ops.js. First list: the worksheets / reception centers / shelters this phone is on that are still open (each checked with the Google script; cleared or closed ones drop off). Second list, only on a phone logged in as HQ: every open one. Tap Open to go straight in. Below the box: "Or start a new one" / "Or open a new shelter", then the usual Start screen.
+  - Nothing open: no box, the page looks as before. A phone that already has a current worksheet or center still opens it directly, as before.
+  - Shelter Report: the old "Your shelters" list is replaced by the box.
+- Version number is now ?v=0.27.42 on every page and the homepage footer reads v0.27.42
+
 ## v0.27.41 (Oct 16, 2026)
 - DAILY SHELTER REPORT: FLAGGED ISSUES, CARRIED-OVER ISSUES, NOTHING REQUIRED. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - Running log: "Flag as an issue" tick box when adding an entry, and a "Flag as an issue" / "Remove flag" link on each entry. Flagged entries are red, labelled FLAGGED ISSUE, show who flagged them and when, and sit at the top of the log whatever their time. Anyone on the shelter can flag or unflag today's entries; only HQ can flag an entry on a locked earlier day.

@@ -115,6 +115,8 @@
   // Start a new reception center. This phone becomes its lead.
   function startPanel() {
     $('rec-start').hidden = false;
+    // v0.27.42: open reception centers first ("Current Operations", js/current-ops.js), then starting a new one
+    if (typeof SEPACurrentOps !== 'undefined') SEPACurrentOps.show('rec', $('rec-start'), 'Or start a new one');
     var carried = lsGet('sepaRecNote');
     if (carried) { notice(carried + ' Its intakes were deleted.'); lsSet('sepaRecNote', ''); }
     // Removed by the lead or HQ (v0.27.3): say so first, then offer to start a new one.

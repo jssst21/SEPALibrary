@@ -20,7 +20,8 @@ var SEPAViewBar = (function () {
   var bar = null, opts = null;
 
   // o = { on: 'a' | 'b',                       which side of the switch this page is
-  //       a: { label, href }, b: { label, href },   the two views (a = Intake / Worksheet, b = Summary)
+  //       a: { label, href }, b: { label, href, disabled },   the two views (a = Intake / Worksheet, b = Summary);
+  //         b.disabled = a short reason: the second side is shown greyed out and cannot be tapped (v0.27.43)
   //       showSwitch: true/false,
   //       name: 'Norristown Rec Center',
   //       change: null, or { label: 'Change center', title, note, load(done), allHref, allLabel },
@@ -38,7 +39,8 @@ var SEPAViewBar = (function () {
     }
     var sw = o.showSwitch ? '<nav class="vt" aria-label="Switch view">' +
       '<a href="' + esc(o.a.href) + '"' + (o.on === 'a' ? ' class="on" aria-current="page"' : '') + '>' + ICON.form + esc(o.a.label) + '</a>' +
-      '<a href="' + esc(o.b.href) + '"' + (o.on === 'b' ? ' class="on" aria-current="page"' : '') + '>' + ICON.chart + esc(o.b.label) + '</a></nav>' : '';
+      (o.b.disabled ? '<span class="vt-off" aria-disabled="true" title="' + esc(o.b.disabled) + '">' + ICON.chart + esc(o.b.label) + '</span></nav>'   // greyed out (v0.27.43)
+        : '<a href="' + esc(o.b.href) + '"' + (o.on === 'b' ? ' class="on" aria-current="page"' : '') + '>' + ICON.chart + esc(o.b.label) + '</a></nav>') : '';
     var ch = o.change ? '<button type="button" class="vt-change">' + esc(o.change.label) + ' ' + ICON.chev + '</button>' : '';
     var A = o.actions, acts = A ? '<div class="vt-acts"><button type="button" class="vt-new">' + esc(A.newLabel) + '</button>' +
       (A.hqHref ? '<a class="vt-hq" href="' + esc(A.hqHref) + '">Switch to HQ view</a>' : '') + '</div>' +

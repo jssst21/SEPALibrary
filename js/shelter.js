@@ -18,6 +18,8 @@
   if (!$('sr-today')) return;
 
   // The 16 questions (the Red Cross shelter status check). 'yn' = Yes / No; 'tx' = typed answer.
+  // v0.27.43: a 4th item on a Yes / No question ('Yes' or 'No') opens a "Please explain" box for that answer
+  // (Sean: 7 Yes, 9 No, 10 Yes, 15 Yes). The explanation is saved as its own answer, e.g. q7x.
   var QS = [
     ['yn', "Yesterday's midnight shelter count was submitted?"],
     ['yn', 'Shift inspection complete in the last 24 hours?'],
@@ -25,15 +27,15 @@
     ['yn', 'Shift briefing complete in the last 24 hours?'],
     ['yn', 'Resident meeting complete in the last 24 hours?'],
     ['yn', 'Is a MCPC available at the shelter with sufficient funds?'],
-    ['yn', 'Are there Red Cross standards that are not being met at the shelter?'],
+    ['yn', 'Are there Red Cross standards that are not being met at the shelter?', '', 'Yes'],
     ['tx', 'What are the most important issues you are experiencing? Please specify:', 'Examples: security needed, need pet services, lack of heating/cooling, shelter capacity exceeded, large numbers of non-dormitory clients seeking services.'],
-    ['yn', 'Were meal orders received on time and met client needs?'],
-    ['yn', 'Are there outstanding issues reported to DRO HQ including material supplies and facility issues that are not being resolved?'],
+    ['yn', 'Were meal orders received on time and met client needs?', '', 'No'],
+    ['yn', 'Are there outstanding issues reported to DRO HQ including material supplies and facility issues that are not being resolved?', '', 'Yes'],
     ['tx', 'What client needs are not being met? Please specify:', 'Examples: function and access, adequate toilet and shower facilities, reunification, health/cultural/religious dietary meals and infant needs.'],
     ['tx', 'Do clients have adequate access to Disaster Health Services, Disaster Mental Health, Disaster Spiritual Care and Shelter Resident Transition at the shelter site? What specific shortfalls must be addressed? Please specify:'],
     ['tx', 'How is the morale and wellbeing of the shelter workers? Are there issues that need to be addressed? Please specify:'],
     ['tx', 'Are additional shelter workers needed to provide effective services to clients and why? Please specify:'],
-    ['yn', 'Does the shelter workforce need any additional training to effectively operate the shelter or provide culturally competent service delivery?'],
+    ['yn', 'Does the shelter workforce need any additional training to effectively operate the shelter or provide culturally competent service delivery?', '', 'Yes'],
     ['tx', 'Which shelter workers will out-process in the next 48 hours? Please specify:']
   ];
 
@@ -134,13 +136,13 @@
     return call(auth({ action: 'shExport', id: id })).then(function (r) {
       if (!(r && r.ok)) return r;
       var rows = [['Daily Shelter Report', r.shelter.name], ['Address', r.shelter.address], ['Opened', r.shelter.opened], [],
-        ['STATUS CHECK, one row per day'], ['Day'].concat(QS.map(function (q, i) { return (i + 1) + '. ' + q[1]; })).concat(['Answered by (question: name, time)'])];
+        ['STATUS CHECK, one row per day'], ['Day'].concat([].concat.apply([], QS.map(function (q, i) { return q[3] ? [(i + 1) + '. ' + q[1], (i + 1) + '. Explanation'] : [(i + 1) + '. ' + q[1]]; }))).concat(['Answered by (question: name, time)'])];
       r.days.forEach(function (d) {
         var who = [];
-        rows.push([d.day].concat(QS.map(function (q, i) {
-          var a = d.answers['q' + (i + 1)]; if (a && a.v) who.push((i + 1) + ': ' + a.by + ' ' + clock(a.at));
-          return a ? a.v : '';
-        })).concat([who.join('; ')]));
+        rows.push([d.day].concat([].concat.apply([], QS.map(function (q, i) {
+          var a = d.answers['q' + (i + 1)], x = d.answers['q' + (i + 1) + 'x']; if (a && a.v) who.push((i + 1) + ': ' + a.by + ' ' + clock(a.at));
+          return q[3] ? [a ? a.v : '', x ? x.v : ''] : [a ? a.v : ''];
+        }))).concat([who.join('; ')]));
       });
       rows.push([], ['RUNNING LOG'], ['Day', 'Time', 'Supervisor', 'Entry', 'Edited', 'Flagged']);
       r.log.forEach(function (e) { rows.push([e.day, clock(e.at), e.by, e.text, e.edited, e.flag]); });
@@ -155,16 +157,14 @@
   var URL_ = window.URL || window.webkitURL;
 
   // ================================================================ START SCREEN
+  var startShown = false;
   function startScreen() {
     $('sr-start').hidden = false;
-    var list = mine(), box = $('sr-mine');
-    $('sr-mine-box').hidden = !list.length;
-    box.innerHTML = '';
-    list.forEach(function (x) {
-      var a = el('a', 'vt-item'); a.href = pageLink('s=' + x.id);
-      a.appendChild(el('strong', '', x.name || 'Shelter')); a.appendChild(el('span', '', 'Tap to open its report'));
-      box.appendChild(a);
-    });
+    if (startShown) return; startShown = true;
+    // v0.27.42: "Your shelters" became "Current Operations" at the top (js/current-ops.js): this phone's
+    // open shelters (checked), and for HQ every open shelter. Then "Or open a new shelter".
+    $('sr-mine-box').hidden = true;
+    if (typeof SEPACurrentOps !== 'undefined') SEPACurrentOps.show('sh', $('sr-start'), 'Or open a new shelter');
     var f = $('sr-open-form');
     f.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -260,7 +260,9 @@
         } } : null;
       var q = 's=' + id + (asHq ? '&as=hq' : '');
       SEPAViewBar.show({ on: prev ? 'b' : 'a', showSwitch: true,
-        a: { label: "Today's report", href: pageLink(q) }, b: { label: 'Previous days', href: pageLink(q + '&v=prev') },
+        a: { label: "Today's report", href: pageLink(q) },
+        // v0.27.43: greyed out until the shelter has an earlier day (Sean: on day one it led to an empty screen)
+        b: { label: 'Previous days', href: pageLink(q + '&v=prev'), disabled: S.days ? '' : 'No earlier days yet. Today\'s report moves here at midnight.' },
         name: S.name + (S.hq ? ' (HQ)' : ''), change: change, actions: null });
     }
 
@@ -280,7 +282,8 @@
         notice(oldScript(r) ? 'The Daily Shelter Report is not switched on yet. The site admin needs to update the Google script.' : (r && r.error) || 'Could not connect. Please check your signal and reload.');
         return;
       }
-      S.name = r.shelter.name; S.hq = !!r.hq; S.joinKey = r.joinKey || '';
+      S.name = r.shelter.name; S.hq = !!r.hq; S.joinKey = r.joinKey || ''; S.days = (r.days || []).length;
+      if (prev && !S.days) { location.replace(pageLink('s=' + id + (asHq ? '&as=hq' : ''))); return; }   // nothing to show yet
       if (key) remember(id, S.name);
       document.title = S.name + ' - Daily Shelter Report';
       $('sr-title').textContent = 'Daily Shelter Report';
@@ -316,6 +319,8 @@
       function setFlag(on) { var f = $('sr-flag'); f.setAttribute('aria-pressed', on ? 'true' : 'false'); f.classList.toggle('on', on); $('sr-log-btn').textContent = on ? 'Add flagged issue to the log' : 'Add to the log'; }
       $('sr-flag').onclick = function () { setFlag(this.getAttribute('aria-pressed') !== 'true'); };
       $('sr-add').onclick = openAdd;
+      $('sr-log-all').onclick = openAll;
+      window.addEventListener('resize', function () { fitLog(); });
       $('sr-close').onclick = openClose;
       $('sr-dl').onclick = function () { var b = this; b.disabled = true; download(id, auth).then(function (x) { b.disabled = false; if (x && x.login) needLogin('', function () {}); }); };
       setInterval(function () { if (!document.hidden) poll(false); }, 6000);
@@ -338,12 +343,17 @@
         pending = {};
       }
       S.today = r.today; S.ms = r.ms; S.hq = !!r.hq; S.joinKey = r.joinKey || S.joinKey;
+      if ((r.days || []).length !== S.days) { S.days = (r.days || []).length; bar(); }   // after midnight the Previous days switch comes alive
       cur.day = r.today; cur.answers = r.report.answers || {};
       $('sr-date').textContent = dayName(r.today, true);
       $('sr-saved').textContent = r.report.saved ? clock(r.report.saved) + ' by ' + r.report.savedBy : 'Nothing saved yet today';
       fillQs($('sr-qs'), cur.answers, r.today);
       drawSups(r.sups || []);
+      var wrap = $('sr-log-wrap'), keep = wrap.scrollTop;
       drawLog($('sr-log'), r.report.log || [], r.today, '');
+      S.log = r.report.log || [];
+      fitLog(); wrap.scrollTop = keep;
+      if (!$('sr-all-modal').hidden) drawAll();
       drawCarry(r.carry || [], r.today);
       state('', false);
     }
@@ -382,6 +392,7 @@
               var now = b.classList.contains('on') ? '' : v;      // tap again to clear
               Array.prototype.forEach.call(g.children, function (x) { x.classList.toggle('on', x.dataset.v === now); x.setAttribute('aria-checked', x.dataset.v === now); });
               save(k, now, day, wrap);
+              showExplain(wrap, now);
             });
             b.setAttribute('role', 'radio');
             g.appendChild(b);
@@ -396,18 +407,40 @@
           wrap.appendChild(t);
         }
         wrap.appendChild(el('p', 'sr-by'));
+        if (q[0] === 'yn' && q[3]) {        // v0.27.43: the "Please explain" box
+          var x = el('div', 'sr-q sr-explain'), xk = k + 'x'; x.dataset.q = xk; x.dataset.when = q[3]; x.hidden = true;
+          var xl = el('label', 'sr-explain-label', 'Please explain:'); xl.htmlFor = 'srx-' + xk + (day || '');
+          var xt = el('textarea', 'esc-in sr-tx'); xt.rows = 3; xt.maxLength = 3000; xt.id = 'srx-' + xk + (day || ''); xt.readOnly = !editable;
+          xt.addEventListener('input', function () { pending[xk + day] = 1; state(); clearTimeout(timers[xk + day]); timers[xk + day] = setTimeout(function () { save(xk, xt.value, day, x); }, 1200); });
+          xt.addEventListener('blur', function () { if (pending[xk + day]) { clearTimeout(timers[xk + day]); save(xk, xt.value, day, x); } });
+          x.appendChild(xl); x.appendChild(xt); x.appendChild(el('p', 'sr-by'));
+          wrap.appendChild(x);
+        }
         box.appendChild(wrap);
       });
     }
+    // The explain box shows when the answer is the one that needs explaining, or when something is already typed in it.
+    function showExplain(wrap, v) {
+      var x = wrap.querySelector(':scope > .sr-explain'); if (!x) return;
+      var t = x.querySelector('textarea');
+      x.hidden = !(v === x.dataset.when || (t && t.value.trim()));
+      if (!x.hidden && v === x.dataset.when && document.activeElement && document.activeElement.tagName === 'BUTTON' && wrap.contains(document.activeElement)) setTimeout(function () { t.focus(); }, 50);
+    }
     function fillQs(box, answers, today, locked) {
-      Array.prototype.forEach.call(box.querySelectorAll('.sr-q'), function (wrap) {
+      var all = Array.prototype.slice.call(box.querySelectorAll('.sr-q'));
+      all.sort(function (x, y) { return y.classList.contains('sr-explain') - x.classList.contains('sr-explain'); });   // explanations first
+      all.forEach(function (wrap) {
         var k = wrap.dataset.q, a = answers[k] || {}, v = a.v || '';
         var busy = pending[k + (wrap.dataset.day || '')];
-        var t = wrap.querySelector('textarea');
+        var t = wrap.querySelector(':scope > textarea');
         if (t) { if (!busy && document.activeElement !== t) t.value = v; }
-        else if (!busy) Array.prototype.forEach.call(wrap.querySelectorAll('button'), function (b) { b.classList.toggle('on', b.dataset.v === v); b.setAttribute('aria-checked', b.dataset.v === v); });
+        else if (!busy) Array.prototype.forEach.call(wrap.querySelectorAll(':scope > .sr-yn > button'), function (b) { b.classList.toggle('on', b.dataset.v === v); b.setAttribute('aria-checked', b.dataset.v === v); });
         // v0.27.41: no question is required (Sean): nothing is marked as missing.
-        wrap.querySelector('.sr-by').textContent = v ? (a.by + ', ' + when(a.at, today) + (a.hq ? ' (changed by HQ after the day locked)' : '')) : '';
+        wrap.querySelector(':scope > .sr-by').textContent = v ? (a.by + ', ' + when(a.at, today) + (a.hq ? ' (changed by HQ after the day locked)' : '')) : '';
+        if (!wrap.classList.contains('sr-explain')) {
+          var on = wrap.querySelector(':scope > .sr-yn > button.on');
+          showExplain(wrap, on ? on.dataset.v : '');
+        }
       });
     }
     function save(k, v, day, wrap) {
@@ -423,7 +456,7 @@
           clearTimeout(timers[k + day]); timers[k + day] = setTimeout(function () { save(k, v, day, wrap); }, 5000);
           return;
         }
-        if (r.at) { var by = wrap.querySelector('.sr-by'); by.textContent = v ? r.by + ', ' + clock(r.at) + (day ? ' (changed by HQ after the day locked)' : '') : ''; }
+        if (r.at) { var by = wrap.querySelector(':scope > .sr-by'); by.textContent = v ? r.by + ', ' + clock(r.at) + (day ? ' (changed by HQ after the day locked)' : '') : ''; }
         if (!day) { S.ms = r.ms; poll(true); }
         state();
       });
@@ -431,7 +464,7 @@
     function flushAll() {
       Object.keys(timers).forEach(function (k) { clearTimeout(timers[k]); });
       Array.prototype.forEach.call(document.querySelectorAll('.sr-q'), function (wrap) {
-        var t = wrap.querySelector('textarea'), k = wrap.dataset.q, day = wrap.dataset.day || '';
+        var t = wrap.querySelector(':scope > textarea'), k = wrap.dataset.q, day = wrap.dataset.day || '';
         if (t && pending[k + day] && navigator.sendBeacon) {
           var o = auth({ action: 'shSave', q: k, v: t.value }); if (day) { o.day = day; o.asHq = true; }
           try { navigator.sendBeacon(URL, JSON.stringify(o)); } catch (e) {}
@@ -440,11 +473,12 @@
     }
 
     // ---- a log list. canEdit (HQ): Edit / Remove on each entry. day: which day (for reloading).
+    function entryMs(e) { return parseInt(String(e.id || '').slice(1, 9), 36) || 0; }   // entry ids start with the exact save time
     function drawLog(ul, list, today, day) {
       ul.innerHTML = '';
       if (!list.length) { ul.appendChild(el('li', 'sr-log-none', 'No entries yet.')); return; }
       // v0.27.41: flagged issues first (newest first among them), then everything else newest first
-      list.slice().sort(function (x, y) { return (!!y.flag - !!x.flag) || (x.at < y.at ? 1 : x.at > y.at ? -1 : 0); }).forEach(function (e) {
+      list.slice().sort(function (x, y) { return (!!y.flag - !!x.flag) || (x.at < y.at ? 1 : x.at > y.at ? -1 : 0) || (entryMs(y) - entryMs(x)); }).forEach(function (e) {
         var li = el('li', e.flag ? 'sr-flagged' : ''), head = el('small');
         if (e.flag) {
           var fl = el('span', 'sr-flag-label', 'Flagged issue');
@@ -470,6 +504,33 @@
         if (any) li.appendChild(tools);
         ul.appendChild(li);
       });
+    }
+    // v0.27.43: the log box shows the flagged issues and the 3 newest entries; older ones scroll inside the box,
+    // so a long day does not push the rest of the report down. "See all of today's entries" opens them all.
+    function fitLog() {
+      var wrap = $('sr-log-wrap'), ul = $('sr-log'), lis = ul.children, more = $('sr-log-more');
+      var flagged = ul.querySelectorAll('li.sr-flagged').length, show = flagged + 3, entries = (S.log || []).length;
+      $('sr-log-all').hidden = !entries;
+      if (lis.length <= show) { wrap.style.maxHeight = ''; wrap.classList.remove('sr-scrolls'); more.hidden = true; return; }
+      var last = lis[show - 1];
+      wrap.style.maxHeight = (last.offsetTop + last.offsetHeight + 2) + 'px';
+      wrap.classList.add('sr-scrolls');
+      var rest = lis.length - show;
+      more.textContent = rest + (rest === 1 ? ' earlier entry' : ' earlier entries') + ': scroll inside the box, or see them all below.';
+      more.hidden = false;
+    }
+    function drawAll() {
+      var ul = $('sr-all-list');
+      drawLog(ul, S.log || [], S.today, '');
+      Array.prototype.forEach.call(ul.querySelectorAll('.sr-log-tools'), function (t) { t.remove(); });   // read only here
+      $('sr-all-title').textContent = "All of today's entries (" + (S.log || []).length + ')';
+    }
+    function openAll() {
+      var m = $('sr-all-modal'); drawAll(); m.hidden = false;
+      function shut() { m.hidden = true; }
+      $('sr-all-x').onclick = shut; m.onclick = function (e) { if (e.target === m) shut(); };
+      document.addEventListener('keydown', function k(e) { if (e.key === 'Escape') { shut(); document.removeEventListener('keydown', k); } });
+      $('sr-all-x').focus();
     }
     // v0.27.41: flagged issues from earlier days, in their own box above the log, until someone removes the flag
     function drawCarry(list, today) {

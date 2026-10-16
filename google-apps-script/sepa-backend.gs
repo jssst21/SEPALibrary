@@ -2096,7 +2096,7 @@ function shDay_(d) {
 function shSave_(d) {
   var a = shAccess_(d); if (a.err) return a.err;
   var q = String(d.q || '');
-  if (!/^q([1-9]|1[0-6])$/.test(q)) return { ok: false, error: 'Unknown question.' };
+  if (!/^q([1-9]|1[0-6])x?$/.test(q)) return { ok: false, error: 'Unknown question.' };   // q7x etc.: the "Please explain" boxes (v0.27.43)
   var today = today_(), day = today;
   if (d.day && d.day !== today) {
     if (!a.hq) return { ok: false, locked: true, today: today, error: 'That day is locked. Only HQ can change it.' };

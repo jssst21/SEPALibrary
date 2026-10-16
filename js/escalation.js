@@ -559,6 +559,8 @@
   function startMode(id, notice) {
     var sec = $('esc-start'), err = $('esc-start-error'), btn = $('esc-start-btn');
     root.hidden = true; sec.hidden = false;
+    // v0.27.42: open worksheets first ("Current Operations", js/current-ops.js), then starting a new one
+    if (typeof SEPACurrentOps !== 'undefined') SEPACurrentOps.show('esc', sec, 'Or start a new one');
     var carried = lsGet('sepaEscNote');
     if (carried) { notice = carried; lsSet('sepaEscNote', ''); lsSet('sepaEscNoteOk', ''); }
     var gone = lsGet('sepaEscRemoved');      // removed by the lead or HQ (v0.27.3): say so, then offer a new one
