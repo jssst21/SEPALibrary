@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.40 (Oct 16, 2026)
+- DAILY SHELTER REPORT FIX. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version). Opening a shelter showed "Something went wrong" (Sean's first real try): the report read the Shelter Log tab before anything had created it. The script now makes all five shelter tabs first (shTabs_). The shelter Sean opened is kept and works once the script is updated.
+- DAILY SHELTER REPORT: "Lead user name" now reads just "User name" when opening or closing a shelter (Sean: "lead" there was confusing). The login itself is unchanged (lead / GiftOfLife). Leaving the boxes empty now says "Please type the user name and password." 
+- Version number is now ?v=0.27.40 on every page and the homepage footer reads v0.27.40
+
 ## v0.27.39 (Oct 16, 2026)
 - NEW: DAILY SHELTER REPORT (pages/shelter.html, js/shelter.js). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   A live report for each open shelter, kept by its shift supervisors, replacing the Red Cross form whose Save draft locked people out.

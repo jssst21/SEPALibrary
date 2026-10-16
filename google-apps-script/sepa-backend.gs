@@ -1977,6 +1977,9 @@ var SH_KEEP_DAYS = 14;
 var SH_QUESTIONS = 16;
 
 function shTab_() { makeTab_('Shelters', SH_HEADERS); return tab_('Shelters'); }
+/* Makes sure all the shelter tabs exist before anything reads them (v0.27.41: the first report after
+   opening a shelter failed because the Shelter Log tab did not exist yet). */
+function shTabs_() { shTab_(); shSupTab_(); shDayTab_(); shLogTab_(); shClosedTab_(); }
 function shSupTab_() { makeTab_('Shelter Supervisors', SH_SUP_HEADERS); return tab_('Shelter Supervisors'); }
 function shDayTab_() { makeTab_('Shelter Reports', SH_DAY_HEADERS); return tab_('Shelter Reports'); }
 function shLogTab_() { makeTab_('Shelter Log', SH_LOG_HEADERS); return tab_('Shelter Log'); }
@@ -1989,6 +1992,7 @@ function shIsClosed_(id) { return escFindRow_(shClosedTab_(), id) > 0; }
 
 /* The shelter's row, if this request may use it: the right link code, or an HQ login. */
 function shAccess_(d) {
+  shTabs_();
   var id = escId_(d.id);
   if (!id) return { err: { ok: false, error: 'This link cannot open the shelter report.' } };
   if (shIsClosed_(id)) return { err: { ok: true, closed: true } };
@@ -2140,6 +2144,7 @@ function shAddSup_(d) {
 
 // HQ: every open shelter, most recent activity first.
 function shList_(d) {
+  shTabs_();
   shPurge_();
   if (!shIsHq_(d)) return { ok: false, login: true, error: 'Please log in as HQ.' };
   var items = rows_('Shelters').map(function (r) {
@@ -2186,6 +2191,7 @@ function shPurge_(force) {
   if (!force && c.get('shPurge')) return;
   c.put('shPurge', '1', 600);
   var sh = tab_('Shelters'); if (!sh) return;
+  shTabs_();
   var cut = Date.now() - SH_KEEP_DAYS * 86400000;
   rows_('Shelters').forEach(function (r) { if ((Number(r[6]) || 0) < cut) shErase_(String(r[0]), 'automatic, no activity for ' + SH_KEEP_DAYS + ' days'); });
 }

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.39">
+<link rel="stylesheet" href="../css/style.css?v=0.27.40">
 </head>
 <body class="home sr-page">
 
@@ -17,7 +17,7 @@
        shelter.html?s=CODE#k=LINK    one shelter's report (the link "Add supervisor" sends; &n=Name after it fills in their name)
        ...&v=prev                    that shelter's previous days
        shelter.html?view=hq          HQ: log in, then every open shelter
-     Opening and closing a shelter need the lead user name and password; HQ uses the HQ login. Both are
+     Opening and closing a shelter need the lead user name and password (the page just says "User name", v0.27.40); HQ uses the HQ login. Both are
      the same as for the Escalation and Reception Center forms, kept in the Google Sheet's Settings tab,
      never in these website files. -->
 
@@ -35,12 +35,12 @@
   <section id="sr-start" hidden>
     <div class="esc-tools">
       <h2 class="esc-login-title">Open a new shelter</h2>
-      <p class="esc-how">Opening a shelter needs the <strong>lead</strong> user name and password. Supervisors you add later do not need it: they just open the link you send them.</p>
+      <p class="esc-how">Opening a shelter needs a user name and password. Supervisors you add later do not need it: they just open the link you send them.</p>
       <form id="sr-open-form" novalidate>
         <label class="field">Shelter name <input id="sr-o-name" autocomplete="off" maxlength="120" placeholder="e.g. Norristown High School"></label>
         <label class="field">Address <input id="sr-o-addr" autocomplete="off" maxlength="200" placeholder="Street, town"></label>
         <label class="field">Your name <input id="sr-o-me" autocomplete="name" maxlength="40" placeholder="First name and last initial"></label>
-        <label class="field">Lead user name <input id="sr-o-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+        <label class="field">User name <input id="sr-o-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
         <label class="field">Password <input id="sr-o-pass" type="password" autocomplete="current-password"></label>
         <p class="form-error" id="sr-open-error" hidden></p>
         <button class="primary-btn" type="submit" id="sr-open-btn">Open the shelter</button>
@@ -164,7 +164,7 @@
       <p class="esc-group-how" id="sr-close-nodl">Want a copy first? Ask HQ to download it for Excel before you close.</p>
       <form id="sr-close-form" novalidate>
         <div id="sr-close-creds">
-          <label class="field">Lead user name <input id="sr-c-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+          <label class="field">User name <input id="sr-c-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
           <label class="field">Password <input id="sr-c-pass" type="password" autocomplete="current-password"></label>
         </div>
         <p class="form-error" id="sr-close-error" hidden></p>
@@ -177,9 +177,9 @@
   </div>
 </div>
 
-<script src="../js/config.js?v=0.27.39"></script>
-<script src="../js/view-bar.js?v=0.27.39"></script>
-<script src="../js/shelter.js?v=0.27.39"></script>
-<script src="../js/close-tab.js?v=0.27.39"></script>
+<script src="../js/config.js?v=0.27.40"></script>
+<script src="../js/view-bar.js?v=0.27.40"></script>
+<script src="../js/shelter.js?v=0.27.40"></script>
+<script src="../js/close-tab.js?v=0.27.40"></script>
 </body>
 </html>

@@ -173,6 +173,7 @@
       err.hidden = true;
       if (!name) { err.textContent = 'Please type the shelter name.'; err.hidden = false; return; }
       if (!me) { err.textContent = 'Please type your name.'; err.hidden = false; return; }
+      if (!token() && (!$('sr-o-user').value.trim() || !$('sr-o-pass').value)) { err.textContent = 'Please type the user name and password.'; err.hidden = false; return; }
       var id = newId(), key = newId() + newId();
       btn.disabled = true; btn.textContent = 'Opening...';
       call({ action: 'shOpen', id: id, key: key, token: token(), shelter: name, address: $('sr-o-addr').value.trim(), me: me,
@@ -527,7 +528,10 @@
         var btn = $('sr-close-yes'), err = $('sr-close-error');
         btn.disabled = true; err.hidden = true;
         var o = { action: 'shClose', id: id };
-        if (S.hq) o.token = token(); else { o.user = $('sr-c-user').value; o.password = $('sr-c-pass').value; }
+        if (S.hq) o.token = token(); else {
+          o.user = $('sr-c-user').value; o.password = $('sr-c-pass').value;
+          if (!o.user.trim() || !o.password) { btn.disabled = false; err.textContent = 'Please type the user name and password.'; err.hidden = false; return; }
+        }
         call(o).then(function (r) {
           btn.disabled = false;
           if (!(r && r.ok)) { err.textContent = (r && r.error) || 'Could not connect. Please try again.'; err.hidden = false; return; }
