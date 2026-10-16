@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.40">
+<link rel="stylesheet" href="../css/style.css?v=0.27.41">
 </head>
 <body class="home sr-page">
 
@@ -77,12 +77,20 @@
       <ul class="sr-sups" id="sr-sups"></ul>
       <button type="button" class="primary-btn sr-navy" id="sr-add">+ Add supervisor</button>
     </div>
+    <!-- v0.27.41: flagged issues from earlier days that are still flagged -->
+    <div class="sr-box sr-carry" id="sr-carry" hidden>
+      <h2 class="sr-h">Carried-over issues</h2>
+      <p class="esc-how">Flagged on an earlier day and not yet dealt with. They stay here until someone removes the flag.</p>
+      <ul class="sr-log" id="sr-carry-list"></ul>
+    </div>
     <div class="sr-box">
       <h2 class="sr-h">Running log</h2>
-      <p class="esc-how">What happened, when. Each entry is stamped with the time and your name.</p>
+      <p class="esc-how">What happened, when. Each entry is stamped with the time and your name. Flagged issues stay in red at the top.</p>
       <form id="sr-log-form" novalidate>
         <label class="visually-hidden" for="sr-log-in">New log entry</label>
         <textarea class="esc-in" id="sr-log-in" rows="3" maxlength="3000" placeholder="Type what happened&hellip;"></textarea>
+        <!-- v0.27.41: flagged issues show in red at the top of the log until someone removes the flag -->
+        <button type="button" class="sr-flag-toggle" id="sr-flag" aria-pressed="false"><span class="sr-flag-box" aria-hidden="true"></span>Flag as an issue (shows in red at the top of the log)</button>
         <p class="form-error" id="sr-log-error" hidden></p>
         <button class="primary-btn" type="submit" id="sr-log-btn">Add to the log</button>
       </form>
@@ -92,7 +100,6 @@
       <h2 class="sr-h">Status check</h2>
       <dl class="sr-meta"><dt>Date of report</dt><dd id="sr-date"></dd><dt>Last saved</dt><dd id="sr-saved"></dd></dl>
       <p class="sr-state" id="sr-state" role="status"></p>
-      <p class="sr-miss" id="sr-miss" hidden></p>
       <div id="sr-qs"></div>
     </div>
     <div class="sr-box">
@@ -177,9 +184,9 @@
   </div>
 </div>
 
-<script src="../js/config.js?v=0.27.40"></script>
-<script src="../js/view-bar.js?v=0.27.40"></script>
-<script src="../js/shelter.js?v=0.27.40"></script>
-<script src="../js/close-tab.js?v=0.27.40"></script>
+<script src="../js/config.js?v=0.27.41"></script>
+<script src="../js/view-bar.js?v=0.27.41"></script>
+<script src="../js/shelter.js?v=0.27.41"></script>
+<script src="../js/close-tab.js?v=0.27.41"></script>
 </body>
 </html>

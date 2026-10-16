@@ -217,6 +217,7 @@ function doPost(e) {
       shSave: shSave_,
       shLog: shLog_,
       shLogEdit: shLogEdit_,
+      shLogFlag: shLogFlag_,
       shAddSup: shAddSup_,
       shList: shList_,
       shExport: shExport_,
@@ -1972,7 +1973,7 @@ function annList_() {
 var SH_HEADERS = ['ID', 'Opened', 'Shelter name', 'Address', 'Opened by', 'Last activity', 'Last activity ms (do not edit)', 'Link code (do not edit)'];
 var SH_SUP_HEADERS = ['Shelter ID', 'Name', 'Added', 'Added by'];
 var SH_DAY_HEADERS = ['Shelter ID', 'Day', 'Last saved', 'Last saved by', 'Answers (do not edit)'];
-var SH_LOG_HEADERS = ['Shelter ID', 'Entry ID', 'Day', 'Time', 'Supervisor', 'Entry', 'Edited'];
+var SH_LOG_HEADERS = ['Shelter ID', 'Entry ID', 'Day', 'Time', 'Supervisor', 'Entry', 'Edited', 'Flagged'];   // Flagged since v0.27.41
 var SH_KEEP_DAYS = 14;
 var SH_QUESTIONS = 16;
 
@@ -1982,7 +1983,12 @@ function shTab_() { makeTab_('Shelters', SH_HEADERS); return tab_('Shelters'); }
 function shTabs_() { shTab_(); shSupTab_(); shDayTab_(); shLogTab_(); shClosedTab_(); }
 function shSupTab_() { makeTab_('Shelter Supervisors', SH_SUP_HEADERS); return tab_('Shelter Supervisors'); }
 function shDayTab_() { makeTab_('Shelter Reports', SH_DAY_HEADERS); return tab_('Shelter Reports'); }
-function shLogTab_() { makeTab_('Shelter Log', SH_LOG_HEADERS); return tab_('Shelter Log'); }
+function shLogTab_() {
+  makeTab_('Shelter Log', SH_LOG_HEADERS);
+  var sh = tab_('Shelter Log');
+  if (sh.getLastColumn() < SH_LOG_HEADERS.length) sh.getRange(1, 8, 1, 1).setValues([['Flagged']]).setFontWeight('bold');   // a tab made before v0.27.41
+  return sh;
+}
 function shClosedTab_() { makeTab_('Shelters closed', ['ID', 'Closed', 'How']); return tab_('Shelters closed'); }
 
 /* Is this a current HQ login (the HQ login of the Escalation and Reception Center forms)? */
@@ -2040,7 +2046,7 @@ function shDayRow_(id, day) {
 }
 function shLogFor_(id, day) {
   return rows_('Shelter Log').filter(function (r) { return String(r[0]) === id && (!day || asDateText_(r[2]) === day); })
-    .map(function (r) { return { id: String(r[1]), day: asDateText_(r[2]), at: iso_(r[3]), by: escText_(r[4]), text: escText_(r[5]), edited: escText_(r[6]) }; });
+    .map(function (r) { return { id: String(r[1]), day: asDateText_(r[2]), at: iso_(r[3]), by: escText_(r[4]), text: escText_(r[5]), edited: escText_(r[6]), flag: escText_(r[7]) }; });
 }
 function shReport_(id, day) {
   var dr = shDayRow_(id, day);
@@ -2072,7 +2078,9 @@ function shGet_(d) {
   if (d.since && String(d.since) === ms && d.day === today) return { ok: true, same: true, today: today, hq: a.hq };
   var res = { ok: true, today: today, ms: ms, hq: a.hq,
     shelter: { id: a.id, name: escText_(a.r[2]), address: escText_(a.r[3]), opened: iso_(a.r[1]), openedBy: escText_(a.r[4]) },
-    sups: shSups_(a.id), report: shReport_(a.id, today), days: shDays_(a.id, today) };
+    sups: shSups_(a.id), report: shReport_(a.id, today), days: shDays_(a.id, today),
+    // v0.27.41: flagged issues from earlier days that nobody has unflagged ("Carried-over issues")
+    carry: shLogFor_(a.id, '').filter(function (e) { return e.flag && e.day < today; }) };
   if (a.hq) res.joinKey = escText_(a.r[7]);
   return res;
 }
@@ -2113,8 +2121,25 @@ function shLog_(d) {
   var text = clean_(d.text, 3000);
   if (!text) return { ok: false, error: 'Please type something first.' };
   var now = new Date(), who = shWho_(a, d), eid = 'L' + now.getTime().toString(36) + Math.floor(Math.random() * 1296).toString(36);
-  shLogTab_().appendRow([a.id, eid, today_(), stamp_(now), safe_(who), safe_(text), '']);
-  return { ok: true, ms: String(shTouch_(a, now)), entry: { id: eid, at: stamp_(now), by: who, text: text } };
+  var flag = d.flag ? safe_('Flagged by ' + who + ' ' + stamp_(now)) : '';
+  shLogTab_().appendRow([a.id, eid, today_(), stamp_(now), safe_(who), safe_(text), '', flag]);
+  return { ok: true, ms: String(shTouch_(a, now)), entry: { id: eid, at: stamp_(now), by: who, text: text, flag: flag } };
+}
+// FLAG or unflag a log entry (website v0.27.41). Flagged entries show in red at the top of the log.
+// Anyone on the shelter can flag or unflag today's entries. Flagged entries from earlier days carry over
+// into a "Carried-over issues" box until someone removes the flag (anyone may); only HQ can flag an earlier day.
+function shLogFlag_(d) {
+  var a = shAccess_(d); if (a.err) return a.err;
+  var sh = shLogTab_(), data = sh.getDataRange().getValues(), eid = String(d.entry || ''), now = new Date(), who = shWho_(a, d);
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === a.id && String(data[i][1]) === eid) {
+      // An earlier day is locked, except that anyone may REMOVE the flag of a carried-over issue once it is dealt with.
+      if (asDateText_(data[i][2]) !== today_() && !a.hq && d.flag) return { ok: false, locked: true, error: 'That day is locked. Only HQ can change it.' };
+      sh.getRange(i + 1, 8, 1, 1).setValues([[d.flag ? safe_('Flagged by ' + who + ' ' + stamp_(now)) : '']]);
+      return { ok: true, ms: String(shTouch_(a, now)) };
+    }
+  }
+  return { ok: false, error: 'That entry was not found.' };
 }
 // HQ only: change or remove (empty text) a log entry, on any day. The entry stays, marked as edited by HQ.
 function shLogEdit_(d) {

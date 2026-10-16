@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.27.41 (Oct 16, 2026)
+- DAILY SHELTER REPORT: FLAGGED ISSUES, CARRIED-OVER ISSUES, NOTHING REQUIRED. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - Running log: "Flag as an issue" tick box when adding an entry, and a "Flag as an issue" / "Remove flag" link on each entry. Flagged entries are red, labelled FLAGGED ISSUE, show who flagged them and when, and sit at the top of the log whatever their time. Anyone on the shelter can flag or unflag today's entries; only HQ can flag an entry on a locked earlier day.
+  - Carried-over issues (Sean: in their own box): entries flagged on earlier days and still flagged show in a red box above the Running log until someone taps "Remove flag (dealt with)" (anyone may). The box hides when empty. The entries themselves stay in Previous days.
+  - Nothing is required any more (Sean): no red questions, asterisks or "questions not answered" count. Unanswered questions are just blank.
+  - Excel download: new Flagged column in the log. Google Sheet: new "Flagged" column in the Shelter Log tab (added by itself).
+- SEPA Tools app: a note in app/index.html (no visible change): whenever its buttons change, "Share SEPA Tools with someone" must still show without scrolling.
+- Version number is now ?v=0.27.41 on every page and the homepage footer reads v0.27.41
+
 ## v0.27.40 (Oct 16, 2026)
 - DAILY SHELTER REPORT FIX. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version). Opening a shelter showed "Something went wrong" (Sean's first real try): the report read the Shelter Log tab before anything had created it. The script now makes all five shelter tabs first (shTabs_). The shelter Sean opened is kept and works once the script is updated.
 - DAILY SHELTER REPORT: "Lead user name" now reads just "User name" when opening or closing a shelter (Sean: "lead" there was confusing). The login itself is unchanged (lead / GiftOfLife). Leaving the boxes empty now says "Please type the user name and password." 

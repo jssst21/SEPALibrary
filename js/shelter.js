@@ -142,8 +142,8 @@
           return a ? a.v : '';
         })).concat([who.join('; ')]));
       });
-      rows.push([], ['RUNNING LOG'], ['Day', 'Time', 'Supervisor', 'Entry', 'Edited']);
-      r.log.forEach(function (e) { rows.push([e.day, clock(e.at), e.by, e.text, e.edited]); });
+      rows.push([], ['RUNNING LOG'], ['Day', 'Time', 'Supervisor', 'Entry', 'Edited', 'Flagged']);
+      r.log.forEach(function (e) { rows.push([e.day, clock(e.at), e.by, e.text, e.edited, e.flag]); });
       var text = '﻿' + rows.map(function (row) { return row.map(csvCell).join(','); }).join('\r\n');
       var a = document.createElement('a');
       a.href = URL_.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
@@ -304,13 +304,17 @@
         var t = $('sr-log-in').value.trim(), err = $('sr-log-error'), btn = $('sr-log-btn');
         err.hidden = true; if (!t) return;
         btn.disabled = true;
-        call(auth({ action: 'shLog', text: t })).then(function (x) {
+        var flag = $('sr-flag').getAttribute('aria-pressed') === 'true';
+        call(auth({ action: 'shLog', text: t, flag: flag })).then(function (x) {
           btn.disabled = false;
           if (gone(x)) return;
           if (!(x && x.ok)) { err.textContent = (x && x.error) || 'Not saved: no connection. Please try again.'; err.hidden = false; return; }
-          $('sr-log-in').value = ''; poll(true);
+          $('sr-log-in').value = ''; setFlag(false); poll(true);
         });
       };
+      // v0.27.41: "Flag as an issue" (red) before adding an entry
+      function setFlag(on) { var f = $('sr-flag'); f.setAttribute('aria-pressed', on ? 'true' : 'false'); f.classList.toggle('on', on); $('sr-log-btn').textContent = on ? 'Add flagged issue to the log' : 'Add to the log'; }
+      $('sr-flag').onclick = function () { setFlag(this.getAttribute('aria-pressed') !== 'true'); };
       $('sr-add').onclick = openAdd;
       $('sr-close').onclick = openClose;
       $('sr-dl').onclick = function () { var b = this; b.disabled = true; download(id, auth).then(function (x) { b.disabled = false; if (x && x.login) needLogin('', function () {}); }); };
@@ -340,6 +344,7 @@
       fillQs($('sr-qs'), cur.answers, r.today);
       drawSups(r.sups || []);
       drawLog($('sr-log'), r.report.log || [], r.today, '');
+      drawCarry(r.carry || [], r.today);
       state('', false);
     }
     function state(msg, bad) {
@@ -395,20 +400,15 @@
       });
     }
     function fillQs(box, answers, today, locked) {
-      var missing = 0;
       Array.prototype.forEach.call(box.querySelectorAll('.sr-q'), function (wrap) {
         var k = wrap.dataset.q, a = answers[k] || {}, v = a.v || '';
         var busy = pending[k + (wrap.dataset.day || '')];
         var t = wrap.querySelector('textarea');
         if (t) { if (!busy && document.activeElement !== t) t.value = v; }
         else if (!busy) Array.prototype.forEach.call(wrap.querySelectorAll('button'), function (b) { b.classList.toggle('on', b.dataset.v === v); b.setAttribute('aria-checked', b.dataset.v === v); });
-        var has = t ? (busy || document.activeElement === t ? !!t.value.trim() : !!v) : !!v;
-        if (!has) missing++;
-        wrap.classList.toggle('sr-q-miss', !has && !locked);
-        wrap.querySelector('.sr-by').textContent = v ? (a.by + ', ' + when(a.at, today) + (a.hq ? ' (changed by HQ after the day locked)' : '')) : (locked ? 'Not answered' : 'Not answered yet');
+        // v0.27.41: no question is required (Sean): nothing is marked as missing.
+        wrap.querySelector('.sr-by').textContent = v ? (a.by + ', ' + when(a.at, today) + (a.hq ? ' (changed by HQ after the day locked)' : '')) : '';
       });
-      var m = box === $('sr-qs') ? $('sr-miss') : box.parentNode.querySelector('.sr-miss');
-      if (m) { m.hidden = !missing; m.textContent = missing === 1 ? '1 question not answered' + (locked ? '' : ' yet') : missing + ' questions not answered' + (locked ? '' : ' yet'); }
     }
     function save(k, v, day, wrap) {
       delete pending[k + day]; pending[k + day] = 1; sending++; state();
@@ -423,7 +423,7 @@
           clearTimeout(timers[k + day]); timers[k + day] = setTimeout(function () { save(k, v, day, wrap); }, 5000);
           return;
         }
-        if (r.at) { var by = wrap.querySelector('.sr-by'); by.textContent = v ? r.by + ', ' + clock(r.at) + (day ? ' (changed by HQ after the day locked)' : '') : (day ? 'Not answered' : 'Not answered yet'); wrap.classList.toggle('sr-q-miss', !v && !day); }
+        if (r.at) { var by = wrap.querySelector('.sr-by'); by.textContent = v ? r.by + ', ' + clock(r.at) + (day ? ' (changed by HQ after the day locked)' : '') : ''; }
         if (!day) { S.ms = r.ms; poll(true); }
         state();
       });
@@ -443,20 +443,58 @@
     function drawLog(ul, list, today, day) {
       ul.innerHTML = '';
       if (!list.length) { ul.appendChild(el('li', 'sr-log-none', 'No entries yet.')); return; }
-      list.slice().sort(function (x, y) { return x.at < y.at ? 1 : x.at > y.at ? -1 : 0; }).forEach(function (e) {     // newest first
-        var li = el('li'), head = el('small');
+      // v0.27.41: flagged issues first (newest first among them), then everything else newest first
+      list.slice().sort(function (x, y) { return (!!y.flag - !!x.flag) || (x.at < y.at ? 1 : x.at > y.at ? -1 : 0); }).forEach(function (e) {
+        var li = el('li', e.flag ? 'sr-flagged' : ''), head = el('small');
+        if (e.flag) {
+          var fl = el('span', 'sr-flag-label', 'Flagged issue');
+          li.appendChild(fl);
+        }
         head.appendChild(el('b', '', e.by)); head.appendChild(document.createTextNode(' · ' + when(e.at, today)));
         li.appendChild(head);
         if (e.text) li.appendChild(el('span', 'sr-log-text', e.text));
         else li.appendChild(el('span', 'sr-log-gone', 'This entry was removed by HQ.'));
         if (e.edited) li.appendChild(el('small', 'sr-edited', e.edited.replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/, function (t) { return when(t, today); })));
+        if (e.flag) li.appendChild(el('small', 'sr-flag-by', e.flag.replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/, function (t) { return when(t, today); })));
+        var tools = el('span', 'sr-log-tools'), any = false;
+        if (!day || S.hq) {      // today: anyone; an earlier day: HQ while editing it
+          var fb = el('button', 'link-btn sr-flag-btn', e.flag ? 'Remove flag' : 'Flag as an issue'); fb.type = 'button';
+          fb.addEventListener('click', function () { flagEntry(e, !e.flag, day, fb); });
+          tools.appendChild(fb); any = true;
+        }
         if (S.hq) {
-          var tools = el('span', 'sr-log-tools');
           var ed = el('button', 'link-btn', 'Edit (HQ)'); ed.type = 'button';
           ed.addEventListener('click', function () { editEntry(li, e, day); });
-          tools.appendChild(ed); li.appendChild(tools);
+          tools.appendChild(ed); any = true;
         }
+        if (any) li.appendChild(tools);
         ul.appendChild(li);
+      });
+    }
+    // v0.27.41: flagged issues from earlier days, in their own box above the log, until someone removes the flag
+    function drawCarry(list, today) {
+      var box = $('sr-carry'), ul = $('sr-carry-list');
+      box.hidden = !list.length; ul.innerHTML = '';
+      list.slice().sort(function (x, y) { return x.at < y.at ? 1 : -1; }).forEach(function (e) {
+        var li = el('li', 'sr-flagged'), head = el('small');
+        head.appendChild(el('b', '', e.by)); head.appendChild(document.createTextNode(' · ' + dayName(e.day, false) + ', ' + clock(e.at)));
+        li.appendChild(head);
+        if (e.text) li.appendChild(el('span', 'sr-log-text', e.text)); else li.appendChild(el('span', 'sr-log-gone', 'This entry was removed by HQ.'));
+        li.appendChild(el('small', 'sr-flag-by', e.flag.replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/, function (t) { return when(t, today); })));
+        var tools = el('span', 'sr-log-tools'), fb = el('button', 'link-btn sr-flag-btn', 'Remove flag (dealt with)'); fb.type = 'button';
+        fb.addEventListener('click', function () { flagEntry(e, false, '', fb); });
+        tools.appendChild(fb); li.appendChild(tools); ul.appendChild(li);
+      });
+    }
+    function flagEntry(e, on, day, btn) {
+      btn.disabled = true;
+      var o = auth({ action: 'shLogFlag', entry: e.id, flag: on }); if (day) o.asHq = true;
+      call(o).then(function (r) {
+        btn.disabled = false;
+        if (gone(r)) return;
+        if (r && r.locked) { notice(r.error); return; }
+        if (!(r && r.ok)) { notice((r && r.error) || 'Not saved: no connection. Please try again.'); return; }
+        if (day) openDay(day, true); else poll(true);
       });
     }
     function editEntry(li, e, day) {
@@ -589,7 +627,6 @@
         var hqWas = S.hq; if (!editing) S.hq = false; drawLog(ul, r.report.log || [], r.today, day); S.hq = hqWas;
         body.appendChild(el('h3', 'sr-h3', 'Status check'));
         body.appendChild(el('p', 'sr-meta-line', r.report.saved ? 'Last saved ' + when(r.report.saved, r.today) + ' by ' + r.report.savedBy : 'Nothing was saved in the status check that day.'));
-        var miss = el('p', 'sr-miss'); miss.hidden = true; body.appendChild(miss);
         var qs = el('div', 'sr-qs'); body.appendChild(qs);
         buildQs(qs, editing, day);
         Array.prototype.forEach.call(qs.querySelectorAll('.sr-q'), function (w) { w.dataset.day = day; });
