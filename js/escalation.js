@@ -671,7 +671,7 @@
     function auth(o) { o.token = token(); if (leadHere) { o.key = myKey; o.me = typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('esc', id) : ''; } return o; }
     var barShown = false;
     function changeWorksheet() {     // HQ: every recent worksheet, to jump between them (v0.27.27)
-      return { label: 'Change worksheet', title: 'Change worksheet', note: 'Recent worksheets, most recent change first.',
+      return { label: 'Change scene', title: 'Change scene', note: 'Recent scenes, most recent change first.',
         allHref: pageLink('view=list'), allLabel: 'See all worksheets on one page',
         load: function (done) {
           call({ action: 'escList', token: token() }).then(function (r) {

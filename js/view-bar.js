@@ -4,7 +4,7 @@
 //   - THE SWITCH between the two views of one event, in the same tab:
 //       Reception Center: Intake | Summary        Escalation: Worksheet | Scene Summary
 //     Shown to leads, and to HQ when the phone is also on that event.
-//   - CHANGE CENTER / CHANGE WORKSHEET (HQ only): a pop-up list of the open events; tap one to open it.
+//   - CHANGE CENTER / CHANGE SCENE (HQ only): a pop-up list of the open events; tap one to open it.
 //   - v0.27.29, under the switch: a red "Starting a new scene?" / "Starting a new reception center?"
 //     button (everyone on the event; asks once, then goes to the Start screen), and beside it
 //     "Switch to HQ view" (leads only; opens the HQ list, which asks for the HQ log in if needed).

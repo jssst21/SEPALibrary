@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.34 (Oct 16, 2026)
+- Escalation Form, HQ: the "Change worksheet" switch now says "Change scene" (Sean: more intuitive). No Google script change: push only.
+- Version number is now ?v=0.27.34 on every page and the homepage footer reads v0.27.34
+
 ## v0.27.33 (Oct 15, 2026)
 - REFRESH RATES BACK TO WHAT THEY WERE BEFORE v0.27.32 (Sean: back to 5 or 6 seconds). No Google script change: push only.
   - Escalation worksheet: sends 1 second after typing stops, checks every 5 seconds while busy (15 seconds after 2 quiet minutes). Scene Summary and Reception summary every 6 seconds. HQ lists every 15 seconds. Reception check-in every 20 seconds (every 5 while intakes wait for a signal). Lead's join requests every 10 seconds. "Waiting for the lead" every 5 seconds (20 after 10 minutes).
