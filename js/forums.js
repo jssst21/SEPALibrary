@@ -44,6 +44,31 @@
     return MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
   }
   function count(n) { return n >= 1000 ? (Math.round(n / 100) / 10) + 'K' : String(n); }
+  // v0.27.35: each board has its own colour and picture so boards and threads are easy to tell apart.
+  // The colours live in css/style.css (.fb-new, .fb-general ...). A board added later in the Google
+  // script simply gets the navy look and a speech-bubble picture until it is added here.
+  var ICONS = {
+    new: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/>',
+    general: '<path d="M4 5h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M19 9h1a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1v2.5L16 18h-4"/>',
+    unusual: '<path d="M12 3l9.5 16.5h-19z"/><path d="M12 10v4.5"/><circle cx="12" cy="17" r=".6" fill="currentColor"/>',
+    photos: '<path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
+    suggestions: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
+    platforms: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/>'
+  };
+  var SHORT = { new: 'New to the Red Cross', general: 'General Discussion', unusual: 'Odd or unusual responses',
+    photos: 'Photos, stories and shout outs', suggestions: 'Suggestions', platforms: 'RC Platform Help' };
+  function look(id) { return 'fb-' + (ICONS[id] ? id : 'general'); }
+  function icon(id, cls) {
+    var s = el('span', 'f-icon' + (cls ? ' ' + cls : '')); s.setAttribute('aria-hidden', 'true');
+    s.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[id] || ICONS.general) + '</svg>';
+    return s;
+  }
+  function shortName(b) { return SHORT[b.id] || String(b.title || 'Board').split(':')[0]; }
+  function chip(b, href) {   // the coloured "which board" label above a thread's title
+    var c = el(href ? 'a' : 'span', 'f-chip ' + look(b.id)); if (href) c.href = href;
+    c.appendChild(icon(b.id)); c.appendChild(el('span', '', shortName(b))); return c;
+  }
+  function today(t) { return /^Today/.test(when(t)); }
   function notice(msg) { var n = $('f-notice'); n.textContent = msg; n.hidden = !msg; }
   function initial(name) { return (String(name || '?').trim().charAt(0) || '?').toUpperCase(); }
   function avatar(name) {
@@ -287,7 +312,8 @@
       main.innerHTML = '';
       var list = el('div', 'f-boards');
       r.boards.forEach(function (b) {
-        var a = el('a', 'f-board' + (b.id === 'photos' ? ' f-board-photos' : '')); a.href = link('b=' + b.id);
+        var a = el('a', 'f-board ' + look(b.id)); a.href = link('b=' + b.id);
+        a.appendChild(icon(b.id, 'f-board-icon'));
         var txt = el('div', 'f-board-text'); txt.appendChild(el('h2', 'f-board-title', b.title)); txt.appendChild(el('p', 'f-board-desc', b.desc));
         a.appendChild(txt);
         var st = el('div', 'f-stats');
@@ -313,7 +339,11 @@
       $('f-title').textContent = b.title;
       crumbs([['Forums', link('')], [b.title.split(':')[0], '']]);
       main.innerHTML = '';
-      main.appendChild(el('p', 'page-intro f-board-intro', b.desc));
+      main.className = look(b.id);
+      var head = el('div', 'f-board-head');
+      head.appendChild(icon(b.id, 'f-board-icon'));
+      head.appendChild(el('p', 'f-board-head-desc', b.desc));
+      main.appendChild(head);
       if (b.id === 'photos') main.appendChild(photoRules(true));
       var bar = el('div', 'f-bar');
       var start = el('a', 'primary-btn f-start', '+ Start a new thread'); start.href = link('new=' + b.id);
@@ -326,7 +356,7 @@
       if (!r.threads.length) { main.appendChild(el('p', 'forum-status', 'No threads yet. Be the first to start one!')); return; }
       var list = el('div', 'f-threads');
       r.threads.forEach(function (t) {
-        var row = el('div', 'f-thread');
+        var row = el('div', 'f-thread' + (today(t.last) ? ' f-thread-new' : ''));
         row.appendChild(avatar(t.by));
         var mid = el('div', 'f-thread-main');
         var a = el('a', 'f-thread-title', t.title); a.href = link('t=' + t.id); mid.appendChild(a);
@@ -341,7 +371,9 @@
         }
         mid.appendChild(meta); row.appendChild(mid);
         var right = el('div', 'f-thread-right');
-        right.appendChild(el('span', 'f-replies', (t.posts - 1) + (t.posts - 1 === 1 ? ' reply' : ' replies')));
+        var rc = el('span', 'f-replies'); rc.appendChild(el('strong', '', String(t.posts - 1))); rc.appendChild(document.createTextNode(t.posts - 1 === 1 ? ' reply' : ' replies'));
+        right.appendChild(rc);
+        if (today(t.last)) right.appendChild(el('span', 'f-tag-new', 'Active today'));
         var last = el('a', 'f-thread-last', when(t.last) + (t.lastBy ? ' · ' + t.lastBy : '')); last.href = link('t=' + t.id + '&p=last');
         right.appendChild(last);
         row.appendChild(right);
@@ -379,6 +411,8 @@
       $('f-title').textContent = t.title;
       crumbs([['Forums', link('')], [(b.title || 'Board').split(':')[0], link('b=' + b.id)], ['Thread', '']]);
       main.innerHTML = '';
+      main.className = look(b.id);
+      $('f-title').parentNode.insertBefore(chip(b, link('b=' + b.id)), $('f-title'));
       var sub = el('p', 'f-thread-sub', 'Started by ' + t.by + ' · ' + when(t.started) + ' · ' + (t.posts - 1) + (t.posts - 1 === 1 ? ' reply' : ' replies'));
       main.appendChild(sub);
       var topBar = el('div', 'f-bar');
@@ -387,7 +421,7 @@
       topBar.appendChild(pager(r.page, r.pages, function (n) { return link('t=' + t.id + (n > 1 ? '&p=' + n : '')); }));
       main.appendChild(topBar);
       var list = el('div', 'f-posts');
-      r.posts.forEach(function (p, i) { list.appendChild(postEl(p, (r.page - 1) * r.perPage + i + 1, p.id === t.firstPost)); });
+      r.posts.forEach(function (p, i) { list.appendChild(postEl(p, (r.page - 1) * r.perPage + i + 1, p.id === t.firstPost, p.by === t.by)); });
       main.appendChild(list);
       main.appendChild(pager(r.page, r.pages, function (n) { return link('t=' + t.id + (n > 1 ? '&p=' + n : '')); }));
       // the reply box (only on the last page, so a new reply appears right above it)
@@ -411,12 +445,14 @@
     });
   }
 
-  function postEl(p, n, isFirst) {
-    var art = el('article', 'f-post' + (isFirst ? ' f-post-first' : '')); art.id = 'post-' + p.id;
+  function postEl(p, n, isFirst, byStarter) {
+    var art = el('article', 'f-post' + (isFirst ? ' f-post-first' : ' f-post-reply')); art.id = 'post-' + p.id;
+    if (isFirst) art.appendChild(el('div', 'f-post-label', 'Original post'));
     var side = el('div', 'f-post-side'); side.appendChild(avatar(p.by)); art.appendChild(side);
     var mainCol = el('div', 'f-post-main');
     var head = el('div', 'f-post-head');
     head.appendChild(el('strong', 'f-post-by', p.by));
+    if (byStarter && !isFirst) head.appendChild(el('span', 'f-tag-op', 'Started this thread'));
     head.appendChild(el('span', 'f-post-when', when(p.at) + (p.edited ? ' · edited' : '')));
     head.appendChild(el('span', 'f-post-num', '#' + n));
     mainCol.appendChild(head);

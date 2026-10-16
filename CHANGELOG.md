@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.27.35 (Oct 16, 2026)
+- DISCUSSION FORUMS EASIER TO TELL APART (Sean: boards and threads looked too alike). No Google script change: push only.
+  - Each board has its own colour and picture: New to the Red Cross teal (question mark), General Discussion navy (speech bubbles), Odd or unusual responses amber (warning sign), Photos and shout outs purple (camera), Suggestions green (light bulb), RC Platform Help blue (computer screen). Set in css/style.css (.fb-<board id>) and js/forums.js (ICONS, SHORT). A board added later gets the navy look until it is added there.
+  - Board list: coloured edge, picture tile and coloured title on each board.
+  - Inside a board: a header card with the board's picture and description; each thread is its own card with the board's colour down the side, every other one shaded; reply count as a coloured badge; "Active today" tag.
+  - Inside a thread: a coloured board label above the title (links back to the board); the first post marked "Original post" and set apart; replies indented with alternating shading; "Started this thread" tag on the starter's replies.
+- Version number is now ?v=0.27.35 on every page and the homepage footer reads v0.27.35
+
 ## v0.27.34 (Oct 16, 2026)
 - Escalation Form, HQ: the "Change worksheet" switch now says "Change scene" (Sean: more intuitive). No Google script change: push only.
 - Version number is now ?v=0.27.34 on every page and the homepage footer reads v0.27.34
