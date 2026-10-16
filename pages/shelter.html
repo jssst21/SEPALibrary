@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Shelter Report - SEPA Resource Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css?v=0.27.39">
+</head>
+<body class="home sr-page">
+
+<!-- DAILY SHELTER REPORT (website v0.27.39). js/shelter.js does the work; the Google script keeps the
+     data (see DAILY SHELTER REPORT in sepa-backend.gs).
+       shelter.html                  the Start screen: open a shelter, your shelters, HQ
+       shelter.html?s=CODE#k=LINK    one shelter's report (the link "Add supervisor" sends; &n=Name after it fills in their name)
+       ...&v=prev                    that shelter's previous days
+       shelter.html?view=hq          HQ: log in, then every open shelter
+     Opening and closing a shelter need the lead user name and password; HQ uses the HQ login. Both are
+     the same as for the Escalation and Reception Center forms, kept in the Google Sheet's Settings tab,
+     never in these website files. -->
+
+<div class="page-wrap">
+  <header class="page-top">
+    <a href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
+    <a class="back-link" href="../index.html">&times; Close this tab</a>
+  </header>
+
+  <h1 class="page-title" id="sr-title">Daily Shelter Report</h1>
+  <p class="page-intro" id="sr-intro">One running report per shelter, per day. It saves as you type.</p>
+  <p class="notice" id="sr-notice" hidden></p>
+
+  <!-- 1. Start: open a shelter / your shelters / HQ -->
+  <section id="sr-start" hidden>
+    <div class="esc-tools">
+      <h2 class="esc-login-title">Open a new shelter</h2>
+      <p class="esc-how">Opening a shelter needs the <strong>lead</strong> user name and password. Supervisors you add later do not need it: they just open the link you send them.</p>
+      <form id="sr-open-form" novalidate>
+        <label class="field">Shelter name <input id="sr-o-name" autocomplete="off" maxlength="120" placeholder="e.g. Norristown High School"></label>
+        <label class="field">Address <input id="sr-o-addr" autocomplete="off" maxlength="200" placeholder="Street, town"></label>
+        <label class="field">Your name <input id="sr-o-me" autocomplete="name" maxlength="40" placeholder="First name and last initial"></label>
+        <label class="field">Lead user name <input id="sr-o-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+        <label class="field">Password <input id="sr-o-pass" type="password" autocomplete="current-password"></label>
+        <p class="form-error" id="sr-open-error" hidden></p>
+        <button class="primary-btn" type="submit" id="sr-open-btn">Open the shelter</button>
+      </form>
+    </div>
+    <div class="esc-tools sr-mine-box" id="sr-mine-box">
+      <h2 class="esc-login-title">Your shelters</h2>
+      <p class="esc-how">Shelters this phone has opened or been sent. Tap one to open its report.</p>
+      <div id="sr-mine"></div>
+      <p class="esc-group-how">Were you sent a link by a supervisor? Just open the link. No password needed.</p>
+    </div>
+    <div class="esc-tools role-hq">
+      <h2 class="role-head">HQ</h2>
+      <p class="role-sub">Log in to see every open shelter, edit earlier days and download for Excel.</p>
+      <a class="primary-btn role-hq-btn" href="shelter.html?view=hq">HQ: Log In</a>
+    </div>
+  </section>
+
+  <!-- 2. Opened a link, but this phone does not know the person's name yet -->
+  <section class="esc-tools" id="sr-name-ask" hidden>
+    <h2 class="esc-login-title">Your name</h2>
+    <p class="esc-how">Everything you type in the report and the log is marked with your name.</p>
+    <form id="sr-name-form" novalidate>
+      <label class="field">Your name <input id="sr-my-name" autocomplete="name" maxlength="40"></label>
+      <p class="form-error" id="sr-name-error" hidden></p>
+      <button class="primary-btn" type="submit">Continue</button>
+    </form>
+  </section>
+
+  <!-- 3. Today's report -->
+  <section id="sr-today" hidden>
+    <div class="sr-box">
+      <h2 class="sr-h">Supervisors</h2>
+      <ul class="sr-sups" id="sr-sups"></ul>
+      <button type="button" class="primary-btn sr-navy" id="sr-add">+ Add supervisor</button>
+    </div>
+    <div class="sr-box">
+      <h2 class="sr-h">Running log</h2>
+      <p class="esc-how">What happened, when. Each entry is stamped with the time and your name.</p>
+      <form id="sr-log-form" novalidate>
+        <label class="visually-hidden" for="sr-log-in">New log entry</label>
+        <textarea class="esc-in" id="sr-log-in" rows="3" maxlength="3000" placeholder="Type what happened&hellip;"></textarea>
+        <p class="form-error" id="sr-log-error" hidden></p>
+        <button class="primary-btn" type="submit" id="sr-log-btn">Add to the log</button>
+      </form>
+      <ul class="sr-log" id="sr-log"></ul>
+    </div>
+    <div class="sr-box">
+      <h2 class="sr-h">Status check</h2>
+      <dl class="sr-meta"><dt>Date of report</dt><dd id="sr-date"></dd><dt>Last saved</dt><dd id="sr-saved"></dd></dl>
+      <p class="sr-state" id="sr-state" role="status"></p>
+      <p class="sr-miss" id="sr-miss" hidden></p>
+      <div id="sr-qs"></div>
+    </div>
+    <div class="sr-box">
+      <h2 class="sr-h">At the end</h2>
+      <p class="esc-how">Today's report saves itself at midnight, locks, and moves to Previous days. A blank report for the new day starts on its own.</p>
+      <div class="esc-buttons">
+        <button type="button" class="esc-btn rec-dl-solid sr-hq-only" id="sr-dl" hidden>Download for Excel (all days)</button>
+        <button type="button" class="esc-btn rec-close-solid" id="sr-close">Close shelter and erase all data</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Previous days -->
+  <section id="sr-prev" hidden>
+    <div class="sr-box">
+      <h2 class="sr-h">Previous days</h2>
+      <p class="esc-how" id="sr-prev-how">Each day's report locks at midnight. Tap a day to read it.</p>
+      <div id="sr-days"></div>
+    </div>
+  </section>
+
+  <!-- 5. HQ: log in, then every open shelter -->
+  <section class="esc-tools esc-login" id="sr-login" hidden>
+    <form id="sr-login-form" novalidate>
+      <h2 class="esc-login-title">HQ log in</h2>
+      <p class="esc-how" id="sr-login-why">Log in to see every open shelter, edit earlier days and download for Excel.</p>
+      <label class="field">User name <input id="sr-l-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+      <label class="field">Password <input id="sr-l-pass" type="password" autocomplete="current-password"></label>
+      <p class="form-error" id="sr-login-error" hidden></p>
+      <button class="primary-btn" id="sr-login-btn" type="submit">Log in</button>
+      <button type="button" class="esc-btn sr-login-cancel" id="sr-login-cancel" hidden>Cancel</button>
+    </form>
+  </section>
+  <section class="esc-tools" id="sr-list-tools" hidden>
+    <p class="esc-status" id="sr-list-status" role="status">Loading...</p>
+    <div class="esc-list" id="sr-list"></div>
+  </section>
+  <p class="esc-logout-line"><button type="button" class="link-btn" id="sr-logout" hidden>Log out of HQ</button></p>
+
+  <!-- Add a supervisor -->
+  <div class="f-modal" id="sr-add-modal" hidden>
+    <div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="sr-add-title">
+      <button type="button" class="f-modal-x" id="sr-add-x" aria-label="Close">&times;</button>
+      <h2 id="sr-add-title">Add a supervisor</h2>
+      <p class="f-modal-note">Type their name, then send them the link. They open it and can read and type straight away. No password.</p>
+      <form id="sr-add-form" novalidate>
+        <label class="field">New supervisor's name <input id="sr-add-name" autocomplete="off" maxlength="40"></label>
+        <p class="form-error" id="sr-add-error" hidden></p>
+        <button class="primary-btn" type="submit" id="sr-add-btn">Add and send the link</button>
+      </form>
+      <div id="sr-add-done" hidden>
+        <p class="esc-status esc-ok" id="sr-add-ok" role="status"></p>
+        <div class="esc-buttons">
+          <button type="button" class="primary-btn" id="sr-add-send">Send the link</button>
+        </div>
+        <label class="esc-link-box"><span>Link</span><input id="sr-add-link" readonly></label>
+        <p class="esc-group-how" id="sr-add-hint"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Close the shelter -->
+  <div class="f-modal" id="sr-close-modal" hidden>
+    <div class="f-modal-box rec-warn-box" role="alertdialog" aria-modal="true" aria-labelledby="sr-close-title">
+      <button type="button" class="f-modal-x" id="sr-close-x" aria-label="Close">&times;</button>
+      <h2 id="sr-close-title">Close shelter and erase all data?</h2>
+      <p class="rec-warn-text">This erases every day's report and log for <strong id="sr-close-name"></strong>, for everyone. It cannot be undone.</p>
+      <p class="rec-warn-dl sr-hq-only" id="sr-close-dl-line" hidden><button type="button" class="esc-btn rec-dl-solid" id="sr-close-dl">Download for Excel first</button></p>
+      <p class="esc-group-how" id="sr-close-nodl">Want a copy first? Ask HQ to download it for Excel before you close.</p>
+      <form id="sr-close-form" novalidate>
+        <div id="sr-close-creds">
+          <label class="field">Lead user name <input id="sr-c-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+          <label class="field">Password <input id="sr-c-pass" type="password" autocomplete="current-password"></label>
+        </div>
+        <p class="form-error" id="sr-close-error" hidden></p>
+        <div class="rec-warn-actions">
+          <button type="submit" class="esc-btn rec-close-solid" id="sr-close-yes">Close and erase</button>
+          <button type="button" class="esc-btn" id="sr-close-no">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js?v=0.27.39"></script>
+<script src="../js/view-bar.js?v=0.27.39"></script>
+<script src="../js/shelter.js?v=0.27.39"></script>
+<script src="../js/close-tab.js?v=0.27.39"></script>
+</body>
+</html>

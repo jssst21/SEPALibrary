@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.27.39 (Oct 16, 2026)
+- NEW: DAILY SHELTER REPORT (pages/shelter.html, js/shelter.js). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  A live report for each open shelter, kept by its shift supervisors, replacing the Red Cross form whose Save draft locked people out.
+  - Open a new shelter: shelter name, address, your name, and the LEAD user name and password (the same lead/GiftOfLife as the other two forms; Sean asked that the logins match). The HQ login also works.
+  - Add supervisor: type their name, send them the link. They open it and read and type straight away, no password.
+  - Today's report: Supervisors; Running log (each entry stamped with the time and the supervisor's name, newest first; supervisors cannot change entries); Status check, the 16 questions from the Red Cross form (Yes/No buttons or typed answers), each showing who answered and when; unanswered ones in red with a count. Saves as people type; other phones see changes within about 6 seconds.
+  - At midnight (the Sheet's time zone) the day locks and moves to Previous days; a blank report starts by itself.
+  - Previous days: read only for supervisors. "Edit this day (HQ)" asks for the HQ login; HQ can change answers and edit or remove log entries (for example to take out client health details). HQ changes are marked "Edited by HQ" / "Removed by HQ" with the time.
+  - HQ (the same Admin login as the Escalation and Reception forms; one HQ login now works on all three): every open shelter (Change shelter, or shelter.html?view=hq), Download for Excel (all days and the full log), close any shelter.
+  - Close shelter and erase all data: lead user name and password (or HQ). Erases everything for everyone; other phones are told.
+  - A shelter with no activity for 14 days erases itself (SH_KEEP_DAYS in the script), in case nobody closes it.
+  - Google Sheet tabs (appear by themselves): Shelters, Shelter Supervisors, Shelter Reports, Shelter Log, Shelters closed. No new Settings rows: it uses the existing lead and HQ logins.
+- SEPA TOOLS APP BACK TO ITS LOOK FROM THE START OF OCT 16 (Sean: the look-and-feel changes made it worse). Undoes v0.27.37 and v0.27.38: the plain "SEPA Tools" heading, the original flat buttons and the original red home-screen icon (all five icon files restored from v0.27.35); "tap the red SEPA Tools icon" wording restored. KEPT: the Onboarding button in place of Register for Events. App cache number now sepa-tools-18. (An iPhone that re-added the app to get the glossy icon will keep that icon until it is added again.)
+- Mass Care page: fifth big button "Daily Shelter Report" (five across on a computer). Site search finds it ("shelter", "daily report", "supervisor").
+- Version number is now ?v=0.27.39 on every page and the homepage footer reads v0.27.39
+
 ## v0.27.38 (Oct 16, 2026)
 - SEPA TOOLS APP: LOGO MADE SMALL SO "SHARE SEPA TOOLS" IS ON SCREEN AGAIN (Sean: the v0.27.37 logo card pushed the Share button off the bottom; it is crucial people see it). No Google script change: push only.
   - The logo is now a slim white pill (small cross and SEPA TOOLS side by side), no taller than the old "SEPA Tools" heading. The Share button sits where it did before v0.27.37 (checked on 375, 390 and 430 wide phones).

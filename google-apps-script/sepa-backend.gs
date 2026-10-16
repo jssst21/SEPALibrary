@@ -1,7 +1,7 @@
 /**
  * SEPA Resource Library - Google Sheet backend
  * Powers: DAT shift signup calendars (Field Responders and Duty Officers) + Discussion Forums +
- *         Escalation Form (proof of concept) + Reception Center Form +
+ *         Escalation Form (proof of concept) + Reception Center Form + Daily Shelter Report +
  *         the list of library documents and the search inside them (website v0.27, from Google Drive)
  *
  * This code lives inside ONE Google Sheet (Extensions > Apps Script).
@@ -36,6 +36,9 @@
  *               One row per announcement. See ANNOUNCEMENTS at the end. Appears by itself.
  *   Responders - who is on each worksheet and reception center (website v0.27.3). YES in "Removed"
  *               removes someone. See WHO IS ON AN EVENT at the end.
+ *   Shelters, Shelter Supervisors, Shelter Reports, Shelter Log, Shelters closed - the Daily Shelter
+ *               Report (website v0.27.39). Appear by themselves. See DAILY SHELTER REPORT at the end.
+ *               It uses the same lead and HQ logins as the Escalation and Reception Center forms.
  *
  * Since website v0.27 the website's DOCUMENTS are not in the Sheet or on GitHub: they are in the Google
  * Drive folder "SEPA Library Files". See LIBRARY FILES at the end of this script.
@@ -206,7 +209,18 @@ function doPost(e) {
       recClear: recClear_,
       recEdit: recEdit_,
       recDeleteOne: recDeleteOne_,
-      recDda: recDda_
+      recDda: recDda_,
+      shPing: shPing_,
+      shOpen: shOpen_,
+      shGet: shGet_,
+      shDay: shDay_,
+      shSave: shSave_,
+      shLog: shLog_,
+      shLogEdit: shLogEdit_,
+      shAddSup: shAddSup_,
+      shList: shList_,
+      shExport: shExport_,
+      shClose: shClose_
     };
     var fn = actions[d.action || 'shiftSignup'];
     if (!fn) return json_({ ok: false, error: 'Unknown request.' });
@@ -364,7 +378,8 @@ function startDailyReport() {
 /* RECEPTION CENTER FORM: the 5-day automatic delete, every morning, with NO email (v0.21).
    Run startAutoDelete ONCE from the editor (pick it in the box next to Debug, then Run). Safe to run
    again. This sends nothing to anyone; it only deletes reception centers 5 days after their last
-   intake, and (since website v0.27.32) clears Escalation worksheets with no change for 5 days. (This also
+   intake, (since website v0.27.32) clears Escalation worksheets with no change for 5 days, and (since
+   v0.27.39) erases Daily Shelter Reports with no activity for 14 days. (This also
    happens whenever anyone uses the forms, so this is the backstop for quiet weeks.) It is separate from the daily signup report on purpose: Sean wants no reports yet. */
 function startAutoDelete() {
   ScriptApp.getProjectTriggers().forEach(function (t) {
@@ -376,7 +391,7 @@ function startAutoDelete() {
 function autoDelete() {
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
-  try { recPurge_(true); escPurge_(true); } finally { lock.releaseLock(); }     // escalation worksheets too since v0.27.32
+  try { recPurge_(true); escPurge_(true); shPurge_(true); } finally { lock.releaseLock(); }     // escalation worksheets too since v0.27.32
 }
 
 /* Emails everything submitted since the last report. Runs automatically each morning. */
@@ -1928,4 +1943,249 @@ function annList_() {
   });
   out.sort(function (a, b) { return a.d < b.d ? 1 : a.d > b.d ? -1 : 0; });
   return { ok: true, items: out.slice(0, 20) };
+}
+
+
+/* =========================================================
+   DAILY SHELTER REPORT (pages/shelter.html, js/shelter.js), website v0.27.39
+   A running report for each open shelter, kept by its shift supervisors, one report per day.
+   - OPENING a shelter needs the LEAD user name and password (the same pair as the Escalation and
+     Reception Center forms, Settings tab; the HQ pair works too). The same pair CLOSES it, which erases
+     all its data. (Sean, Oct 16: the logins match across the three forms.)
+   - Supervisors need no password: whoever opens the shelter's link (sent with "Add supervisor") can
+     read and type. The link holds the shelter's code (the "Link code" column).
+   - Each day has its own report: the 16 status questions (each answer keeps who gave it and when) and
+     the running log (each entry stamped with the time and the supervisor's name). At midnight (the
+     Sheet's time zone) the day's report LOCKS and a blank one starts by itself. Supervisors can read
+     locked days but not change them.
+   - HQ (the same HQ login as the other two forms; one login works on all three) can see every open shelter, edit any day including
+     locked ones (for example to take out something that breaks client privacy), edit or remove log
+     entries, download for Excel, and close a shelter. Every HQ change is marked as made by HQ.
+   - A shelter with no activity for 14 days is erased by itself (SH_KEEP_DAYS), in case nobody closes it.
+   Tabs (appear by themselves the first time the form is used):
+     Shelters             one row per open shelter
+     Shelter Supervisors  who has been added to each shelter
+     Shelter Reports      one row per shelter per day: the 16 answers (coded, do not edit)
+     Shelter Log          one row per log entry
+     Shelters closed      just the code and time of each closed shelter (nothing else is kept)
+   ========================================================= */
+var SH_HEADERS = ['ID', 'Opened', 'Shelter name', 'Address', 'Opened by', 'Last activity', 'Last activity ms (do not edit)', 'Link code (do not edit)'];
+var SH_SUP_HEADERS = ['Shelter ID', 'Name', 'Added', 'Added by'];
+var SH_DAY_HEADERS = ['Shelter ID', 'Day', 'Last saved', 'Last saved by', 'Answers (do not edit)'];
+var SH_LOG_HEADERS = ['Shelter ID', 'Entry ID', 'Day', 'Time', 'Supervisor', 'Entry', 'Edited'];
+var SH_KEEP_DAYS = 14;
+var SH_QUESTIONS = 16;
+
+function shTab_() { makeTab_('Shelters', SH_HEADERS); return tab_('Shelters'); }
+function shSupTab_() { makeTab_('Shelter Supervisors', SH_SUP_HEADERS); return tab_('Shelter Supervisors'); }
+function shDayTab_() { makeTab_('Shelter Reports', SH_DAY_HEADERS); return tab_('Shelter Reports'); }
+function shLogTab_() { makeTab_('Shelter Log', SH_LOG_HEADERS); return tab_('Shelter Log'); }
+function shClosedTab_() { makeTab_('Shelters closed', ['ID', 'Closed', 'How']); return tab_('Shelters closed'); }
+
+/* Is this a current HQ login (the HQ login of the Escalation and Reception Center forms)? */
+function shIsHq_(d) { return !!d.token && !escDenied_(d); }
+function shName_(v) { return clean_(v, 40).replace(/\s+/g, ' '); }
+function shIsClosed_(id) { return escFindRow_(shClosedTab_(), id) > 0; }
+
+/* The shelter's row, if this request may use it: the right link code, or an HQ login. */
+function shAccess_(d) {
+  var id = escId_(d.id);
+  if (!id) return { err: { ok: false, error: 'This link cannot open the shelter report.' } };
+  if (shIsClosed_(id)) return { err: { ok: true, closed: true } };
+  var sh = shTab_(), row = escFindRow_(sh, id);
+  if (!row) return { err: { ok: false, gone: true, error: 'That shelter was not found. It may have been closed.' } };
+  var r = sh.getRange(row, 1, 1, SH_HEADERS.length).getValues()[0];
+  var hq = shIsHq_(d), key = escKey_(d.key);
+  if (!hq && (!key || key !== escText_(r[7]))) return { err: { ok: false, nokey: true, hqLogin: !!d.token, error: 'This link cannot open the shelter report.' } };
+  return { id: id, sh: sh, row: row, r: r, hq: hq };
+}
+function shTouch_(a, now) {
+  a.sh.getRange(a.row, 6, 1, 2).setValues([[stamp_(now), String(now.getTime())]]);
+  return now.getTime();
+}
+function shWho_(a, d) { return a.hq && (d.asHq || !escKey_(d.key)) ? 'HQ' : (shName_(d.me) || 'A supervisor'); }
+
+function shPing_(d) {
+  shTab_(); shSupTab_(); shDayTab_(); shLogTab_(); shClosedTab_();
+  escLoginSettings_(); leadLoginSettings_();
+  return { ok: true };
+}
+
+// OPEN a shelter: needs the lead user name and password (or HQ). The opener becomes its first supervisor.
+function shOpen_(d) {
+  var bad = leadDenied_({ user: d.user || '', password: d.password || '', token: d.token });
+  if (bad) return { ok: false, error: bad.error || 'Please type the lead user name and password.' };
+  var name = clean_(d.shelter, 120), addr = clean_(d.address, 200), me = shName_(d.me);
+  if (!name) return { ok: false, error: 'Please type the shelter name.' };
+  if (!me) return { ok: false, error: 'Please type your name.' };
+  var id = escId_(d.id), key = escKey_(d.key);
+  if (!id || !key) return { ok: false, error: 'The shelter could not be opened. Please reload the page and try again.' };
+  var sh = shTab_();
+  if (escFindRow_(sh, id)) return { ok: false, error: 'Please reload the page and try again.' };
+  var now = new Date(), t = stamp_(now);
+  sh.appendRow([id, t, safe_(name), safe_(addr), safe_(me), t, String(now.getTime()), key]);
+  shSupTab_().appendRow([id, safe_(me), t, 'Opened the shelter']);
+  return { ok: true, id: id };
+}
+
+function shAnswers_(cell) { try { var a = JSON.parse(escText_(cell)); return a && typeof a === 'object' ? a : {}; } catch (e) { return {}; } }
+function shDayRow_(id, day) {
+  var sh = shDayTab_(), data = sh.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) if (String(data[i][0]) === id && asDateText_(data[i][1]) === day) return { sh: sh, row: i + 1, r: data[i] };
+  return null;
+}
+function shLogFor_(id, day) {
+  return rows_('Shelter Log').filter(function (r) { return String(r[0]) === id && (!day || asDateText_(r[2]) === day); })
+    .map(function (r) { return { id: String(r[1]), day: asDateText_(r[2]), at: iso_(r[3]), by: escText_(r[4]), text: escText_(r[5]), edited: escText_(r[6]) }; });
+}
+function shReport_(id, day) {
+  var dr = shDayRow_(id, day);
+  return { day: day, answers: dr ? shAnswers_(dr.r[4]) : {}, saved: dr ? iso_(dr.r[2]) : '', savedBy: dr ? escText_(dr.r[3]) : '', log: shLogFor_(id, day) };
+}
+function shSups_(id) {
+  return rows_('Shelter Supervisors').filter(function (r) { return String(r[0]) === id; })
+    .map(function (r) { return { name: escText_(r[1]), added: iso_(r[2]), by: escText_(r[3]) }; });
+}
+function shDays_(id, today) {      // earlier days that have anything saved, newest first
+  var seen = {};
+  rows_('Shelter Reports').forEach(function (r) {
+    if (String(r[0]) !== id) return;
+    var dd = asDateText_(r[1]); if (dd >= today) return;
+    var ans = shAnswers_(r[4]);
+    seen[dd] = seen[dd] || { answered: 0, entries: 0 };
+    seen[dd].answered = Object.keys(ans).filter(function (k) { return ans[k] && ans[k].v; }).length;
+  });
+  rows_('Shelter Log').forEach(function (r) { if (String(r[0]) === id) { var dd = asDateText_(r[2]); if (dd < today) { seen[dd] = seen[dd] || { answered: 0, entries: 0 }; seen[dd].entries++; } } });
+  return Object.keys(seen).sort().reverse().map(function (dd) { return { day: dd, answered: seen[dd].answered, entries: seen[dd].entries }; });
+}
+
+/* THE CALL THE PAGE MAKES EVERY FEW SECONDS. d.since = the "last activity" number the page already has:
+   when nothing changed it only answers "same". */
+function shGet_(d) {
+  shPurge_();
+  var a = shAccess_(d); if (a.err) return a.err;
+  var today = today_(), ms = String(a.r[6]);
+  if (d.since && String(d.since) === ms && d.day === today) return { ok: true, same: true, today: today, hq: a.hq };
+  var res = { ok: true, today: today, ms: ms, hq: a.hq,
+    shelter: { id: a.id, name: escText_(a.r[2]), address: escText_(a.r[3]), opened: iso_(a.r[1]), openedBy: escText_(a.r[4]) },
+    sups: shSups_(a.id), report: shReport_(a.id, today), days: shDays_(a.id, today) };
+  if (a.hq) res.joinKey = escText_(a.r[7]);
+  return res;
+}
+// One earlier day (read only for supervisors; HQ can edit it).
+function shDay_(d) {
+  var a = shAccess_(d); if (a.err) return a.err;
+  var day = String(d.day || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return { ok: false, error: 'That day was not found.' };
+  return { ok: true, hq: a.hq, today: today_(), report: shReport_(a.id, day) };
+}
+
+// Save ONE answer. Supervisors always save to today; HQ may name an earlier day.
+function shSave_(d) {
+  var a = shAccess_(d); if (a.err) return a.err;
+  var q = String(d.q || '');
+  if (!/^q([1-9]|1[0-6])$/.test(q)) return { ok: false, error: 'Unknown question.' };
+  var today = today_(), day = today;
+  if (d.day && d.day !== today) {
+    if (!a.hq) return { ok: false, locked: true, today: today, error: 'That day is locked. Only HQ can change it.' };
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d.day) || d.day > today) return { ok: false, error: 'That day was not found.' };
+    day = d.day;
+  }
+  var v = clean_(d.v, 3000), now = new Date(), who = shWho_(a, d), t = stamp_(now);
+  var dr = shDayRow_(a.id, day), ans = dr ? shAnswers_(dr.r[4]) : {};
+  var prev = ans[q] || {};
+  if ((prev.v || '') === v) return { ok: true, ms: String(a.r[6]), today: today };
+  ans[q] = { v: v, by: who, at: t };
+  if (a.hq && day !== today) ans[q].hq = 1;
+  var text = JSON.stringify(ans);
+  if (dr) dr.sh.getRange(dr.row, 3, 1, 3).setValues([[t, safe_(who), text]]);
+  else shDayTab_().appendRow([a.id, day, t, safe_(who), text]);
+  return { ok: true, ms: String(shTouch_(a, now)), today: today, at: t, by: who };
+}
+
+// Add to today's running log.
+function shLog_(d) {
+  var a = shAccess_(d); if (a.err) return a.err;
+  var text = clean_(d.text, 3000);
+  if (!text) return { ok: false, error: 'Please type something first.' };
+  var now = new Date(), who = shWho_(a, d), eid = 'L' + now.getTime().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+  shLogTab_().appendRow([a.id, eid, today_(), stamp_(now), safe_(who), safe_(text), '']);
+  return { ok: true, ms: String(shTouch_(a, now)), entry: { id: eid, at: stamp_(now), by: who, text: text } };
+}
+// HQ only: change or remove (empty text) a log entry, on any day. The entry stays, marked as edited by HQ.
+function shLogEdit_(d) {
+  var a = shAccess_(d); if (a.err) return a.err;
+  if (!a.hq) return { ok: false, login: true, error: 'Only HQ can edit the log. Please log in as HQ.' };
+  var sh = shLogTab_(), data = sh.getDataRange().getValues(), eid = String(d.entry || ''), now = new Date();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === a.id && String(data[i][1]) === eid) {
+      var text = clean_(d.text, 3000);
+      sh.getRange(i + 1, 6, 1, 2).setValues([[safe_(text), (text ? 'Edited by HQ ' : 'Removed by HQ ') + stamp_(now)]]);
+      return { ok: true, ms: String(shTouch_(a, now)) };
+    }
+  }
+  return { ok: false, error: 'That entry was not found.' };
+}
+
+// Add a supervisor (anyone on the shelter, or HQ). Also used when someone opens the link and types their name.
+function shAddSup_(d) {
+  var a = shAccess_(d); if (a.err) return a.err;
+  var name = shName_(d.name);
+  if (!name) return { ok: false, error: 'Please type the supervisor\'s name.' };
+  var have = shSups_(a.id).some(function (s) { return s.name.toLowerCase() === name.toLowerCase(); });
+  var now = new Date();
+  if (!have) shSupTab_().appendRow([a.id, safe_(name), stamp_(now), d.self ? 'Opened the link' : safe_('Added by ' + shWho_(a, d))]);
+  return { ok: true, ms: String(have ? a.r[6] : shTouch_(a, now)), sups: shSups_(a.id), joinKey: escText_(a.r[7]) };
+}
+
+// HQ: every open shelter, most recent activity first.
+function shList_(d) {
+  shPurge_();
+  if (!shIsHq_(d)) return { ok: false, login: true, error: 'Please log in as HQ.' };
+  var items = rows_('Shelters').map(function (r) {
+    return { id: String(r[0]), name: escText_(r[2]), address: escText_(r[3]), opened: iso_(r[1]), last: iso_(r[5]), ms: Number(r[6]) || 0 };
+  }).sort(function (x, y) { return y.ms - x.ms; });
+  return { ok: true, items: items, now: Date.now() };
+}
+
+// HQ: everything for one shelter, for the Excel download.
+function shExport_(d) {
+  var a = shAccess_(d); if (a.err) return a.err;
+  if (!a.hq) return { ok: false, login: true, error: 'Only HQ can download. Please log in as HQ.' };
+  var days = rows_('Shelter Reports').filter(function (r) { return String(r[0]) === a.id; })
+    .map(function (r) { return { day: asDateText_(r[1]), answers: shAnswers_(r[4]) }; })
+    .sort(function (x, y) { return x.day < y.day ? -1 : 1; });
+  return { ok: true, shelter: { name: escText_(a.r[2]), address: escText_(a.r[3]), opened: iso_(a.r[1]) }, days: days, log: shLogFor_(a.id, '') };
+}
+
+// CLOSE a shelter and erase everything: the lead user name and password, or an HQ login.
+function shClose_(d) {
+  var id = escId_(d.id);
+  if (!id) return { ok: false, error: 'That shelter was not found.' };
+  if (!shIsHq_(d)) {
+    var bad = leadDenied_({ user: d.user || '', password: d.password || '' });
+    if (bad) return { ok: false, error: bad.error || 'Please type the lead user name and password.' };
+  }
+  if (!escFindRow_(shTab_(), id)) return { ok: true, closed: true };
+  shErase_(id, shIsHq_(d) ? 'HQ' : 'Lead login');
+  return { ok: true, closed: true };
+}
+function shErase_(id, how) {
+  [['Shelters', 0], ['Shelter Supervisors', 0], ['Shelter Reports', 0], ['Shelter Log', 0]].forEach(function (t) {
+    var sh = tab_(t[0]); if (!sh) return;
+    var last = sh.getLastRow(); if (last < 2) return;
+    var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+    for (var i = ids.length - 1; i >= 0; i--) if (String(ids[i][0]) === id) sh.deleteRow(i + 2);
+  });
+  shClosedTab_().appendRow([id, stamp_(), how]);
+}
+// Erase shelters with no activity for SH_KEEP_DAYS days. Runs at most every 10 minutes (and nightly
+// from autoDelete, if startAutoDelete was run once).
+function shPurge_(force) {
+  var c = CacheService.getScriptCache();
+  if (!force && c.get('shPurge')) return;
+  c.put('shPurge', '1', 600);
+  var sh = tab_('Shelters'); if (!sh) return;
+  var cut = Date.now() - SH_KEEP_DAYS * 86400000;
+  rows_('Shelters').forEach(function (r) { if ((Number(r[6]) || 0) < cut) shErase_(String(r[0]), 'automatic, no activity for ' + SH_KEEP_DAYS + ' days'); });
 }

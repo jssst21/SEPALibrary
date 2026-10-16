@@ -1454,7 +1454,7 @@ a.f-page:hover { border-color: var(--red); color: var(--red); }
    every Mass Care file in groups, one line each, with a search box.
    ========================================================= */
 .mc-launch { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
-@media (min-width: 900px) { .mc-launch { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 900px) { .mc-launch { grid-template-columns: repeat(5, 1fr); } }   /* five buttons since v0.27.39 */
 .mc-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 120px;
   padding: 16px 14px; border-radius: 14px; background: #fff; color: var(--navy); text-align: center; text-decoration: none;
@@ -1721,3 +1721,69 @@ a.f-chip:hover { background: var(--bt); }
 .f-post-reply:nth-child(odd) { background: #f4f6f9; }
 .f-tag-op { padding: 1px 8px; border-radius: 999px; background: var(--bt); color: var(--bc); font-size: 12px; font-weight: 700; }
 @media (max-width: 600px) { .f-post-reply { margin-left: 12px; } }
+
+/* =========================================================
+   DAILY SHELTER REPORT (pages/shelter.html, website v0.27.39)
+   White page like the Reception Center Form. Each part of the report sits in its own white card.
+   ========================================================= */
+.sr-page .esc-tools + .esc-tools { margin-top: 14px; }
+.sr-box { margin: 0 0 14px; padding: 16px 18px; border: 1.5px solid var(--line); border-radius: var(--radius); background: #fff; }
+.sr-h { margin: 0 0 6px; font-family: "Source Serif 4", Georgia, serif; font-size: 22px; color: var(--navy); }
+.sr-h3 { margin: 16px 0 6px; font-size: 17px; color: var(--navy); }
+.sr-box .esc-how { margin-top: 0; }
+.sr-box .primary-btn { margin-top: 12px; }
+.primary-btn.sr-navy { background: var(--navy); }
+.primary-btn.sr-navy:hover { background: #162844; }
+/* supervisors */
+.sr-sups { list-style: none; margin: 0; padding: 0; }
+.sr-sups li { padding: 9px 0; border-top: 1px solid var(--line); font-size: 16px; }
+.sr-sups li:first-child { border-top: 0; padding-top: 2px; }
+.sr-sups small { display: block; margin-top: 2px; font-size: 14px; color: var(--ink-soft); }
+.sr-tag { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 999px; background: #eef2f8; color: var(--navy); font-size: 12.5px; font-weight: 700; vertical-align: 1px; }
+.sr-tag.sr-you { background: var(--navy); color: #fff; }
+/* the running log */
+.sr-log { list-style: none; margin: 14px 0 0; padding: 0; }
+.sr-log li { margin: 0 0 8px; padding: 10px 12px; border-left: 4px solid var(--navy); border-radius: 8px; background: #f5f7fb; font-size: 16px; line-height: 1.45; }
+.sr-log li > small { display: block; margin-bottom: 2px; font-size: 14px; color: var(--ink-soft); }
+.sr-log li > small b { color: var(--navy); }
+.sr-log-text { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }
+.sr-log-gone { display: block; font-style: italic; color: var(--ink-soft); }
+.sr-log li > small.sr-edited { margin: 4px 0 0; font-size: 13px; color: #8a5a00; }
+.sr-log-tools { display: block; margin-top: 4px; font-size: 14px; }
+.sr-log-edit { margin-top: 8px; }
+.sr-log-edit .esc-buttons .primary-btn { flex: 1 1 140px; }
+.sr-log li.sr-log-none { border-left-color: var(--line); background: transparent; color: var(--ink-soft); padding-left: 0; border-left: 0; }
+/* status check */
+.sr-meta { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 4px 0 8px; font-size: 15.5px; }
+.sr-meta dt { font-weight: 700; }
+.sr-meta dd { margin: 0; }
+.sr-meta-line { margin: 0 0 6px; font-size: 14.5px; color: var(--ink-soft); }
+.sr-state { margin: 0 0 6px; font-size: 14px; font-weight: 700; color: var(--ink-soft); min-height: 1.2em; }
+.sr-state.sr-good { color: #2e7d32; }
+.sr-state.sr-bad { color: var(--red); }
+.sr-miss { display: inline-block; margin: 0 0 4px; padding: 4px 12px; border-radius: 999px; background: #fdecef; color: var(--red); font-size: 14px; font-weight: 700; }
+.sr-miss[hidden] { display: none; }
+.sr-q { padding: 14px 0 12px; border-top: 1px solid var(--line); }
+.sr-q-text { margin: 0; font-size: 16.5px; line-height: 1.4; }
+.sr-q-miss .sr-q-text { color: var(--red); }
+.sr-q-miss .sr-q-text::after { content: " *"; }
+.sr-yn button { min-width: 96px; }
+.sr-yn button:disabled { cursor: default; opacity: 1; }
+.sr-yn button:disabled:not(.on) { color: #9a918a; border-color: #ddd5ce; }
+.sr-tx { margin-top: 8px; }
+.sr-tx[readonly] { background: #faf8f6; }
+.sr-by { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-soft); }
+.sr-q-miss .sr-by { color: var(--red); }
+/* previous days */
+.sr-day { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; margin: 0 0 8px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; font: inherit; text-align: left; cursor: pointer; }
+.sr-day b { font-size: 17px; color: var(--navy); }
+.sr-day span { font-size: 14px; color: var(--ink-soft); }
+.sr-day::after { content: "Tap to read"; font-size: 13px; font-weight: 700; color: var(--red); }
+.sr-day.open { border-color: var(--navy); background: #eef2f8; }
+.sr-day.open::after { content: "Tap to close"; }
+.sr-day-body { margin: -2px 0 14px; padding: 12px 4px 4px; }
+.sr-day-body[hidden] { display: none; }
+.sr-lock { margin: 0 0 8px; padding: 9px 12px; border-radius: 10px; background: #eef2f8; color: var(--navy); font-size: 15px; font-weight: 700; }
+.sr-hq-edit { margin: 0 0 6px; }
+.sr-login-cancel { margin-top: 10px; width: 100%; }
+.sr-login-cancel[hidden] { display: none; }
