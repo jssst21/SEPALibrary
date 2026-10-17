@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.27.48 (Oct 16, 2026)
+- OFFLINE SCIA (new pages/scia.html, js/scia.js), a BETA / DEMO, in the SEPA Tools app under Mass Care > Beta Tests. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - Why (Sean): in a full mass care response, intake cannot start in SCIA until the operation's DR code unlocks it, and the only fallback is paper, which is far less secure. This lets intake start right away; everything is typed into SCIA by hand later. It cannot sync with SCIA or any outside system. Assumes a cell signal.
+  - Follows the paper "SCIA Offline Intake Form" (library: SCIA Offline Intake 20 Cases.pdf), once instead of 20 times, in its order and words: primary client, household members, needs, consent, the 17 CMIST questions, comments. Intake worker name and date fill in by themselves. (Spelling fixed: "Equipment", "accommodation"; "a special dietary needs" became "special dietary needs".)
+  - Tapping it: "Access to this tool can only be granted by HQ." with Log in as HQ / Log in as lead / Request access.
+  - HQ (the HQ login, admin) names a shelter and assigns its ONE lead; can change the lead (the old lead is logged out) and close the shelter.
+  - The lead (the lead login, lead) picks their shelter, then grants, denies or revokes intake workers. Access lasts 24 hours at most.
+  - Security notice with Continue ("Intake workers' data will populate in your dashboard..."), once for each HQ person and each lead on their phone.
+  - STRICTLY ONE WAY: a worker can only send. After Submit the form is blank ("Intake sent at 3:14 PM"); nothing about the client is kept on the phone or ever sent back to it. With a weak signal the intake waits on the open page and retries by itself.
+  - Dashboard (HQ and the lead): each intake with its "Needs attention" flags (allergy, medical, mental health...), Open to read it in full, Download for Excel in form order, and "Entered into SCIA", which DELETES that intake (the paper form: "Upon uploading to SCIA, this form must be deleted"). A closed shelter's intakes are erased 7 days after closing.
+  - Demo security (Sean): the same HQ and lead logins as the other forms; to be strengthened if adopted. Google Sheet: new tabs Offline SCIA Shelters / Workers / Intakes (appear by themselves).
+- Fix: the BETA tags themselves (6409 button on the Mass Care page, Supplies box on the Shelter Report, 6409 page) had not reached the site in v0.27.46/47; added now.
+- SEPA TOOLS APP: buttons always as a grid (Sean, a standing rule). Mass Care now opens its own grid (SCIA, Shelter Log, Beta Tests) in place of the main one, and Beta Tests opens another (6409 Requisition, Feeding, Offline SCIA, each with a yellow BETA badge like the PRACTICE ones). A Back button and the phone's own Back go up one level (#mass-care, #beta). The Announcements bar shows on the main grid only. The v0.27.46 pop-up is gone. "Share SEPA Tools with someone" stays on screen (it moves up on these shorter grids).
+- App cache number now sepa-tools-22.
+- Version number is now ?v=0.27.48 on every page and the homepage footer reads v0.27.48
+
 ## v0.27.47 (Oct 16, 2026)
 - SEPA TOOLS APP: second Beta Tests button, "Feeding" (Sean). For now it opens a placeholder page, pages/feeding.html: "This tool will be designed by the feeding team." (marked Beta). App cache number now sepa-tools-21. No Google script change: push only.
 - Fix: the BETA tag styling (6409 button on the Mass Care page, Supplies box on the Shelter Report, the 6409 page) was missing from the v0.27.46 push, so "Beta" showed as plain italic text. Now added.

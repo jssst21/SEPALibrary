@@ -232,7 +232,21 @@ function doPost(e) {
       rqStatus: rqStatus_,
       rqReceive: rqReceive_,
       rqCancel: rqCancel_,
-      rqShare: rqShare_
+      rqShare: rqShare_,
+      sciaShelters: sciaShelters_,
+      sciaOpen: sciaOpen_,
+      sciaHq: sciaHq_,
+      sciaSetLead: sciaSetLead_,
+      sciaClose: sciaClose_,
+      sciaLeadLogin: sciaLeadLogin_,
+      sciaAsk: sciaAsk_,
+      sciaAskStatus: sciaAskStatus_,
+      sciaDash: sciaDash_,
+      sciaGrant: sciaGrant_,
+      sciaIntake: sciaIntake_,
+      sciaEntered: sciaEntered_,
+      sciaExport: sciaExport_,
+      sciaSubmit: sciaSubmit_
     };
     var fn = actions[d.action || 'shiftSignup'];
     if (!fn) return json_({ ok: false, error: 'Unknown request.' });
@@ -403,7 +417,7 @@ function startAutoDelete() {
 function autoDelete() {
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
-  try { recPurge_(true); escPurge_(true); shPurge_(true); } finally { lock.releaseLock(); }     // escalation worksheets too since v0.27.32
+  try { recPurge_(true); escPurge_(true); shPurge_(true); sciaPurge_(true); } finally { lock.releaseLock(); }     // escalation worksheets too since v0.27.32
 }
 
 /* Emails everything submitted since the last report. Runs automatically each morning. */
@@ -2509,4 +2523,264 @@ function rqShare_(d) {
     rqLinkTab_().appendRow([a.id, code, stamp_(), safe_(a.who)]);
   }
   return { ok: true, lkey: code, shelter: rqShelter_(a) };
+}
+
+
+/* =========================================================
+   OFFLINE SCIA (pages/scia.html, js/scia.js), website v0.27.48. A BETA / DEMO (Sean, Oct 16, 2026).
+   A stop gap for a full mass care response: intake can start before the Red Cross's own SCIA system
+   is unlocked for the operation (the DR code). Follows the paper "SCIA Offline Intake Form".
+   Everything is typed into SCIA later, by hand. It cannot sync with SCIA or any outside system.
+   - HQ (the HQ login of the other forms) names a shelter and assigns ONE lead. HQ can change the lead
+     and close the shelter.
+   - The lead logs in with the LEAD user name and password, picks their shelter, and grants or revokes
+     intake workers (who tap "Request access" and type their name). Access lasts 24 hours at most.
+   - STRICTLY ONE WAY: an intake worker can only SEND an intake. Nothing about a client is ever sent back
+     to a worker's phone, and the page keeps nothing on the phone.
+   - HQ and the lead see the intakes (dashboard), download them for Excel in form order, and tick
+     "Entered into SCIA", which DELETES that intake ("Upon uploading to SCIA, this form must be deleted").
+   - A closed shelter keeps its intakes 7 days (SCIA_KEEP_DAYS), then everything is erased by itself.
+   - Demo security (Sean: strengthen if adopted): the same HQ and lead logins as the other forms.
+   Tabs (appear by themselves):
+     Offline SCIA Shelters   one row per shelter
+     Offline SCIA Workers    one row per access request
+     Offline SCIA Intakes    one row per intake (client details: do not share)
+   ========================================================= */
+var SCIA_SH_HEADERS = ['ID', 'Opened', 'Shelter name', 'Lead', 'Opened by', 'Closed', 'Last activity ms (do not edit)', 'Lead code (do not edit)'];
+var SCIA_W_HEADERS = ['Shelter ID', 'Worker ID', 'Name', 'Asked', 'Status', 'Changed', 'Access until ms (do not edit)', 'Worker code (do not edit)', 'Intakes sent'];
+var SCIA_I_HEADERS = ['Shelter ID', 'Intake ID', 'Sent', 'Intake worker', 'Primary client', 'Cot #', 'People', 'Flags', 'Form (do not edit)'];
+var SCIA_HOURS = 24;
+var SCIA_KEEP_DAYS = 7;
+
+function sciaTabs_() {
+  makeTab_('Offline SCIA Shelters', SCIA_SH_HEADERS); makeTab_('Offline SCIA Workers', SCIA_W_HEADERS); makeTab_('Offline SCIA Intakes', SCIA_I_HEADERS);
+}
+function sciaCode_() { return Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 8); }
+function sciaRow_(id) {
+  sciaTabs_();
+  id = escId_(id); if (!id) return null;
+  var sh = tab_('Offline SCIA Shelters'), row = escFindRow_(sh, id);
+  if (!row) return null;
+  return { id: id, sh: sh, row: row, r: sh.getRange(row, 1, 1, SCIA_SH_HEADERS.length).getValues()[0] };
+}
+function sciaTouch_(a) { a.sh.getRange(a.row, 7, 1, 1).setValues([[String(Date.now())]]); }
+function sciaOut_(r) { return { id: String(r[0]), name: escText_(r[2]), lead: escText_(r[3]), opened: iso_(r[1]), closed: iso_(r[5]) }; }
+/* HQ, or the lead of THIS shelter (their lead code). */
+function sciaBoss_(d) {
+  var a = sciaRow_(d.id);
+  if (!a) return { err: { ok: false, gone: true, error: 'That shelter was not found. It may have been closed and erased.' } };
+  if (d.token && !escDenied_(d)) { a.role = 'hq'; return a; }
+  var code = escKey_(d.lead);
+  if (code && code === escText_(a.r[7])) { if (escText_(a.r[5])) return { err: { ok: false, closed: true, error: 'This shelter was closed by HQ.' } }; a.role = 'lead'; return a; }
+  return { err: { ok: false, login: true, error: d.token ? 'Your HQ login has ended. Please log in again.' : 'Please log in as the lead again.' } };
+}
+
+// Open shelters, for the worker's "Request access" and the lead's log in (names only).
+function sciaShelters_() {
+  sciaTabs_(); sciaPurge_();
+  return { ok: true, items: rows_('Offline SCIA Shelters').filter(function (r) { return !escText_(r[5]); }).map(sciaOut_) };
+}
+// HQ: name a shelter and assign its lead.
+function sciaOpen_(d) {
+  sciaTabs_();
+  if (!d.token || escDenied_(d)) return { ok: false, login: true, error: 'Please log in as HQ.' };
+  var name = clean_(d.name, 120), lead = shName_(d.lead);
+  if (!name) return { ok: false, error: 'Please type the shelter name.' };
+  if (!lead) return { ok: false, error: 'Please type the lead\'s name.' };
+  var id = escId_(d.id); if (!id) return { ok: false, error: 'Please reload the page and try again.' };
+  var sh = tab_('Offline SCIA Shelters'); if (escFindRow_(sh, id)) return { ok: true, id: id };
+  sh.appendRow([id, stamp_(), safe_(name), safe_(lead), 'HQ', '', String(Date.now()), sciaCode_()]);
+  return { ok: true, id: id };
+}
+// HQ: every shelter (open and closed), with counts.
+function sciaHq_(d) {
+  sciaTabs_(); sciaPurge_();
+  if (!d.token || escDenied_(d)) return { ok: false, login: true, error: 'Please log in as HQ.' };
+  var intakes = rows_('Offline SCIA Intakes'), workers = rows_('Offline SCIA Workers'), now = Date.now();
+  return { ok: true, items: rows_('Offline SCIA Shelters').map(function (r) {
+    var o = sciaOut_(r);
+    o.intakes = intakes.filter(function (x) { return String(x[0]) === o.id; }).length;
+    o.asking = workers.filter(function (x) { return String(x[0]) === o.id && escText_(x[4]) === 'asked'; }).length;
+    o.workers = workers.filter(function (x) { return String(x[0]) === o.id && escText_(x[4]) === 'granted' && Number(x[6]) > now; }).length;
+    return o;
+  }).reverse() };
+}
+// HQ: change the lead (the old lead's phone is logged out: new lead code).
+function sciaSetLead_(d) {
+  var a = sciaBoss_(d); if (a.err) return a.err;
+  if (a.role !== 'hq') return { ok: false, login: true, error: 'Only HQ can change the lead.' };
+  var lead = shName_(d.lead); if (!lead) return { ok: false, error: 'Please type the lead\'s name.' };
+  a.sh.getRange(a.row, 4, 1, 1).setValues([[safe_(lead)]]);
+  a.sh.getRange(a.row, 8, 1, 1).setValues([[sciaCode_()]]);
+  sciaTouch_(a);
+  return { ok: true };
+}
+// HQ: close the shelter. Workers lose access now; the intakes are erased SCIA_KEEP_DAYS later.
+function sciaClose_(d) {
+  var a = sciaBoss_(d); if (a.err) return a.err;
+  if (a.role !== 'hq') return { ok: false, login: true, error: 'Only HQ can close the shelter.' };
+  if (!escText_(a.r[5])) a.sh.getRange(a.row, 6, 1, 1).setValues([[stamp_()]]);
+  sciaWorkersSet_(a.id, function () { return true; }, 'revoked');
+  sciaTouch_(a);
+  return { ok: true };
+}
+// The lead logs in: the LEAD user name and password, and their shelter.
+function sciaLeadLogin_(d) {
+  var bad = leadDenied_({ user: d.user || '', password: d.password || '' });
+  if (bad) return { ok: false, error: bad.error || 'Please type the lead user name and password.' };
+  var a = sciaRow_(d.id);
+  if (!a || escText_(a.r[5])) return { ok: false, error: 'That shelter is not open.' };
+  return { ok: true, lead: escText_(a.r[7]), shelter: sciaOut_(a.r) };
+}
+
+// ---- intake workers
+function sciaWorker_(d) {
+  var t = tab_('Offline SCIA Workers'), data = t.getDataRange().getValues(), wid = escId_(d.wid), code = escKey_(d.wkey);
+  if (!wid || !code) return null;
+  for (var i = 1; i < data.length; i++) if (String(data[i][0]) === String(d.id) && String(data[i][1]) === wid && escText_(data[i][7]) === code) return { t: t, row: i + 1, r: data[i] };
+  return null;
+}
+function sciaWorkerState_(w) {
+  var st = escText_(w.r[4]);
+  if (st === 'granted' && Number(w.r[6]) <= Date.now()) st = 'expired';
+  return st;
+}
+function sciaWorkersSet_(id, test, status) {
+  var t = tab_('Offline SCIA Workers'), data = t.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) if (String(data[i][0]) === id && test(data[i])) t.getRange(i + 1, 5, 1, 3).setValues([[status, stamp_(), status === 'granted' ? String(Date.now() + SCIA_HOURS * 3600000) : '0']]);
+}
+// A worker asks for access (name + shelter). Returns nothing about the shelter's clients.
+function sciaAsk_(d) {
+  var a = sciaRow_(d.id);
+  if (!a || escText_(a.r[5])) return { ok: false, error: 'That shelter is not open.' };
+  var name = shName_(d.name), wid = escId_(d.wid), code = escKey_(d.wkey);
+  if (!name) return { ok: false, error: 'Please type your name.' };
+  if (!wid || !code) return { ok: false, error: 'Please reload the page and try again.' };
+  if (sciaWorker_(d)) return { ok: true };
+  tab_('Offline SCIA Workers').appendRow([a.id, wid, safe_(name), stamp_(), 'asked', stamp_(), '0', code, 0]);
+  sciaTouch_(a);
+  return { ok: true };
+}
+// The worker's phone checks: asked / granted / denied / revoked / expired.
+function sciaAskStatus_(d) {
+  sciaTabs_();
+  var a = sciaRow_(d.id); if (!a) return { ok: true, status: 'gone' };
+  var w = sciaWorker_(d); if (!w) return { ok: true, status: 'gone' };
+  var st = escText_(a.r[5]) ? 'closed' : sciaWorkerState_(w);
+  return { ok: true, status: st, name: escText_(w.r[2]), shelter: escText_(a.r[2]), lead: escText_(a.r[3]), until: Number(w.r[6]) || 0, sent: Number(w.r[8]) || 0 };
+}
+// SEND ONE INTAKE (the only thing a worker can do with client details). Nothing comes back but the time.
+function sciaSubmit_(d) {
+  var a = sciaRow_(d.id);
+  if (!a || escText_(a.r[5])) return { ok: false, ended: true, error: 'This shelter is closed. The intake was not sent.' };
+  var w = sciaWorker_(d); if (!w) return { ok: false, ended: true, error: 'Your access was not found. The intake was not sent.' };
+  var st = sciaWorkerState_(w);
+  if (st !== 'granted') return { ok: false, ended: true, status: st, error: st === 'expired' ? 'Your 24 hours of access have ended. Ask your lead to grant you again; the intake is still on this screen.' : 'Your access has ended. The intake was not sent.' };
+  var iid = escId_(d.iid); if (!iid) return { ok: false, error: 'Please try again.' };
+  var t = tab_('Offline SCIA Intakes'), data = t.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) if (String(data[i][0]) === a.id && String(data[i][1]) === iid) return { ok: true, at: iso_(data[i][2]) };   // sent twice (weak signal)
+  var f = sciaClean_(d.form), now = new Date();
+  f.worker = escText_(w.r[2]); f.date = today_();
+  var people = 1 + (f.house || []).filter(function (h) { return h.name; }).length;
+  t.appendRow([a.id, iid, stamp_(now), safe_(f.worker), safe_(f.pname || '(no name)'), safe_(f.pcot || ''), people, sciaFlags_(f).join(', '), JSON.stringify(f)]);
+  w.t.getRange(w.row, 9, 1, 1).setValues([[(Number(w.r[8]) || 0) + 1]]);
+  sciaTouch_(a);
+  return { ok: true, at: stamp_(now) };
+}
+function sciaClean_(form) {
+  var out = {};
+  if (!form || typeof form !== 'object') return out;
+  Object.keys(form).slice(0, 120).forEach(function (k) {
+    if (!/^[a-z][a-z0-9_]{0,20}$/.test(k)) return;
+    if (k === 'house') {
+      out.house = (Array.isArray(form.house) ? form.house : []).slice(0, 15).map(function (h) {
+        h = h || {}; return { name: clean_(h.name, 80), age: clean_(h.age, 10), cot: clean_(h.cot, 20), contact: clean_(h.contact, 120) };
+      }).filter(function (h) { return h.name || h.age || h.cot || h.contact; });
+    } else if (typeof form[k] === 'boolean') out[k] = form[k];
+    else out[k] = clean_(form[k], 2000);
+  });
+  return out;
+}
+// Short "needs attention" labels for the dashboard (from the answers).
+function sciaFlags_(f) {
+  var out = [], yes = function (k) { return f[k] === 'Yes'; };
+  if (f.allergy || yes('c4')) out.push('allergy');
+  if (f.diet || yes('c5')) out.push('diet');
+  if (f.med || yes('c6') || yes('c7')) out.push('medical');
+  if (yes('c8') || f.infant) out.push('infant/pregnancy');
+  if (yes('c10')) out.push('mental health');
+  if (f.dis || yes('c11') || yes('c13')) out.push('mobility');
+  if (yes('c12')) out.push('power');
+  if (yes('c14') || f.pets) out.push('animals');
+  if (f.other) out.push('see notifications');
+  return out;
+}
+
+// ---- dashboard (HQ and the lead)
+function sciaDash_(d) {
+  var a = sciaBoss_(d); if (a.err) return a.err;
+  var now = Date.now();
+  var workers = rows_('Offline SCIA Workers').filter(function (r) { return String(r[0]) === a.id; }).map(function (r) {
+    var st = escText_(r[4]); if (st === 'granted' && Number(r[6]) <= now) st = 'expired';
+    return { wid: String(r[1]), name: escText_(r[2]), asked: iso_(r[3]), status: st, changed: iso_(r[5]), until: Number(r[6]) || 0, sent: Number(r[8]) || 0 };
+  });
+  var intakes = rows_('Offline SCIA Intakes').filter(function (r) { return String(r[0]) === a.id; }).map(function (r) {
+    return { iid: String(r[1]), at: iso_(r[2]), by: escText_(r[3]), client: escText_(r[4]), cot: escText_(r[5]), people: Number(r[6]) || 1, flags: escText_(r[7]) };
+  }).reverse();
+  return { ok: true, role: a.role, shelter: sciaOut_(a.r), workers: workers, intakes: intakes, now: now, today: today_() };
+}
+// Grant / deny / revoke an intake worker (the lead, or HQ).
+function sciaGrant_(d) {
+  var a = sciaBoss_(d); if (a.err) return a.err;
+  var to = { grant: 'granted', deny: 'denied', revoke: 'revoked' }[d.what];
+  if (!to) return { ok: false, error: 'Unknown choice.' };
+  var wid = escId_(d.wid);
+  sciaWorkersSet_(a.id, function (r) { return String(r[1]) === wid; }, to);
+  sciaTouch_(a);
+  return { ok: true };
+}
+function sciaFindIntake_(a, iid) {
+  var t = tab_('Offline SCIA Intakes'), data = t.getDataRange().getValues();
+  iid = escId_(iid);
+  for (var i = 1; i < data.length; i++) if (String(data[i][0]) === a.id && String(data[i][1]) === iid) return { t: t, row: i + 1, r: data[i] };
+  return null;
+}
+// One intake in full (HQ and the lead only).
+function sciaIntake_(d) {
+  var a = sciaBoss_(d); if (a.err) return a.err;
+  var x = sciaFindIntake_(a, d.iid); if (!x) return { ok: false, gone: true, error: 'That intake is no longer here. It may have been entered into SCIA and deleted.' };
+  return { ok: true, at: iso_(x.r[2]), form: rqForm_(x.r[8]) };
+}
+// "Entered into SCIA": DELETES the intake (the paper form: "Upon uploading to SCIA, this form must be deleted").
+function sciaEntered_(d) {
+  var a = sciaBoss_(d); if (a.err) return a.err;
+  var x = sciaFindIntake_(a, d.iid);
+  if (x) x.t.deleteRow(x.row);
+  sciaTouch_(a);
+  return { ok: true };
+}
+// Everything still here, for the Excel download (HQ and the lead).
+function sciaExport_(d) {
+  var a = sciaBoss_(d); if (a.err) return a.err;
+  var list = rows_('Offline SCIA Intakes').filter(function (r) { return String(r[0]) === a.id; }).map(function (r) { var f = rqForm_(r[8]); f.sent = iso_(r[2]); return f; });
+  return { ok: true, shelter: sciaOut_(a.r), intakes: list };
+}
+// Closed shelters: everything erased SCIA_KEEP_DAYS after closing. Runs at most every 10 minutes (and nightly).
+function sciaPurge_(force) {
+  var c = CacheService.getScriptCache();
+  if (!force && c.get('sciaPurge')) return;
+  c.put('sciaPurge', '1', 600);
+  if (!tab_('Offline SCIA Shelters')) return;
+  sciaTabs_();
+  var cut = stamp_(new Date(Date.now() - SCIA_KEEP_DAYS * 86400000));
+  rows_('Offline SCIA Shelters').forEach(function (r) {
+    var closed = iso_(r[5]);
+    if (!closed || closed > cut) return;
+    var id = String(r[0]);
+    ['Offline SCIA Shelters', 'Offline SCIA Workers', 'Offline SCIA Intakes'].forEach(function (n) {
+      var sh = tab_(n), last = sh.getLastRow(); if (last < 2) return;
+      var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+      for (var i = ids.length - 1; i >= 0; i--) if (String(ids[i][0]) === id) sh.deleteRow(i + 2);
+    });
+  });
 }
