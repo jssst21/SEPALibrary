@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.52">
+<link rel="stylesheet" href="../css/style.css?v=0.27.53">
 </head>
 <body class="home sr-page">
 
@@ -72,19 +72,13 @@
 
   <!-- 3. Today's report -->
   <section id="sr-today" hidden>
+    <!-- v0.27.53: a small bar pinned at the top: supervisors (in a pop-up) and the 6409s, out of the way of the log -->
+    <div class="sr-pins">
+      <button type="button" class="sr-pin" id="sr-sups-btn">Add/remove supervisor</button>
+      <a class="sr-pin" id="sr-rq" href="req.html">6409 Supplies<span class="sr-pin-n" id="sr-rq-n" hidden></span><em class="beta-tag">Beta</em></a>
+    </div>
     <!-- v0.27.49: people asking to join (Current Operations > Join on another device) -->
     <div class="sr-asks" id="sr-asks" hidden></div>
-    <div class="sr-box">
-      <h2 class="sr-h">Supervisors</h2>
-      <ul class="sr-sups" id="sr-sups"></ul>
-      <button type="button" class="primary-btn sr-navy" id="sr-add">+ Add supervisor</button>
-    </div>
-    <!-- v0.27.46: 6409 Disaster Requisitions, live (pages/req.html) -->
-    <div class="sr-box">
-      <h2 class="sr-h">Supplies (6409) <em class="beta-tag">Beta</em></h2>
-      <p class="esc-how" id="sr-rq-how">Request supplies on a live 6409. Another supervisor or HQ approves it; "Share with Team member" sends it to logistics.</p>
-      <a class="primary-btn sr-navy sr-rq-btn" id="sr-rq" href="req.html">6409 Requisitions</a>
-    </div>
     <!-- v0.27.41: flagged issues from earlier days that are still flagged -->
     <div class="sr-box sr-carry" id="sr-carry" hidden>
       <h2 class="sr-h">Carried-over issues</h2>
@@ -149,6 +143,17 @@
     <div class="esc-list" id="sr-list"></div>
   </section>
   <p class="esc-logout-line"><button type="button" class="link-btn" id="sr-logout" hidden>Log out of HQ</button></p>
+
+  <!-- Supervisors (v0.27.53: moved off the main screen into this pop-up) -->
+  <div class="f-modal" id="sr-sups-modal" hidden>
+    <div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="sr-sups-title">
+      <button type="button" class="f-modal-x" id="sr-sups-x" aria-label="Close">&times;</button>
+      <h2 id="sr-sups-title">Supervisors</h2>
+      <p class="f-modal-note">On this shelter now. Each can open the report and its 6409s.</p>
+      <ul class="sr-sups" id="sr-sups"></ul>
+      <button type="button" class="primary-btn sr-navy" id="sr-add">+ Add supervisor</button>
+    </div>
+  </div>
 
   <!-- Add a supervisor -->
   <div class="f-modal" id="sr-add-modal" hidden>
@@ -226,10 +231,10 @@
   </div>
 </div>
 
-<script src="../js/config.js?v=0.27.52"></script>
-<script src="../js/view-bar.js?v=0.27.52"></script>
-<script src="../js/current-ops.js?v=0.27.52"></script>
-<script src="../js/shelter.js?v=0.27.52"></script>
-<script src="../js/close-tab.js?v=0.27.52"></script>
+<script src="../js/config.js?v=0.27.53"></script>
+<script src="../js/view-bar.js?v=0.27.53"></script>
+<script src="../js/current-ops.js?v=0.27.53"></script>
+<script src="../js/shelter.js?v=0.27.53"></script>
+<script src="../js/close-tab.js?v=0.27.53"></script>
 </body>
 </html>

@@ -2026,3 +2026,16 @@ a.f-chip:hover { background: var(--bt); }
 .sv-what[hidden] { display: none; }
 #sv-send { margin-top: 18px; width: 100%; }
 .sv-done { margin: 0; padding: 16px; border-radius: 10px; background: #e9f5ee; border: 1px solid #b9dcc6; color: #1f5c38; font-size: 18px; font-weight: 700; }
+/* Daily Shelter Report: the pinned bar and a smaller Carried-over issues box (v0.27.53) */
+.sr-pins { display: flex; gap: 8px; margin: 4px 0 14px; }
+.sr-pin { flex: 1 1 0; min-width: 0; justify-content: center; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; padding: 7px 8px; border: 1.5px solid var(--navy); border-radius: 999px; background: #fff; color: var(--navy); font: 600 13.5px 'Public Sans', Arial, sans-serif; text-decoration: none; cursor: pointer; }
+.sr-pin:hover { background: #eef2f8; }
+.sr-pin .beta-tag { margin: 0; padding: 0 6px; font-size: 10px; vertical-align: 0; }
+.sr-pin-n { padding: 0 7px; border-radius: 999px; background: var(--navy); color: #fff; font-size: 12.5px; }
+.sr-pin-n[hidden] { display: none; }
+#sr-sups-modal .sr-sups { margin-top: 10px; }
+.sr-box.sr-carry { padding: 13px 14px; }
+.sr-box.sr-carry .sr-h { font-size: 18px; margin-bottom: 4px; }
+.sr-box.sr-carry .esc-how { font-size: 13.5px; }
+.sr-box.sr-carry .sr-log li { padding: 8px 10px; font-size: 14px; }
+.sr-box.sr-carry .sr-log li > small { font-size: 12px; }

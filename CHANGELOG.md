@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.27.53 (Oct 17, 2026)
+- DAILY SHELTER REPORT, CALMER MAIN SCREEN (Sean: too many buttons and boxes the same size; the carried-over issues and the log input should be the main thing on screen).
+  - Under the shelter name there is now a small bar with two pills: "Add/remove supervisor" and "6409 Supplies" (Beta tag, plus a number when 6409s are open).
+  - The Supervisors box and the Supplies (6409) box are gone from the main screen. "Add/remove supervisor" opens a pop-up with the list of supervisors, their Remove links and "+ Add supervisor" (same Add and Remove steps as before). "6409 Supplies" opens the shelter's 6409s as before.
+  - The Carried-over issues box is about 20% smaller (padding, heading and text), same red border and place.
+  - People asking to join still show at the top of the report.
+- app/sw.js CACHE is now sepa-tools-23
+- Version number is now ?v=0.27.53 on every page and the homepage footer reads v0.27.53
+
 ## v0.27.52 (Oct 17, 2026)
 - STRESS TEST LOGGING AND SURVEY (Sean's stress test of the Escalation and Reception Center forms). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - New js/test-log.js, on the Escalation and Reception Center forms ONLY. It does nothing unless the Google Sheet's Settings tab says "Stress test: OFF, ON or SURVEY" = ON (rows added by themselves; starts OFF), so people trying the forms on other days are not counted. "Stress test: run name" labels the run.

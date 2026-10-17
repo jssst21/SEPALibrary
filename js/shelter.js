@@ -323,7 +323,8 @@
       // v0.27.41: "Flag as an issue" (red) before adding an entry
       function setFlag(on) { var f = $('sr-flag'); f.setAttribute('aria-pressed', on ? 'true' : 'false'); f.classList.toggle('on', on); $('sr-log-btn').textContent = on ? 'Add flagged issue to the log' : 'Add to the log'; }
       $('sr-flag').onclick = function () { setFlag(this.getAttribute('aria-pressed') !== 'true'); };
-      $('sr-add').onclick = openAdd;
+      $('sr-add').onclick = function () { $('sr-sups-modal').hidden = true; openAdd(); };
+      $('sr-sups-btn').onclick = openSups;   // v0.27.53
       $('sr-log-all').onclick = openAll;
       window.addEventListener('resize', function () { fitLog(); });
       $('sr-close').onclick = openClose;
@@ -357,7 +358,7 @@
       drawAsks(r.asks || []);
       // v0.27.46: the 6409 box
       $('sr-rq').href = 'req.html?s=' + id;
-      $('sr-rq').textContent = '6409 Requisitions' + (r.rqOpen ? ' (' + r.rqOpen + ' open)' : '');
+      $('sr-rq-n').hidden = !r.rqOpen; $('sr-rq').title = r.rqOpen ? r.rqOpen + ' open' : ''; $('sr-rq-n').textContent = r.rqOpen ? String(r.rqOpen) : '';   // v0.27.53: the pinned pill
       var wrap = $('sr-log-wrap'), keep = wrap.scrollTop;
       drawLog($('sr-log'), r.report.log || [], r.today, '');
       S.log = r.report.log || [];
@@ -384,7 +385,7 @@
         li.appendChild(el('small', '', 'Added ' + when(s.added, S.today) + (s.by && s.by !== 'Opened the shelter' && s.by !== 'Opened the link' ? ' · ' + s.by.replace(/^Added (back )?by/, function (x) { return /back/.test(x) ? 'added back by' : 'by'; }) : '')));
         // v0.27.46: Remove supervisor (HQ, or the lead user name and password)
         var rm = el('button', 'link-btn sr-rm', 'Remove'); rm.type = 'button';
-        rm.addEventListener('click', function () { openRemove(s.name); });
+        rm.addEventListener('click', function () { $('sr-sups-modal').hidden = true; openRemove(s.name); });
         b.after(rm);
         ul.appendChild(li);
       });
@@ -591,6 +592,13 @@
       sv.addEventListener('click', function () { if (t.value.trim()) go(t.value); });
       rm.addEventListener('click', function () { go(''); });
       cc.addEventListener('click', function () { f.remove(); });
+    }
+
+    // ---- v0.27.53: the supervisors pop-up (from "Add/remove supervisor" in the pinned bar)
+    function openSups() {
+      var m = $('sr-sups-modal'); m.hidden = false;
+      $('sr-sups-x').onclick = function () { m.hidden = true; };
+      m.onclick = function (e) { if (e.target === m) m.hidden = true; };
     }
 
     // ---- Add supervisor
