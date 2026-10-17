@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.47 (Oct 16, 2026)
+- SEPA TOOLS APP: second Beta Tests button, "Feeding" (Sean). For now it opens a placeholder page, pages/feeding.html: "This tool will be designed by the feeding team." (marked Beta). App cache number now sepa-tools-21. No Google script change: push only.
+- Fix: the BETA tag styling (6409 button on the Mass Care page, Supplies box on the Shelter Report, the 6409 page) was missing from the v0.27.46 push, so "Beta" showed as plain italic text. Now added.
+- Version number is now ?v=0.27.47 on every page and the homepage footer reads v0.27.47
+
 ## v0.27.46 (Oct 16, 2026)
 - 6409 DISASTER REQUISITION, LIVE (new pages/req.html, js/req.js). A PROTOTYPE: Sean will workshop it with the logistics and mass care teams ("build it with your best recommendations"). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - Follows the paper form in the library (DCS JT DMWT Disaster Requisition F6409 / F6409B V.2.0): request header, requester, delivery information, items (stock no., quantity, unit EA/PK/CS/BX, total each, description, date needed), special instructions, approval, optional procurement method, and the 6409-B delivery receipt.

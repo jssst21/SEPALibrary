@@ -1930,3 +1930,9 @@ a.f-chip:hover { background: var(--bt); }
 /* Daily Shelter Report: the 6409 box and Remove supervisor (v0.27.46) */
 .sr-rq-btn { display: block; text-align: center; text-decoration: none; }
 .sr-sups .sr-rm { margin-left: 8px; font-size: 13.5px; font-weight: 600; }
+/* Feeding placeholder page (v0.27.47) */
+.feed-soon { margin: 0; font-size: 19px; font-weight: 600; color: var(--navy); }
+/* "Beta" tag on tools being tried out (v0.27.46 6409, v0.27.47 Feeding). Missing from the v0.27.46 push; added in v0.27.47. */
+.beta-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #fbf3e4; border: 1px solid #ecd9b4; color: #6b4a12; font-family: 'Public Sans', Arial, sans-serif; font-size: 12px; font-style: normal; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; vertical-align: 3px; }
+.beta-line { margin: 0 0 4px; font-size: 14.5px; color: var(--ink-soft); }
+.beta-line .beta-tag { margin: 0 6px 0 0; vertical-align: 1px; }

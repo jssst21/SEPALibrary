@@ -239,6 +239,9 @@
       <a class="pick-opt" href="/pages/req.html">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.5L12 4l8.5 4.5v9L12 22l-8.5-4.5z"/><path d="M3.5 8.5L12 13l8.5-4.5M12 13v9"/></svg>
         <span><strong>6409 Requisition</strong><small>Request supplies and track them with logistics</small></span></a>
+      <a class="pick-opt" href="/pages/feeding.html">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v7a2 2 0 0 0 2 2v9M11 3v7a2 2 0 0 1-2 2M9 3v6"/><path d="M17 21V3c-2 1-3 3.5-3 7v3h3"/></svg>
+        <span><strong>Feeding</strong><small>Coming soon from the feeding team</small></span></a>
       <button class="pick-x pick-back" id="beta-back" type="button">&lsaquo; Back to Mass Care</button>
     </div>
   </div>
@@ -259,7 +262,7 @@
 
   <p class="foot"><a href="/index.html">SEPA Resource Library website</a></p>
 </div>
-<script src="../js/config.js?v=0.27.46"></script>
+<script src="../js/config.js?v=0.27.47"></script>
 <script>
   /* ANNOUNCEMENTS (v0.27.19). Read from the Google Sheet's Announcements tab (see sepa-backend.gs,
      ANNOUNCEMENTS). The last list is kept on the phone so the bar still works with a weak signal.
@@ -318,7 +321,7 @@
   if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('sw.js'); } catch (e) {} }
 </script>
 <script>
-  /* v0.27.46 Mass Care button: opens the pop-up (SCIA, Shelter Log, Beta Tests). Beta Tests swaps in its own list (6409 Requisition). */
+  /* v0.27.46 Mass Care button: opens the pop-up (SCIA, Shelter Log, Beta Tests). Beta Tests swaps in its own list (6409 Requisition; Feeding since v0.27.47). */
   (function () {
     var pop = document.getElementById('shel'), btn = document.getElementById('shel-btn');
     if (!pop || !btn) return;
