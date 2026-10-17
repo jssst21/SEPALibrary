@@ -58,14 +58,14 @@ var SEPAAskLead = (function () {
     if (asks.length) document.title = '(' + asks.length + ') ' + document.title;
     if (!asks.length) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false;
-    box.innerHTML = '<p class="ask-req-head">' + (asks.length === 1 ? 'Someone is' : asks.length + ' people are') + ' asking to join</p>' +
+    box.innerHTML = '<p class="ask-req-head">' + (asks.length === 1 ? esc(asks[0].name) + ' is' : asks.length + ' people are') + ' asking to join</p>' +
       asks.map(function (a) {
         return '<div class="ask-req" data-rid="' + esc(a.rid) + '"><p class="ask-req-who"><strong>' + esc(a.name) + '</strong>' +
           (a.phone ? ' &middot; <a href="tel:' + esc(a.phone.replace(/[^0-9+]/g, '')) + '">' + esc(a.phone) + '</a>' : '') +
           ' <span class="ask-req-when">' + ago(a.at) + '</span></p>' +
-          '<div class="esc-buttons"><button type="button" class="primary-btn" data-yes>Approve</button>' +
-          '<button type="button" class="esc-btn" data-no>Decline</button></div></div>';
-      }).join('') + '<p class="esc-group-how">Approve adds them to this ' + (formName === 'reception' ? 'reception center' : 'worksheet') + ' straight away. Only approve people you expect.</p>';
+          '<div class="esc-buttons"><button type="button" class="primary-btn" data-yes>Let in</button>' +
+          '<button type="button" class="esc-btn" data-no>No</button></div></div>';      // v0.27.49 (were Approve / Decline)
+      }).join('') + '<p class="esc-group-how">Let in adds them to this ' + (formName === 'reception' ? 'reception center' : 'worksheet') + ' straight away. Only let in people you expect.</p>';
     Array.prototype.forEach.call(box.querySelectorAll('.ask-req'), function (row) {
       var rid = row.getAttribute('data-rid');
       Array.prototype.forEach.call(row.querySelectorAll('button'), function (b) {

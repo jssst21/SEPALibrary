@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.27.49 (Oct 17, 2026)
+- CURRENT OPERATIONS ON EVERY DEVICE (Escalation, Reception Center, Daily Shelter Report). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - Sean: he started a center on his laptop, opened the app on his phone, and could not find the event he had been working on for an hour. Now every form, on every device, first checks for current events and lists them at the top.
+  - The warm sand box with "Looking for current events..." shows EVERY time while it checks (it used to be skipped on a device with nothing to check). Then the list, or "No current events. Start a new one below."
+  - Every open event is listed: "Open" if this device is on it, "Join" if not. Names only, never anything typed into a form; escalation worksheets show the TOWN and start time, never the street address.
+  - Join: the lead or HQ types their name and the lead (or HQ) user name and password and goes straight in, as a lead (the laptop-to-phone handoff). Anyone else types their name and taps Request access; the lead (Shelter: any current supervisor) or HQ sees "Dana R. is asking to join" with Let in / No, and the requester's page opens the event by itself. Escalation and Reception buttons now also say Let in / No (were Approve / Decline).
+  - Shelter: a person let in is added to the supervisors. Reception: the center's join code is now kept so a lead can open it on another device (older centers pick it up when one of their phones checks in).
+- AUTO DELETE IS OFF for now (Sean: the demo events must stay for meetings over several days): Escalation, Reception Center, Daily Shelter Report (with its 6409s) and Offline SCIA no longer erase anything by themselves. Manual erasing still works. One switch in the Google script (AUTO_DELETE = false). Turn it back on before going live (see WHERE WE LEFT OFF). The open-events list now goes back 30 days (was 2).
+- Version number is now ?v=0.27.49 on every page and the homepage footer reads v0.27.49
+
 ## v0.27.48 (Oct 16, 2026)
 - OFFLINE SCIA (new pages/scia.html, js/scia.js), a BETA / DEMO, in the SEPA Tools app under Mass Care > Beta Tests. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - Why (Sean): in a full mass care response, intake cannot start in SCIA until the operation's DR code unlocks it, and the only fallback is paper, which is far less secure. This lets intake start right away; everything is typed into SCIA by hand later. It cannot sync with SCIA or any outside system. Assumes a cell signal.

@@ -1990,3 +1990,20 @@ a.f-chip:hover { background: var(--bt); }
 .sc-modal.sc-wide-modal .f-modal-box { max-width: 640px; max-height: 88vh; overflow-y: auto; }
 .sc-read .sc-in[readonly] { background: #f6f4f2; border-color: transparent; }
 .esc-status.esc-bad { background: var(--red-tint); border-color: #e2b5bc; color: var(--red); }
+/* Current Operations for every device (v0.27.49): events this phone is not on yet ("Join") */
+.co-item.co-join { background: #fff; color: var(--navy); border: 1.5px solid #c9d6e8; }
+.co-item.co-join:hover { border-color: var(--navy); background: #fff; }
+.co-item.co-join b { background: var(--navy); color: #fff; }
+.co-modal .co-j-head { margin: 16px 0 0; font-weight: 700; color: var(--navy); }
+.co-modal .co-j-or { margin: 14px 0 4px; text-align: center; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.co-modal .primary-btn { display: block; width: 100%; margin-top: 12px; }
+.co-modal .co-j-login { background: var(--navy); }
+.co-modal .co-j-wait .esc-btn { width: 100%; margin-top: 10px; }
+.co-modal .co-j-wait[hidden], .co-modal .co-j-body[hidden] { display: none; }
+/* "X is asking to join" on the Daily Shelter Report (v0.27.49) */
+.sr-asks { margin: 0 0 14px; }
+.sr-asks[hidden] { display: none; }
+.sr-ask { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 8px; padding: 12px 14px; border-radius: 10px; background: #fbf3e4; border: 2px solid #d9a441; }
+.sr-ask b { display: block; font-size: 16px; }
+.sr-ask small { display: block; color: #6b4a12; font-size: 13.5px; }
+.sr-ask .sc-mini { margin-left: 4px; }

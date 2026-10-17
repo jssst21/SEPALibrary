@@ -246,7 +246,9 @@ function doPost(e) {
       sciaIntake: sciaIntake_,
       sciaEntered: sciaEntered_,
       sciaExport: sciaExport_,
-      sciaSubmit: sciaSubmit_
+      sciaSubmit: sciaSubmit_,
+      coOpen: coOpen_,
+      coLogin: coLogin_
     };
     var fn = actions[d.action || 'shiftSignup'];
     if (!fn) return json_({ ok: false, error: 'Unknown request.' });
@@ -875,6 +877,11 @@ var LEAD_PASS_LABEL = 'Lead login: password';   // how long an HQ login lasts on
    edit key, f = for each box, the change number at which it last changed. A box name can never be
    "#", so it cannot collide with a real box. */
 var ESC_META = '#';
+/* AUTO DELETE SWITCH (website v0.27.49, Sean Oct 17, 2026): OFF while the forms are being shown in meetings
+   over several days, so the demo events stay. Nothing is erased by itself (Escalation, Reception Center,
+   Daily Shelter Report with its 6409s, Offline SCIA) until this is true again. Manual erasing still works
+   (Clear, Close shelter, "Entered into SCIA"). Turn back on before the forms go live (see WHERE WE LEFT OFF). */
+var AUTO_DELETE = false;
 
 function escTab_() { makeTab_('Escalations', ESC_HEADERS); return tab_('Escalations'); }
 function escClearedTab_() { makeTab_('Escalations cleared', ESC_HEADERS.concat(['Cleared'])); return tab_('Escalations cleared'); }
@@ -1121,6 +1128,7 @@ function escClearRow_(sh, row, id, how) {
    every 10 minutes, when someone opens a worksheet, the Scene Summary or the list. */
 var ESC_KEEP_DAYS = 5;
 function escPurge_(force) {
+  if (!AUTO_DELETE) return;     // v0.27.49: off for the demos
   var cache = CacheService.getScriptCache();
   if (!force && cache.get('escPurged')) return;
   cache.put('escPurged', '1', 600);
@@ -1158,7 +1166,7 @@ function escPurge_(force) {
        uses the form, and every night at 3 AM once startAutoDelete has been run (no email is sent).
      - The form asks for basic needs only. Do not record diagnoses.
    ========================================================= */
-var REC_CENTER_HEADERS = ['ID', 'Started', 'Last intake', 'Center name or location', 'Lead', 'Intakes', 'Last activity ms (do not edit)', 'Join check (do not edit)', 'Lead check (do not edit)'];
+var REC_CENTER_HEADERS = ['ID', 'Started', 'Last intake', 'Center name or location', 'Lead', 'Intakes', 'Last activity ms (do not edit)', 'Join check (do not edit)', 'Lead check (do not edit)', 'Join code (do not edit)'];   // Join code since v0.27.49
 var REC_INTAKE_HEADERS = ['Center ID', 'Intake ID', 'Saved', 'Responder', 'Name', 'Address', 'Unit', 'Phone', 'Alternate contact',
   'Adults', 'Children', 'Pets', 'Pets with them', 'Safe place tonight', 'Where', 'Would stay in a shelter', 'Immediate needs', 'Other concerns or needs',
   'Last edited', 'Edited by',       // added in website v0.27.7 (Edit button)
@@ -1202,6 +1210,7 @@ function recDelete_(id, how) {
 
 /* The 5-day automatic delete. Also removes intakes whose center is gone (a row deleted by hand). */
 function recPurge_(force) {
+  if (!AUTO_DELETE) return;     // v0.27.49: off for the demos
   // v0.27.32: at most once every 10 minutes (it is now also run when phones check in); the nightly run always goes
   var cache = CacheService.getScriptCache();
   if (!force && cache.get('recPurged')) return;
@@ -1268,7 +1277,7 @@ function recStart_(d) {
   if (denied) return denied;
   var now = new Date(), nowText = stamp_(now);
   recCenters_().appendRow([id, nowText, '', safe_(clean_(d.center, 120)), safe_(clean_(d.lead, 100)), '0', String(now.getTime()),
-    recMark_('join', id, key), recMark_('lead', id, lead)]);
+    recMark_('join', id, key), recMark_('lead', id, lead), key]);
   return { ok: true };
 }
 
@@ -1309,6 +1318,7 @@ function recPing_(d) {
   var c = recCenter_(id, key, 'join');
   if (!c) return { ok: true, found: false };
   if (!c.ok) return { ok: false, nokey: true, error: 'This link cannot open the reception center.' };
+  if (!escText_(c.r[9])) recCenters_().getRange(c.row, 10, 1, 1).setValues([[key]]);     // v0.27.49: centers started before then
   var lc = d.leadKey ? recCenter_(id, escKey_(d.leadKey), 'lead') : null;
   var me = rosterCheckIn_('rec', id, d, lc && lc.ok ? 'lead' : '');
   return { ok: true, found: true, center: escText_(c.r[3]), lead: recLeadNames_(id, c), removed: !!(me && me.removed),
@@ -1719,8 +1729,8 @@ function libSearch_(raw) {
    name: never addresses or anything typed into the forms.
    Requests are kept for 6 hours in the script's short-term memory (not in the Sheet), then vanish.
    ========================================================= */
-var ASK_SECS = 21600, ASK_MAX = 30, ASK_OPEN_DAYS = 2;
-function askForm_(f) { return f === 'esc' || f === 'rec' ? f : ''; }
+var ASK_SECS = 21600, ASK_MAX = 30, ASK_OPEN_DAYS = 30;     // v0.27.49: 30 days (was 2), so demo events stay listed
+function askForm_(f) { return f === 'esc' || f === 'rec' || f === 'sh' ? f : ''; }     // 'sh' (shelters) since v0.27.49
 function askCacheKey_(form, id) { return 'ask:' + form + ':' + id; }
 function askGet_(form, id) {
   try { return JSON.parse(CacheService.getScriptCache().get(askCacheKey_(form, id)) || '[]') || []; } catch (e) { return []; }
@@ -1764,7 +1774,8 @@ function askJoin_(d) {
   var name = clean_(d.name, 60).replace(/\s+/g, ' '), phone = clean_(d.phone, 30);
   if (!form || !id || !ticket) return { ok: false, error: 'This request could not be sent.' };
   if (!name) return { ok: false, error: 'Please enter your name.' };
-  var open = form === 'esc' ? escFindRow_(escTab_(), id) && !escIsCleared_(id) : escFindRow_(recCenters_(), id) && !recIsCleared_(id);
+  var open = form === 'esc' ? escFindRow_(escTab_(), id) && !escIsCleared_(id) : form === 'rec' ? escFindRow_(recCenters_(), id) && !recIsCleared_(id)
+    : escFindRow_(shTab_(), id) && !shIsClosed_(id);
   if (!open) return { ok: false, gone: true, error: 'That event is no longer open. Pick another, or ask your lead for the link.' };
   var list = askGet_(form, id);
   if (list.filter(function (a) { return a.status === 'waiting'; }).length >= ASK_MAX) return { ok: false, error: 'Too many requests are waiting. Please ask your lead directly.' };
@@ -1797,6 +1808,14 @@ function askAnswer_(d) {
     var lead = recLeadAuth_(id, d), join = recCenter_(id, escKey_(d.key), 'join');
     if (!lead || !lead.ok || !join || !join.ok) return { ok: false, error: 'Only the lead can answer requests.' };
     give = escKey_(d.key);
+  } else if (form === 'sh') {
+    // v0.27.49: any CURRENT supervisor of the shelter (its link code + a listed name) or HQ lets people in.
+    var a = shAccess_(d);
+    if (a.err || !(a.hq || shListed_(a.id, d.me))) return { ok: false, error: 'Only the shelter\'s supervisors or HQ can let people in.' };
+    give = escText_(a.r[7]);
+    if (d.yes) askGet_('sh', id).forEach(function (x) {
+      if (x.rid === rid && x.status === 'waiting') shAddSup_({ id: id, key: give, me: d.me, token: d.token, name: escText_(x.name), self: false });
+    });
   } else return { ok: false, error: 'Unknown form.' };
   var list = askGet_(form, id), found = false;
   list.forEach(function (a) { if (a.rid === rid && a.status === 'waiting') { found = true; a.status = d.yes ? 'approved' : 'declined'; a.key = d.yes ? give : ''; } });
@@ -2122,7 +2141,8 @@ function shGet_(d) {
     sups: shSups_(a.id), report: shReport_(a.id, today), days: shDays_(a.id, today),
     // v0.27.41: flagged issues from earlier days that nobody has unflagged ("Carried-over issues")
     carry: shLogFor_(a.id, '').filter(function (e) { return e.flag && e.day < today; }),
-    rqOpen: rqOpenCount_(a.id) };
+    rqOpen: rqOpenCount_(a.id),
+    asks: askWaiting_('sh', a.id) };     // v0.27.49: people asking to join (Current Operations > Join)
   if (a.hq) res.joinKey = escText_(a.r[7]);
   return res;
 }
@@ -2260,6 +2280,7 @@ function shErase_(id, how) {
 // Erase shelters with no activity for SH_KEEP_DAYS days. Runs at most every 10 minutes (and nightly
 // from autoDelete, if startAutoDelete was run once).
 function shPurge_(force) {
+  if (!AUTO_DELETE) return;     // v0.27.49: off for the demos
   var c = CacheService.getScriptCache();
   if (!force && c.get('shPurge')) return;
   c.put('shPurge', '1', 600);
@@ -2767,6 +2788,7 @@ function sciaExport_(d) {
 }
 // Closed shelters: everything erased SCIA_KEEP_DAYS after closing. Runs at most every 10 minutes (and nightly).
 function sciaPurge_(force) {
+  if (!AUTO_DELETE) return;     // v0.27.49: off for the demos
   var c = CacheService.getScriptCache();
   if (!force && c.get('sciaPurge')) return;
   c.put('sciaPurge', '1', 600);
@@ -2783,4 +2805,76 @@ function sciaPurge_(force) {
       for (var i = ids.length - 1; i >= 0; i--) if (String(ids[i][0]) === id) sh.deleteRow(i + 2);
     });
   });
+}
+
+
+/* =========================================================
+   CURRENT OPERATIONS FOR EVERY DEVICE (website v0.27.49, Sean Oct 17, 2026). Whoever opens one of the
+   three forms, on any device, sees every open event at the top (js/current-ops.js). An event this device
+   is not on yet shows "Join": the lead or HQ logs in and goes straight in (coLogin_), anyone else asks
+   (askJoin_, answered by the lead / a supervisor / HQ). The public list shows names only, never anything
+   typed into a form; escalation worksheets show the TOWN and start time, never the street address.
+   ========================================================= */
+// The town from "125 Main St, Norristown, PA 19401": the part after the first comma, without state and zip.
+function coTown_(addr) {
+  var first = String(addr || '').split('\n')[0], parts = first.split(',');
+  if (parts.length < 2) return '';
+  return clean_(parts[1].replace(/\b(PA|Pennsylvania|NJ|DE)\b.*$/i, '').replace(/\d{5}(-\d{4})?/, ''), 40);
+}
+// PUBLIC: the open events of one form (names only).
+function coOpen_(d) {
+  var form = askForm_(d.form), out = [];
+  if (form === 'esc') {
+    var sh = escTab_(), last = sh.getLastRow();
+    if (last >= 2) sh.getRange(2, 1, last - 1, 7).getValues().forEach(function (r) {
+      var id = escId_(r[0]); if (!id || escIsCleared_(id)) return;
+      var w = escOpen_(r[6]); if (!w.meta.k) return;
+      out.push({ id: id, started: iso_(r[1]), ms: Number(escText_(r[5])) || 0, town: coTown_(w.data.incident_addresses),
+        lead: clean_(String(w.data.leaders_arc_lead_1 || '').split('\n')[0], 60) });
+    });
+  } else if (form === 'rec') {
+    var csh = recCenters_(), lastc = csh.getLastRow();
+    if (lastc >= 2) csh.getRange(2, 1, lastc - 1, 7).getValues().forEach(function (r) {
+      var id = escId_(r[0]); if (!id || recIsCleared_(id)) return;
+      out.push({ id: id, started: iso_(r[1]), ms: Number(escText_(r[6])) || 0, name: escText_(r[3]), lead: escText_(r[4]), count: parseInt(escText_(r[5]), 10) || 0 });
+    });
+  } else if (form === 'sh') {
+    shTabs_();
+    rows_('Shelters').forEach(function (r) {
+      var id = escId_(r[0]); if (!id) return;
+      out.push({ id: id, started: iso_(r[1]), ms: Number(r[6]) || 0, name: escText_(r[2]), lead: escText_(r[4]) });
+    });
+  } else return { ok: false, error: 'Unknown form.' };
+  out.sort(function (a, b) { return b.ms - a.ms; });
+  return { ok: true, items: out.slice(0, 40), now: Date.now() };
+}
+// THE LEAD (or HQ) OPENS AN EVENT ON ANOTHER DEVICE: the lead (or HQ) user name and password. The device gets
+// the event's code and is marked a lead (co-lead) on it; on a shelter the name is added to the supervisors.
+function coLogin_(d) {
+  var form = askForm_(d.form), id = escId_(d.id), who = clean_(d.who, 60).replace(/\s+/g, ' ');
+  if (!form || !id) return { ok: false, error: 'That event was not found.' };
+  if (!who) return { ok: false, error: 'Please type your name.' };
+  var bad = leadDenied_({ user: d.user || '', password: d.password || '' });
+  if (bad) return { ok: false, error: bad.error || 'Please type the lead user name and password.' };
+  if (form === 'esc') {
+    var sh = escTab_(), row = escFindRow_(sh, id);
+    if (!row || escIsCleared_(id)) return { ok: false, gone: true, error: 'That worksheet is no longer open.' };
+    var key = escKey_(escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta.e);
+    if (!key) return { ok: false, error: 'This worksheet was started before this could work. Ask the lead to let you in instead.' };
+    rosterCheckIn_('esc', id, { dev: d.dev, who: who }, 'co-lead');
+    return { ok: true, key: key };
+  }
+  if (form === 'rec') {
+    var csh = recCenters_(), crow = escFindRow_(csh, id);
+    if (!crow || recIsCleared_(id)) return { ok: false, gone: true, error: 'That reception center is no longer open.' };
+    var jk = escKey_(csh.getRange(crow, 10, 1, 1).getValues()[0][0]);
+    if (!jk) return { ok: false, error: 'This center needs one of its phones to check in first. Ask the lead to let you in instead.' };
+    rosterCheckIn_('rec', id, { dev: d.dev, who: who }, 'co-lead');
+    return { ok: true, key: jk, center: escText_(csh.getRange(crow, 4, 1, 1).getValues()[0][0]) };
+  }
+  var st = shTab_(), srow = escFindRow_(st, id);
+  if (!srow || shIsClosed_(id)) return { ok: false, gone: true, error: 'That shelter is no longer open.' };
+  var r = st.getRange(srow, 1, 1, SH_HEADERS.length).getValues()[0], code = escText_(r[7]);
+  shAddSup_({ id: id, key: code, me: 'Lead login', name: who, self: false });     // also brings back someone who was removed
+  return { ok: true, key: code, shelter: escText_(r[2]) };
 }

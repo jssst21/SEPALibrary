@@ -354,6 +354,7 @@
       $('sr-saved').textContent = r.report.saved ? clock(r.report.saved) + ' by ' + r.report.savedBy : 'Nothing saved yet today';
       fillQs($('sr-qs'), cur.answers, r.today);
       drawSups(r.sups || []);
+      drawAsks(r.asks || []);
       // v0.27.46: the 6409 box
       $('sr-rq').href = 'req.html?s=' + id;
       $('sr-rq').textContent = '6409 Requisitions' + (r.rqOpen ? ' (' + r.rqOpen + ' open)' : '');
@@ -622,6 +623,32 @@
           };
         });
       };
+    }
+
+    // ---- v0.27.49: "X is asking to join" (from Current Operations > Join on another device). Any current
+    // supervisor or HQ lets them in (they are added to the supervisors) or says no.
+    function drawAsks(list) {
+      var box = $('sr-asks'); box.innerHTML = ''; box.hidden = !list.length;
+      list.forEach(function (a) {
+        var row = el('div', 'sr-ask'), t = el('span');
+        t.appendChild(el('b', '', a.name + ' is asking to join'));
+        var m = Math.max(0, Math.round((Date.now() - a.at) / 60000));
+        t.appendChild(el('small', '', 'asked ' + (m < 1 ? 'just now' : m + ' min ago') + (a.phone ? ' · ' + a.phone : '')));
+        row.appendChild(t);
+        var bs = el('span');
+        [['Let in', true], ['No', false]].forEach(function (x) {
+          var b = el('button', 'sc-mini' + (x[1] ? '' : ' sc-no'), x[0]); b.type = 'button';
+          b.onclick = function () {
+            Array.prototype.forEach.call(row.querySelectorAll('button'), function (y) { y.disabled = true; });
+            call(auth({ action: 'askAnswer', form: 'sh', rid: a.rid, yes: x[1] })).then(function (r) {
+              if (!(r && r.ok)) { notice((r && r.error) || 'Not saved: no connection. Please try again.'); Array.prototype.forEach.call(row.querySelectorAll('button'), function (y) { y.disabled = false; }); return; }
+              poll(true);
+            });
+          };
+          bs.appendChild(b);
+        });
+        row.appendChild(bs); box.appendChild(row);
+      });
     }
 
     // ---- Remove supervisor (v0.27.46)
