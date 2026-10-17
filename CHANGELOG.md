@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.27.52 (Oct 17, 2026)
+- STRESS TEST LOGGING AND SURVEY (Sean's stress test of the Escalation and Reception Center forms). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - New js/test-log.js, on the Escalation and Reception Center forms ONLY. It does nothing unless the Google Sheet's Settings tab says "Stress test: OFF, ON or SURVEY" = ON (rows added by themselves; starts OFF), so people trying the forms on other days are not counted. "Stress test: run name" labels the run.
+  - While ON it logs to a "Test log" tab, never anything typed: each call to the Google script (action, time, worked or not), page loads, how long "Looking for current events..." took and how many taps happened during it, how long each reception intake took, which way people joined (lead log in / request / let in / no), page errors, and the kind of device (iPhone / Android / computer, app or browser). Each phone has a random test code.
+  - SURVEY: the two forms show "The test is over. Thank you! Please take the 3-minute survey." with a button to the new survey page (pages/survey.html, six questions, name optional). Answers go to a "Test survey" tab. The banner goes away on a phone once it has answered.
+  - Sean starts and ends it by telling Claude "begin test" / "end test" (see WHERE WE LEFT OFF).
+- WEBSITE BETA TESTS (Sean: mirrors the app). On the Mass Care page the 6409 button is now "Beta Tests" (BETA tag); it opens the new pages/beta.html with 6409 Requisition, Feeding and Offline SCIA, each tagged BETA.
+- Version number is now ?v=0.27.52 on every page and the homepage footer reads v0.27.52
+
 ## v0.27.51 (Oct 17, 2026)
 - CURRENT OPERATIONS: ESCALATION WORKSHEETS NAMED BY THEIR ADDRESS, WITHOUT THE HOUSE NUMBER (Sean: they all showed as "Worksheet"). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - "99 Johnson" shows as "Johnson"; "99 Johnson Street, Philadelphia, PA 19104" as "Johnson Street, Philadelphia" (no house number, state or zip; at most the first two parts).

@@ -248,7 +248,10 @@ function doPost(e) {
       sciaExport: sciaExport_,
       sciaSubmit: sciaSubmit_,
       coOpen: coOpen_,
-      coLogin: coLogin_
+      coLogin: coLogin_,
+      testStatus: testStatus_,
+      testLog: testLog_,
+      testSurvey: testSurvey_
     };
     var fn = actions[d.action || 'shiftSignup'];
     if (!fn) return json_({ ok: false, error: 'Unknown request.' });
@@ -2921,4 +2924,63 @@ function coLogin_(d) {
   var r = st.getRange(srow, 1, 1, SH_HEADERS.length).getValues()[0], code = escText_(r[7]);
   shAddSup_({ id: id, key: code, me: 'Lead login', name: who, self: false });     // also brings back someone who was removed
   return { ok: true, key: code, shelter: escText_(r[2]) };
+}
+
+
+/* =========================================================
+   STRESS TEST LOGGING (website v0.27.52, Sean Oct 17, 2026). For his stress test of the Escalation and
+   Reception Center forms. OFF unless the Settings tab says so, so people trying the forms other days are
+   not counted. Two rows in Settings (added by themselves):
+     "Stress test: OFF, ON or SURVEY"   OFF = nothing logged; ON = the two forms log; SURVEY = they show
+                                        "The test is over" with a link to the survey (pages/survey.html)
+     "Stress test: run name"            a label for this run, e.g. "Stress test 2026-10-21"; every row carries it
+   Nothing typed into a form is ever logged: only which action, how long it took, whether it worked,
+   page loads, errors, and the kind of device. Each phone has a random test code.
+   Tabs (appear by themselves): "Test log" (one row per event), "Test survey" (one row per answer sheet).
+   ========================================================= */
+var TEST_MODE_LABEL = 'Stress test: OFF, ON or SURVEY';
+var TEST_RUN_LABEL = 'Stress test: run name';
+function testState_() {
+  var c = CacheService.getScriptCache(), hit = c.get('testState');
+  if (hit) { try { return JSON.parse(hit); } catch (e) {} }
+  var sh = tab_('Settings'), data = sh.getDataRange().getValues(), mode = '', run = '', seenM = false, seenR = false;
+  for (var i = 0; i < data.length; i++) {
+    var k = String(data[i][0]).trim();
+    if (k === TEST_MODE_LABEL) { seenM = true; mode = String(data[i][1]).trim().toUpperCase(); }
+    if (k === TEST_RUN_LABEL) { seenR = true; run = clean_(escText_(data[i][1]), 80); }
+  }
+  if (!seenM) sh.appendRow([TEST_MODE_LABEL, 'OFF']);
+  if (!seenR) sh.appendRow([TEST_RUN_LABEL, '']);
+  var out = { mode: mode === 'ON' || mode === 'SURVEY' ? mode : 'OFF', run: run || 'Stress test' };
+  c.put('testState', JSON.stringify(out), 20);      // a change in the Sheet shows within 20 seconds
+  return out;
+}
+function testStatus_() { var t = testState_(); return { ok: true, mode: t.mode, run: t.mode === 'OFF' ? '' : t.run }; }
+// A batch of events from one phone (only while ON). Each event: [client time ms, form, event, detail, ms].
+function testLog_(d) {
+  var t = testState_();
+  if (t.mode !== 'ON') return { ok: true, off: true };
+  var dev = String(d.dev || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 24), plat = clean_(d.plat, 40);
+  var evs = Array.isArray(d.ev) ? d.ev.slice(0, 200) : [];
+  if (!dev || !evs.length) return { ok: true };
+  makeTab_('Test log', ['Run', 'Received', 'Phone (test code)', 'Device', 'Form', 'Event', 'Detail', 'Milliseconds', 'Phone time']);
+  var now = stamp_(), rows = evs.map(function (e) {
+    e = Array.isArray(e) ? e : [];
+    return [safe_(t.run), now, dev, safe_(plat), safe_(clean_(e[1], 12)), safe_(clean_(e[2], 30)), safe_(clean_(e[3], 120)),
+      Math.max(0, Math.min(600000, Number(e[4]) || 0)), stamp_(new Date(Number(e[0]) || Date.now()))];
+  });
+  var sh = tab_('Test log');
+  sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+  return { ok: true };
+}
+// The survey (while ON or SURVEY).
+function testSurvey_(d) {
+  var t = testState_();
+  if (t.mode === 'OFF') return { ok: false, closed: true, error: 'The survey is closed. Thank you!' };
+  var a = d.a || {};
+  makeTab_('Test survey', ['Run', 'Sent', 'Phone (test code)', 'Role', 'Finding your event (1-5)', 'Joining', 'Anything fail or freeze?', 'What failed', 'This or paper (1 paper - 5 this)', 'One thing to change', 'Name (optional)']);
+  tab_('Test survey').appendRow([safe_(t.run), stamp_(), String(d.dev || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 24),
+    safe_(clean_(a.role, 20)), Number(a.find) || '', safe_(clean_(a.join, 20)), safe_(clean_(a.fail, 5)), safe_(clean_(a.failWhat, 1000)),
+    Number(a.paper) || '', safe_(clean_(a.change, 1000)), safe_(clean_(a.name, 60))]);
+  return { ok: true };
 }

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Stress test survey - SEPA Resource Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css?v=0.27.52">
+</head>
+<body class="home sr-page">
+<!-- STRESS TEST SURVEY (website v0.27.52). Linked from the "The test is over" banner on the Escalation and
+     Reception Center forms (js/test-log.js). Answers go to the Google Sheet's "Test survey" tab. -->
+<div class="page-wrap">
+  <header class="page-top">
+    <a href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
+    <a class="back-link" href="../index.html">&times; Close this tab</a>
+  </header>
+  <h1 class="page-title">Stress test survey</h1>
+  <p class="page-intro">3 minutes. Anonymous unless you add your name at the end.</p>
+  <div class="sr-box" id="sv-box">
+    <p class="sv-q">1. Your role today</p>
+    <div class="rc-choice sv-pick" data-k="role"><button type="button">Lead</button><button type="button">Responder</button><button type="button">HQ</button></div>
+    <p class="sv-q">2. How easy was it to find your event?</p>
+    <div class="sv-scale" data-k="find"><button type="button">1</button><button type="button">2</button><button type="button">3</button><button type="button">4</button><button type="button">5</button></div>
+    <p class="sv-ends"><span>Very hard</span><span>Very easy</span></p>
+    <p class="sv-q">3. Joining an event was&hellip;</p>
+    <div class="rc-choice sv-pick" data-k="join"><button type="button">Easy</button><button type="button">Confusing</button><button type="button">Didn't need to</button></div>
+    <p class="sv-q">4. Did anything fail or freeze?</p>
+    <div class="rc-choice sv-pick" data-k="fail"><button type="button">No</button><button type="button">Yes</button></div>
+    <label class="field sv-what" id="sv-what" hidden>What happened? <textarea class="esc-in" id="sv-failwhat" rows="3" maxlength="1000"></textarea></label>
+    <p class="sv-q">5. This, or paper, for this job?</p>
+    <div class="sv-scale" data-k="paper"><button type="button">1</button><button type="button">2</button><button type="button">3</button><button type="button">4</button><button type="button">5</button></div>
+    <p class="sv-ends"><span>Paper</span><span>This</span></p>
+    <label class="field">6. One thing to change <textarea class="esc-in" id="sv-change" rows="3" maxlength="1000"></textarea></label>
+    <label class="field">Your name (optional) <input class="esc-in" id="sv-name" maxlength="60" autocomplete="name"></label>
+    <p class="form-error" id="sv-err" hidden></p>
+    <button type="button" class="primary-btn" id="sv-send">Send</button>
+  </div>
+  <p class="sv-done" id="sv-done" hidden>&#10003; Thank you! Your answers were sent.</p>
+</div>
+<script src="../js/config.js?v=0.27.52"></script>
+<script>
+  (function () {
+    var URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '', a = {}, run = '';
+    var $ = function (id) { return document.getElementById(id); };
+    function post(d) { return fetch(URL, { method: 'POST', body: JSON.stringify(d) }).then(function (r) { return r.json(); }).catch(function () { return { ok: false, offline: true }; }); }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-k]'), function (g) {
+      Array.prototype.forEach.call(g.querySelectorAll('button'), function (b) {
+        b.addEventListener('click', function () {
+          a[g.dataset.k] = b.textContent;
+          Array.prototype.forEach.call(g.querySelectorAll('button'), function (x) { x.classList.toggle('on', x === b); });
+          if (g.dataset.k === 'fail') $('sv-what').hidden = b.textContent !== 'Yes';
+        });
+      });
+    });
+    post({ action: 'testStatus' }).then(function (j) { run = (j && j.run) || ''; });
+    $('sv-send').addEventListener('click', function () {
+      var btn = this, err = $('sv-err');
+      a.failWhat = $('sv-failwhat').value; a.change = $('sv-change').value; a.name = $('sv-name').value;
+      btn.disabled = true; err.hidden = true;
+      var dev = ''; try { dev = localStorage.getItem('sepaTestDev') || ''; } catch (e) {}
+      post({ action: 'testSurvey', dev: dev, a: a }).then(function (r) {
+        btn.disabled = false;
+        if (!(r && r.ok)) { err.textContent = (r && r.error) || 'Not sent: no connection. Please try again.'; err.hidden = false; return; }
+        try { localStorage.setItem('sepaSurveyDone:' + run, '1'); } catch (e) {}
+        $('sv-box').hidden = true; $('sv-done').hidden = false;
+      });
+    });
+  })();
+</script>
+</body>
+</html>
