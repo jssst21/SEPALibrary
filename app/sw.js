@@ -1,7 +1,7 @@
 // SEPA Tools app: keeps the button screen on the phone so it opens even with a weak signal.
 // The tools themselves (RC Care, Noggin, the forms...) always load fresh from the internet.
 // After changing index.html, change the number in CACHE so phones pick up the new version.
-var CACHE = 'sepa-tools-18';
+var CACHE = 'sepa-tools-19';
 var FILES = ['./', 'index.html', 'help.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'qr.svg'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.27.44 (Oct 16, 2026)
+- iPHONE INSTALL STEPS: BOTH SAFARI LAYOUTS (from a user's email: newer iOS has no ••• button; the menu is the small icon at the left end of the address bar, two lines with a little square on top; everything from Share on is the same). No Google script change: push only.
+  - get-app/iphone.html, step 2: "Open Safari's menu", case A (••• at the bottom right) and case B (the icon at the left of the address bar), each with its own drawing.
+  - App install card (app/index.html): one extra line under step 1. App cache number now sepa-tools-19.
+- Version number is now ?v=0.27.44 on every page and the homepage footer reads v0.27.44
+
 ## v0.27.43 (Oct 16, 2026)
 - DAILY SHELTER REPORT: THREE CHANGES. NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version): the script now accepts the explanation answers (q7x, q9x, q10x, q15x).
   - Running log stays a fixed size (Sean: entries were pushing the rest of the form down): flagged issues plus the 3 newest entries show; older ones scroll inside the box (soft shadow at the bottom, "N earlier entries" line). New "See all of today's entries" button opens every entry in one pop-up (read only; flagged first, then newest first). Entries saved in the same second now always sort newest first.

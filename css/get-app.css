@@ -58,3 +58,10 @@
 .on-phone { display: none; }
 @media (max-width: 899px), (hover: none) and (pointer: coarse) { .qr1, .on-pc { display: none !important; } .qr1-tap { display: inline-block; } .on-phone { display: inline; } }
 .page-wrap > .home-footer { margin-top: 26px; color: #fff; opacity: .85; text-align: center; }
+
+/* Step 2, two layouts of Safari (v0.27.44) */
+.ip-case { margin: 10px 0 0; font-size: 16px; line-height: 1.35; }
+.ill .pill-b { display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; white-space: nowrap; min-width: 0; }
+.ill .pi { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; }
+.ill .pi svg, .ill svg.tabs { width: 22px; height: 22px; fill: none; stroke: #222; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ill .pi svg rect { fill: #222; }
