@@ -80,7 +80,7 @@ var SEPACurrentOps = (function () {
       if (!(r && r.ok)) return [];
       return r.items.map(function (it) {
         return { id: it.id, href: 'escalation.html?view=' + it.id, title: (it.address || '(no address typed yet)').split('\n')[0],
-          sub: 'Started ' + clock(it.started) + ' · last change ' + ago((r.now || Date.now()) - (it.ms || 0)) };
+          sub: 'Started ' + clock(it.started) + ' · last change ' + ago((r.now || Date.now()) - (it.ms || 0)) + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '') };
       });
     });
   }
@@ -89,7 +89,7 @@ var SEPACurrentOps = (function () {
       if (!(r && r.ok)) return [];
       return r.items.map(function (it) {
         return { id: it.id, href: 'reception.html?view=' + it.id, title: it.center || 'Reception center',
-          sub: (it.lead ? 'Lead: ' + it.lead + ' · ' : '') + it.count + (it.count === 1 ? ' intake' : ' intakes') };
+          sub: (it.lead ? 'Lead: ' + it.lead + ' · ' : '') + it.count + (it.count === 1 ? ' intake' : ' intakes') + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '') };
       });
     });
   }
@@ -98,7 +98,7 @@ var SEPACurrentOps = (function () {
       if (!(r && r.ok)) return [];
       return r.items.map(function (it) {
         return { id: it.id, href: 'shelter.html?s=' + it.id + (goodKey(lsGet('sepaShKey:' + it.id)) ? '' : '&as=hq'), title: it.name,
-          sub: (it.address ? it.address + ' · ' : '') + 'last activity ' + ago((r.now || Date.now()) - (it.ms || 0)) };
+          sub: (it.address ? it.address + ' · ' : '') + 'last activity ' + ago((r.now || Date.now()) - (it.ms || 0)) + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '') };
       });
     });
   }
@@ -151,7 +151,7 @@ var SEPACurrentOps = (function () {
     lsSet('sepaAsk:' + form, '');
     if (form === 'esc') {
       lsSet('sepaEscKey:' + id, key); lsSet('sepaEscCurrent', id); lsSet('sepaEscSeen:' + id, '1');
-      if (lead) lsSet('sepaEscCoLead:' + id, '1');
+      if (lead) { lsSet('sepaEscCoLead:' + id, '1'); lsSet('sepaEscLead:' + id, '1'); }
       lsSet('sepaEscNote', lead ? 'You are in, as a lead. This is the same worksheet you started elsewhere: what you type goes into the same worksheet.' :
         'You were let in. You have joined this worksheet: what you type goes into the same worksheet as the rest of the team.'); lsSet('sepaEscNoteOk', '1');
       location.href = 'escalation.html?id=' + encodeURIComponent(id);

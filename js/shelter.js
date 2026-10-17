@@ -202,7 +202,7 @@
         box.innerHTML = '';
         r.items.forEach(function (it) {
           var a = el('a', 'vt-item'); a.href = pageLink('s=' + it.id + '&as=hq');
-          a.appendChild(el('strong', '', it.name)); a.appendChild(el('span', '', (it.address ? it.address + ' · ' : '') + 'last activity ' + ago(r.now - it.ms)));
+          a.appendChild(el('strong', '', it.name)); a.appendChild(el('span', '', (it.address ? it.address + ' · ' : '') + 'last activity ' + ago(r.now - it.ms) + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '')));
           box.appendChild(a);
         });
       });

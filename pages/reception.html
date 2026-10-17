@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.49">
+<link rel="stylesheet" href="../css/style.css?v=0.27.50">
 </head>
 <body class="home" data-ask-form="reception">
 
@@ -223,6 +223,7 @@
     <p class="esc-status" id="rec-view-status" role="status">Connecting...</p>
     <p class="esc-how rec-keep" id="rec-keep" hidden></p>
     <!-- Who is on this reception center, with Remove (lead and HQ, v0.27.3) -->
+    <div class="ask-requests" id="rec-view-asks" role="status" hidden></div>     <!-- v0.27.50: requests to join, for HQ and leads -->
     <div class="rost-box" id="rec-view-roster" hidden></div>
     <div class="esc-buttons" id="rec-view-buttons" hidden>
       <!-- HQ only (v0.27.26): leads never export. js/reception.js shows it only to an HQ login. -->
@@ -416,12 +417,12 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.49"></script>
-<script src="../js/ask-lead.js?v=0.27.49"></script>
-<script src="../js/phone-format.js?v=0.27.49"></script>
-<script src="../js/view-bar.js?v=0.27.49"></script>
-<script src="../js/current-ops.js?v=0.27.49"></script>
-<script src="../js/reception.js?v=0.27.49"></script>
-<script src="../js/close-tab.js?v=0.27.49"></script>
+<script src="../js/config.js?v=0.27.50"></script>
+<script src="../js/ask-lead.js?v=0.27.50"></script>
+<script src="../js/phone-format.js?v=0.27.50"></script>
+<script src="../js/view-bar.js?v=0.27.50"></script>
+<script src="../js/current-ops.js?v=0.27.50"></script>
+<script src="../js/reception.js?v=0.27.50"></script>
+<script src="../js/close-tab.js?v=0.27.50"></script>
 </body>
 </html>

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.27.50 (Oct 17, 2026)
+- REQUESTS TO JOIN: THE LEAD AND HQ BOTH SEE THEM, AND THEY WAIT UNTIL SOMEONE ANSWERS (Sean: "we often swap between roles or get called away"). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version; it also carries v0.27.49).
+  - Escalation and Reception Center: requests now also show on HQ's Scene Summary / Summary with Let in / No (before, only the lead's phone saw them). The Shelter Report already showed them to every supervisor and HQ.
+  - Any lead (including a phone that got in with the lead log in) or HQ can answer; once one does, it disappears from everyone else's screen.
+  - Requests are kept in the Google Sheet ("Join requests" tab) until answered (before: the script's memory, gone after 6 hours). Answered ones drop off after 2 days.
+  - HQ lists (all worksheets / all centers / all shelters, and Current Operations for HQ) show "1 person asking to join" on the event.
+- Version number is now ?v=0.27.50 on every page and the homepage footer reads v0.27.50
+
 ## v0.27.49 (Oct 17, 2026)
 - CURRENT OPERATIONS ON EVERY DEVICE (Escalation, Reception Center, Daily Shelter Report). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - Sean: he started a center on his laptop, opened the app on his phone, and could not find the event he had been working on for an hour. Now every form, on every device, first checks for current events and lists them at the top.

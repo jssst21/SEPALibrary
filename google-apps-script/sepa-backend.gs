@@ -1072,7 +1072,7 @@ function escGet_(d) {
   if (!row) return { ok: true, found: false, cleared: escIsCleared_(id), now: now };
   var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0];
   return { ok: true, found: true, hq: hq, id: id, started: iso_(r[1]), updated: iso_(r[2]), ms: Number(escText_(r[5])) || 0, now: now, data: escOpen_(r[6]).data,
-    roster: rosterPublic_('esc', id) };
+    roster: rosterPublic_('esc', id), asks: askWaiting_('esc', id) };
 }
 /* IS THIS PHONE A LEAD of this worksheet? (website v0.27.27) The worksheet's edit key (d.key, which every
    phone on it has) plus the phone's own code (d.me), marked "lead" or "co-lead" in the Responders tab. */
@@ -1100,6 +1100,7 @@ function escList_(d) {
   items.sort(function (a, b) { return (b.ms - a.ms) || (b.row - a.row); });
   items = items.slice(0, 25);
   items.forEach(function (it) { delete it.row; });
+  var ac = askCounts_('esc'); items.forEach(function (it) { it.asking = ac[it.id] || 0; });     // v0.27.50
   return { ok: true, now: now, items: items };
 }
 
@@ -1380,7 +1381,7 @@ function recGet_(d) {
     });
   }
   return { ok: true, found: true, hq: hq, id: id, center: escText_(c.r[3]), lead: recLeadNames_(id, c), started: iso_(c.r[1]),
-    ms: Number(escText_(c.r[6])) || 0, keepDays: REC_KEEP_DAYS, now: now, items: items, roster: rosterPublic_('rec', id) };
+    ms: Number(escText_(c.r[6])) || 0, keepDays: REC_KEEP_DAYS, now: now, items: items, roster: rosterPublic_('rec', id), asks: askWaiting_('rec', id) };
 }
 
 /* EDIT ONE INTAKE (website v0.27.7). The lead (with the lead key) or HQ (logged in) corrects an intake
@@ -1476,6 +1477,7 @@ function recList_(d) {
   }
   items.sort(function (a, b) { return (b.ms - a.ms) || (b.row - a.row); });
   items.forEach(function (it) { delete it.row; });
+  var ac = askCounts_('rec'); items.forEach(function (it) { it.asking = ac[it.id] || 0; });     // v0.27.50
   return { ok: true, now: now, keepDays: REC_KEEP_DAYS, items: items };
 }
 
@@ -1732,10 +1734,36 @@ function libSearch_(raw) {
 var ASK_SECS = 21600, ASK_MAX = 30, ASK_OPEN_DAYS = 30;     // v0.27.49: 30 days (was 2), so demo events stay listed
 function askForm_(f) { return f === 'esc' || f === 'rec' || f === 'sh' ? f : ''; }     // 'sh' (shelters) since v0.27.49
 function askCacheKey_(form, id) { return 'ask:' + form + ':' + id; }
-function askGet_(form, id) {
-  try { return JSON.parse(CacheService.getScriptCache().get(askCacheKey_(form, id)) || '[]') || []; } catch (e) { return []; }
+// v0.27.50 (Sean: requests sit on the lead's and HQ's phones until someone deals with them): kept in the
+// Sheet's "Join requests" tab instead of the script's 6-hour memory. Answered requests are dropped after 2 days.
+function askTab_() { makeTab_('Join requests', ['Form', 'Event ID', 'Requests (do not edit)']); return tab_('Join requests'); }
+function askRow_(form, id) {
+  var sh = askTab_(), last = sh.getLastRow();
+  if (last < 2) return 0;
+  var v = sh.getRange(2, 1, last - 1, 2).getValues();
+  for (var i = 0; i < v.length; i++) if (String(v[i][0]) === form && String(v[i][1]) === id) return i + 2;
+  return 0;
 }
-function askPut_(form, id, list) { CacheService.getScriptCache().put(askCacheKey_(form, id), JSON.stringify(list), ASK_SECS); }
+function askGet_(form, id) {
+  var row = askRow_(form, id); if (!row) return [];
+  try { return JSON.parse(escText_(askTab_().getRange(row, 3, 1, 1).getValues()[0][0]) || '[]') || []; } catch (e) { return []; }
+}
+function askPut_(form, id, list) {
+  var cut = Date.now() - 2 * 86400000;
+  list = list.filter(function (a) { return a.status === 'waiting' || (a.done || a.at) > cut; });
+  var sh = askTab_(), row = askRow_(form, id), text = JSON.stringify(list);
+  if (row) sh.getRange(row, 3, 1, 1).setValues([[text]]); else sh.appendRow([form, id, text]);
+}
+// How many are waiting, for every event of one form (for the HQ lists).
+function askCounts_(form) {
+  var out = {}, sh = askTab_(), last = sh.getLastRow();
+  if (last < 2) return out;
+  sh.getRange(2, 1, last - 1, 3).getValues().forEach(function (r) {
+    if (String(r[0]) !== form) return;
+    try { out[String(r[1])] = (JSON.parse(escText_(r[2]) || '[]') || []).filter(function (a) { return a.status === 'waiting'; }).length; } catch (e) {}
+  });
+  return out;
+}
 // What the lead's phone sees: requests still waiting (no tickets, no keys).
 function askWaiting_(form, id) {
   return askGet_(form, id).filter(function (a) { return a.status === 'waiting'; })
@@ -1798,16 +1826,24 @@ function askStatus_(d) {
 // Escalation: proven with the worksheet's edit key. Reception: proven with the lead key, plus the join key to hand over.
 function askAnswer_(d) {
   var form = askForm_(d.form), id = escId_(d.id), rid = String(d.rid || ''), give = '';
+  var hqAns = !!d.token && !escDenied_(d);      // v0.27.50: HQ can let people in too (Sean: roles swap, people get called away)
   if (form === 'esc') {
     var key = escKey_(d.key), sh = escTab_(), row = escFindRow_(sh, id);
-    if (!row || !key) return { ok: false, error: 'Not allowed.' };
+    if (!row || (!key && !hqAns)) return { ok: false, error: 'Not allowed.' };
     var w = escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]);
-    if (w.meta.k !== escKeyMark_(id, key)) return { ok: false, error: 'Not allowed.' };
+    if (hqAns && (!key || w.meta.k !== escKeyMark_(id, key))) { key = escKey_(w.meta.e); if (!key) return { ok: false, error: 'This worksheet needs one of its phones to check in first.' }; }
+    else if (w.meta.k !== escKeyMark_(id, key)) return { ok: false, error: 'Not allowed.' };
     give = key;
   } else if (form === 'rec') {
-    var lead = recLeadAuth_(id, d), join = recCenter_(id, escKey_(d.key), 'join');
-    if (!lead || !lead.ok || !join || !join.ok) return { ok: false, error: 'Only the lead can answer requests.' };
-    give = escKey_(d.key);
+    if (hqAns) {
+      var csh = recCenters_(), crow = escFindRow_(csh, id);
+      give = crow ? escKey_(csh.getRange(crow, 10, 1, 1).getValues()[0][0]) : '';
+      if (!give) return { ok: false, error: 'This center needs one of its phones to check in first.' };
+    } else {
+      var lead = recLeadAuth_(id, d), join = recCenter_(id, escKey_(d.key), 'join');
+      if (!lead || !lead.ok || !join || !join.ok) return { ok: false, error: 'Only the lead or HQ can answer requests.' };
+      give = escKey_(d.key);
+    }
   } else if (form === 'sh') {
     // v0.27.49: any CURRENT supervisor of the shelter (its link code + a listed name) or HQ lets people in.
     var a = shAccess_(d);
@@ -1818,7 +1854,7 @@ function askAnswer_(d) {
     });
   } else return { ok: false, error: 'Unknown form.' };
   var list = askGet_(form, id), found = false;
-  list.forEach(function (a) { if (a.rid === rid && a.status === 'waiting') { found = true; a.status = d.yes ? 'approved' : 'declined'; a.key = d.yes ? give : ''; } });
+  list.forEach(function (a) { if (a.rid === rid && a.status === 'waiting') { found = true; a.status = d.yes ? 'approved' : 'declined'; a.key = d.yes ? give : ''; a.done = Date.now(); } });
   askPut_(form, id, list);
   return { ok: true, found: found, asks: askWaiting_(form, id) };
 }
@@ -2024,7 +2060,7 @@ var SH_QUESTIONS = 16;
 function shTab_() { makeTab_('Shelters', SH_HEADERS); return tab_('Shelters'); }
 /* Makes sure all the shelter tabs exist before anything reads them (v0.27.41: the first report after
    opening a shelter failed because the Shelter Log tab did not exist yet). */
-function shTabs_() { shTab_(); shSupTab_(); shDayTab_(); shLogTab_(); shClosedTab_(); rqTab_(); rqLinkTab_(); }
+function shTabs_() { shTab_(); shSupTab_(); shDayTab_(); shLogTab_(); shClosedTab_(); rqTab_(); rqLinkTab_(); askTab_(); }
 function shSupTab_() {
   makeTab_('Shelter Supervisors', SH_SUP_HEADERS);
   var sh = tab_('Shelter Supervisors');
@@ -2243,6 +2279,7 @@ function shList_(d) {
   var items = rows_('Shelters').map(function (r) {
     return { id: String(r[0]), name: escText_(r[2]), address: escText_(r[3]), opened: iso_(r[1]), last: iso_(r[5]), ms: Number(r[6]) || 0 };
   }).sort(function (x, y) { return y.ms - x.ms; });
+  var ac = askCounts_('sh'); items.forEach(function (it) { it.asking = ac[it.id] || 0; });     // v0.27.50
   return { ok: true, items: items, now: Date.now() };
 }
 

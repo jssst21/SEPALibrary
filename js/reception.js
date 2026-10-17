@@ -591,6 +591,12 @@
             call(auth({ action: 'makeLead', form: 'rec', id: id, dev: d })).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
           };
           SEPAAskLead.roster($('rec-view-roster'), r.roster || [], vRemove, 'reception center', { makeLead: vMake, hq: !!token() });
+          // v0.27.50: requests to join show here too, for HQ and leads (Sean: roles swap, people get called away)
+          (function showViewAsks(list) {
+            SEPAAskLead.render($('rec-view-asks'), list, function (rid, yes) {
+              call(auth({ action: 'askAnswer', form: 'rec', id: id, rid: rid, yes: yes })).then(function (x) { if (x && x.ok) showViewAsks(x.asks || []); else load(); });
+            });
+          })(r.asks || []);
         }
         $('rec-title').textContent = 'Reception Center: ' + (r.center || 'summary');
         $('rec-intro').textContent = ((r.lead || '').indexOf(',') >= 0 ? 'Leads: ' : 'Lead: ') + (r.lead || '') + '. Every intake for this reception center.';
@@ -797,7 +803,7 @@
         r.items.forEach(function (it) {
           var a = el('a', 'esc-item'); a.href = pageLink('view=' + it.id);
           a.appendChild(el('strong', '', it.center || '(no name)'));
-          a.appendChild(el('span', '', 'Lead: ' + (it.lead || '-') + '   ' + it.count + ' intake' + (it.count === 1 ? '' : 's') + '   Last activity ' + ago((r.now || 0) - (it.ms || 0))));
+          a.appendChild(el('span', '', 'Lead: ' + (it.lead || '-') + '   ' + it.count + ' intake' + (it.count === 1 ? '' : 's') + '   Last activity ' + ago((r.now || 0) - (it.ms || 0)) + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '')));
           box.appendChild(a);
         });
       });

@@ -714,6 +714,12 @@
               actions: leadHere && !isHQ ? newScene(true, goNewScene) : null,      // v0.27.29
               change: isHQ ? changeWorksheet() : null });
           } else if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.setName(place);
+          // v0.27.50: requests to join show here too, for HQ and leads (Sean: roles swap, people get called away)
+          if (typeof SEPAAskLead !== 'undefined') (function showViewAsks(list) {
+            SEPAAskLead.render($('esc-view-asks'), list, function (rid, yes) {
+              call(auth({ action: 'askAnswer', form: 'esc', id: id, rid: rid, yes: yes })).then(function (x) { if (x && x.ok) showViewAsks(x.asks || []); else load(); });
+            });
+          })(r.asks || []);
           if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.roster($('esc-view-roster'), r.roster || [], function (d, cb) {
             call(auth({ action: 'rosterRemove', form: 'esc', id: id, dev: d })).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
           }, 'worksheet', { hq: isHQ, makeLead: function (d, cb) {     // v0.27.24: a lead or HQ can make someone a lead
@@ -787,7 +793,7 @@
         r.items.forEach(function (it) {
           var a = el('a', 'esc-item'); a.href = pageLink('view=' + it.id);
           a.appendChild(el('strong', '', it.address || '(no address typed yet)'));
-          a.appendChild(el('span', '', (it.when ? 'Date/ Time: ' + it.when + '   ' : '') + 'Last change ' + ago((r.now || 0) - (it.ms || 0))));
+          a.appendChild(el('span', '', (it.when ? 'Date/ Time: ' + it.when + '   ' : '') + 'Last change ' + ago((r.now || 0) - (it.ms || 0)) + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '')));
           box.appendChild(a);
         });
       });

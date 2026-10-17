@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.49">
+<link rel="stylesheet" href="../css/style.css?v=0.27.50">
 </head>
 <body class="home" data-ask-form="escalation">
 
@@ -168,6 +168,7 @@
     <p class="esc-how"><strong>Read only.</strong> This page shows the worksheet as it is being filled in and updates by itself every few seconds. Boxes that just changed flash yellow.</p>
     <p class="esc-status" id="esc-view-status" role="status">Connecting...</p>
     <!-- Who is on this worksheet, with Remove (HQ, v0.27.3) -->
+    <div class="ask-requests" id="esc-view-asks" role="status" hidden></div>     <!-- v0.27.50: requests to join, for HQ and leads -->
     <div class="rost-box" id="esc-view-roster" hidden></div>
     <!-- HQ only (v0.27.32): the whole worksheet as a file that opens in Excel. Shown by js/escalation.js. -->
     <div class="esc-buttons" id="esc-dl-line" style="display:none">
@@ -227,12 +228,12 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.49"></script>
-<script src="../js/ask-lead.js?v=0.27.49"></script>
-<script src="../js/phone-format.js?v=0.27.49"></script>
-<script src="../js/view-bar.js?v=0.27.49"></script>
-<script src="../js/current-ops.js?v=0.27.49"></script>
-<script src="../js/escalation.js?v=0.27.49"></script>
-<script src="../js/close-tab.js?v=0.27.49"></script>
+<script src="../js/config.js?v=0.27.50"></script>
+<script src="../js/ask-lead.js?v=0.27.50"></script>
+<script src="../js/phone-format.js?v=0.27.50"></script>
+<script src="../js/view-bar.js?v=0.27.50"></script>
+<script src="../js/current-ops.js?v=0.27.50"></script>
+<script src="../js/escalation.js?v=0.27.50"></script>
+<script src="../js/close-tab.js?v=0.27.50"></script>
 </body>
 </html>

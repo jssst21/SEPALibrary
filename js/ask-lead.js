@@ -223,7 +223,7 @@ var SEPAAskLead = (function () {
             return;
           }
           var age = Date.now() - (p.at || Date.now());
-          if (age < 6 * 3600 * 1000) timer = setTimeout(check, age < 10 * 60 * 1000 ? 5000 : 20000);
+          if (age < 7 * 86400 * 1000) timer = setTimeout(check, age < 10 * 60 * 1000 ? 5000 : 20000);
         });
       };
       check();
@@ -269,7 +269,7 @@ var SEPAAskLead = (function () {
       clearTimeout(timer); lsSet(PKEY, ''); wait.hidden = true; this.textContent = 'Cancel request';
     });
     var p0 = pending();
-    if (p0 && p0.id && p0.rid && Date.now() - (p0.at || 0) < 6 * 3600 * 1000) waiting(p0, 'You asked to join earlier. Still waiting for the lead to approve it. Keep this page open.');
+    if (p0 && p0.id && p0.rid && Date.now() - (p0.at || 0) < 7 * 86400 * 1000) waiting(p0, 'You asked to join earlier. Still waiting for the lead to approve it. Keep this page open.');
   }
 
   // ---------------------------------------------------------------- "Text the lead" (sends nothing itself)
