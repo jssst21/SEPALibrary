@@ -2852,11 +2852,18 @@ function sciaPurge_(force) {
    (askJoin_, answered by the lead / a supervisor / HQ). The public list shows names only, never anything
    typed into a form; escalation worksheets show the TOWN and start time, never the street address.
    ========================================================= */
-// The town from "125 Main St, Norristown, PA 19401": the part after the first comma, without state and zip.
+// v0.27.51 (Sean): the worksheet's name in the public list is its address WITHOUT the house number, state or zip:
+// "99 Johnson" -> "Johnson"; "99 Johnson Street, Philadelphia, PA 19104" -> "Johnson Street, Philadelphia".
+// Nothing typed yet (or only a number) -> '' and the page shows "Incomplete address".
 function coTown_(addr) {
-  var first = String(addr || '').split('\n')[0], parts = first.split(',');
-  if (parts.length < 2) return '';
-  return clean_(parts[1].replace(/\b(PA|Pennsylvania|NJ|DE)\b.*$/i, '').replace(/\d{5}(-\d{4})?/, ''), 40);
+  var first = String(addr || '').split('\n')[0];
+  var parts = first.split(',').map(function (p) {
+    return p.replace(/\b(PA|Pennsylvania|NJ|New Jersey|DE|Delaware)\b/gi, '').replace(/\b\d{5}(-\d{4})?\b/g, '').replace(/\s+/g, ' ').trim();
+  }).filter(String);
+  if (!parts.length) return '';
+  parts[0] = parts[0].replace(/^(#?\d+[A-Za-z]?([-\/][A-Za-z0-9]+)?\s+)+/, '').replace(/^#?\d+[A-Za-z]?$/, '').trim();
+  parts = parts.filter(String);
+  return clean_(parts.slice(0, 2).join(', '), 60);
 }
 // PUBLIC: the open events of one form (names only).
 function coOpen_(d) {

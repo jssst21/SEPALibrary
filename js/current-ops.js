@@ -126,7 +126,8 @@ var SEPACurrentOps = (function () {
     return post({ action: 'coOpen', form: form }).then(function (r) {
       if (!(r && r.ok)) return null;
       return r.items.map(function (it) {
-        var title = form === 'esc' ? (it.town || 'Worksheet') : (it.name || (form === 'rec' ? 'Reception center' : 'Shelter'));
+        var title = form === 'esc' ? (it.town || 'Incomplete address') :     // v0.27.51
+          (it.name || (form === 'rec' ? 'Reception center' : 'Shelter'));
         var sub = 'Started ' + when(it.started) + (it.lead ? ' · Lead: ' + it.lead : '') + ' · not on this phone yet';
         return { id: it.id, title: title, sub: sub, lead: it.lead || '' };
       });

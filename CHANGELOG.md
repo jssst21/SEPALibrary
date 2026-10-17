@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.27.51 (Oct 17, 2026)
+- CURRENT OPERATIONS: ESCALATION WORKSHEETS NAMED BY THEIR ADDRESS, WITHOUT THE HOUSE NUMBER (Sean: they all showed as "Worksheet"). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - "99 Johnson" shows as "Johnson"; "99 Johnson Street, Philadelphia, PA 19104" as "Johnson Street, Philadelphia" (no house number, state or zip; at most the first two parts).
+  - Nothing typed in the address yet: "Incomplete address".
+- Version number is now ?v=0.27.51 on every page and the homepage footer reads v0.27.51
+
 ## v0.27.50 (Oct 17, 2026)
 - REQUESTS TO JOIN: THE LEAD AND HQ BOTH SEE THEM, AND THEY WAIT UNTIL SOMEONE ANSWERS (Sean: "we often swap between roles or get called away"). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version; it also carries v0.27.49).
   - Escalation and Reception Center: requests now also show on HQ's Scene Summary / Summary with Let in / No (before, only the lead's phone saw them). The Shelter Report already showed them to every supervisor and HQ.
