@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6409 Requisition - SEPA Resource Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css?v=0.27.46">
+</head>
+<body class="home sr-page rq-page" id="rq-page">
+
+<!-- 6409 DISASTER REQUISITION, LIVE (website v0.27.46, a prototype for Sean to workshop with the teams).
+     js/req.js does the work; the Google script keeps the data (see 6409 DISASTER REQUISITION in sepa-backend.gs).
+       req.html                   pick a shelter (this phone's shelters, logistics links, HQ: all)
+       req.html?s=SHELTER         that shelter's 6409s
+       req.html?s=SHELTER&r=ID    one 6409
+       ...#L=CODE                 the logistics link that "Share with Team member" sends
+     Supervisors use the shelter's own link (from the Daily Shelter Report); HQ uses the HQ login. -->
+
+<div class="page-wrap">
+  <header class="page-top">
+    <a href="../index.html"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library home"></a>
+    <a class="back-link" href="../index.html">&times; Close this tab</a>
+  </header>
+
+  <p class="rq-back" id="rq-back" hidden><a id="rq-back-a" href="#">&larr; Back</a></p>
+  <h1 class="page-title" id="rq-title">6409 Requisitions</h1>
+  <p class="page-intro" id="rq-intro">Disaster Requisition (Form 6409), live: it saves as you type, and logistics sees it as it changes.</p>
+  <p class="notice" id="rq-notice" hidden></p>
+  <p class="esc-status" id="rq-loading" role="status">Loading&hellip;</p>
+
+  <!-- 1. No shelter picked yet -->
+  <section id="rq-pick" hidden>
+    <div class="sr-box">
+      <h2 class="sr-h">Pick a shelter</h2>
+      <p class="esc-how">Each 6409 belongs to one open shelter (one form per delivery address).</p>
+      <div id="rq-pick-list"></div>
+      <p class="esc-group-how" id="rq-pick-none" hidden>This phone is not on any open shelter yet. Supervisors start 6409s from their shelter's Daily Shelter Report. Logistics: open the link a supervisor sent you.</p>
+      <a class="primary-btn sr-navy rq-pick-sr" href="shelter.html">Daily Shelter Report</a>
+    </div>
+  </section>
+
+  <!-- 2. Logistics: name first -->
+  <section class="esc-tools" id="rq-name-ask" hidden>
+    <h2 class="esc-login-title">Your name</h2>
+    <p class="esc-how">You were sent a shelter's 6409s to fill for logistics. Everything you change is marked with your name.</p>
+    <form id="rq-name-form" novalidate>
+      <label class="field">Your name <input id="rq-my-name" autocomplete="name" maxlength="40"></label>
+      <p class="form-error" id="rq-name-error" hidden></p>
+      <button class="primary-btn" type="submit">Continue</button>
+    </form>
+  </section>
+
+  <!-- 3. A shelter's 6409s -->
+  <section id="rq-list-screen" hidden>
+    <div class="sr-box">
+      <p class="rq-role" id="rq-role"></p>
+      <div class="esc-buttons">
+        <button type="button" class="primary-btn" id="rq-new">+ Start a new 6409</button>
+        <button type="button" class="esc-btn rq-share-btn" id="rq-share">Share with Team member</button>
+      </div>
+      <p class="form-error" id="rq-new-error" hidden></p>
+    </div>
+    <div id="rq-items"></div>
+  </section>
+
+  <!-- 4. One 6409 (drawn by js/req.js) -->
+  <section id="rq-one" hidden>
+    <div id="rq-form"></div>
+  </section>
+</div>
+
+<!-- Share with Team member -->
+<div class="f-modal" id="rq-share-modal" hidden>
+  <div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="rq-share-title">
+    <button type="button" class="f-modal-x" id="rq-share-x" aria-label="Close">&times;</button>
+    <h2 id="rq-share-title">Share with Team member</h2>
+    <p class="f-modal-note">Send this link to the logistics team. It opens this shelter's 6409s, live: they can type the requisition number, set the status and add notes. It does not open the shelter's report or log.</p>
+    <div class="esc-buttons"><button type="button" class="primary-btn" id="rq-share-send">Send the link</button></div>
+    <label class="esc-link-box"><span>Link</span><input id="rq-share-link" readonly></label>
+    <p class="esc-group-how" id="rq-share-hint"></p>
+    <p class="form-error" id="rq-share-error" hidden></p>
+  </div>
+</div>
+
+<script src="../js/config.js?v=0.27.46"></script>
+<script src="../js/req.js?v=0.27.46"></script>
+<script src="../js/close-tab.js?v=0.27.46"></script>
+</body>
+</html>

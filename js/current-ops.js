@@ -1,10 +1,12 @@
-// SEPA Resource Library - "Current Operations" box (website v0.27.42)
+// SEPA Resource Library - "Current Operations" box (website v0.27.42; loading state v0.27.45)
 // At the top of the Start screen of the Escalation Form, the Reception Center Form and the Daily Shelter
 // Report (Sean: if you open the page, you are probably looking for the one happening right now).
 //   - First list: the worksheets / reception centers / shelters THIS PHONE is on that are still open
 //     (each is checked with the Google script; cleared or closed ones are left out).
 //   - Second list, only on a phone logged in as HQ: every open one (not already in the first list).
-//   - Nothing open: the box does not appear.
+//   - v0.27.45 (Sean: people were confused while it loaded): while it checks, the box shows "Looking for active
+//     events..." with a spinner. Found nothing: the box says "No active events found. Start a new one below."
+//     A phone with nothing to check (never on one, not HQ) knows at once: no box at all, as before.
 // Each page calls SEPACurrentOps.show('esc' | 'rec' | 'sh', theElementToPutItAbove, 'Or start a new one').
 // It only reads what the phone already keeps and asks the Google script with calls the forms already use.
 var SEPACurrentOps = (function () {
@@ -107,20 +109,35 @@ var SEPACurrentOps = (function () {
     return '<a class="co-item' + (hq ? ' co-hq' : '') + '" href="' + esc(it.href) + '"><span class="co-text"><strong>' + esc(it.title) +
       '</strong><span>' + esc(it.sub) + '</span></span><b>Open</b></a>';
   }
+  // Anything to ask the Google script about? (If not, there is nothing to wait for.)
+  function anyToCheck(form) {
+    if (token()) return true;
+    if (form === 'esc') return keysStarting('sepaEscKey:').some(function (id) { return goodId(id) && goodKey(lsGet('sepaEscKey:' + id)); });
+    if (form === 'rec') return keysStarting('sepaRecKey:').some(function (id) { return goodId(id) && goodKey(lsGet('sepaRecKey:' + id)); });
+    var list = []; try { list = JSON.parse(lsGet('sepaShList') || '[]') || []; } catch (e) {}
+    return list.some(function (x) { return x && goodId(x.id) && goodKey(lsGet('sepaShKey:' + x.id)); });
+  }
   function show(form, before, orText) {
     var W = WORDS[form]; if (!W || !before || !before.parentNode) return;
-    var box = document.createElement('section'); box.className = 'co-box'; box.hidden = true; box.setAttribute('aria-label', 'Current Operations');
+    if (!anyToCheck(form)) return;
+    var box = document.createElement('section'); box.className = 'co-box'; box.setAttribute('aria-label', 'Current Operations'); box.setAttribute('aria-live', 'polite');
     var or = document.createElement('p'); or.className = 'co-or'; or.textContent = orText || 'Or start a new one'; or.hidden = true;
+    box.innerHTML = '<h2 class="co-h">Current Operations</h2><div class="co-load"><span class="co-spin" aria-hidden="true"></span>' +
+      '<span>Looking for active events\u2026<small>This takes a few seconds.</small></span></div>';
     before.parentNode.insertBefore(box, before); before.parentNode.insertBefore(or, before);
-    Promise.all([W.load[0](), token() ? W.load[1]() : Promise.resolve([])]).then(function (res) {
+    function safe(p) { return Promise.resolve(p).then(function (r) { return r || []; }, function () { return []; }); }
+    Promise.all([safe(W.load[0]()), token() ? safe(W.load[1]()) : Promise.resolve([])]).then(function (res) {
       var mine = (res[0] || []).filter(Boolean), seen = {};
       mine.forEach(function (m) { seen[m.id] = 1; });
       var hq = (res[1] || []).filter(function (h) { return !seen[h.id]; });
-      if (!mine.length && !hq.length) return;
+      if (!mine.length && !hq.length) {
+        box.innerHTML = '<h2 class="co-h">Current Operations</h2><p class="co-how co-none">No active events found. Start a new one below.</p>';
+        return;
+      }
       box.innerHTML = '<h2 class="co-h">Current Operations</h2>' +
         (mine.length ? '<p class="co-how">' + esc(W.mine) + '</p>' + mine.map(function (m) { return item(m, false); }).join('') : '') +
         (hq.length ? '<p class="co-sub">' + esc(W.hq) + '</p>' + hq.map(function (h) { return item(h, true); }).join('') : '');
-      box.hidden = false; or.hidden = false;
+      or.hidden = false;
     });
   }
   return { show: show };

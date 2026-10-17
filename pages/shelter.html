@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.44">
+<link rel="stylesheet" href="../css/style.css?v=0.27.46">
 </head>
 <body class="home sr-page">
 
@@ -76,6 +76,12 @@
       <h2 class="sr-h">Supervisors</h2>
       <ul class="sr-sups" id="sr-sups"></ul>
       <button type="button" class="primary-btn sr-navy" id="sr-add">+ Add supervisor</button>
+    </div>
+    <!-- v0.27.46: 6409 Disaster Requisitions, live (pages/req.html) -->
+    <div class="sr-box">
+      <h2 class="sr-h">Supplies (6409)</h2>
+      <p class="esc-how" id="sr-rq-how">Request supplies on a live 6409. Another supervisor or HQ approves it; "Share with Team member" sends it to logistics.</p>
+      <a class="primary-btn sr-navy sr-rq-btn" id="sr-rq" href="req.html">6409 Requisitions</a>
     </div>
     <!-- v0.27.41: flagged issues from earlier days that are still flagged -->
     <div class="sr-box sr-carry" id="sr-carry" hidden>
@@ -164,6 +170,27 @@
     </div>
   </div>
 
+  <!-- Remove a supervisor (v0.27.46): HQ, or the lead user name and password -->
+  <div class="f-modal" id="sr-rm-modal" hidden>
+    <div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="sr-rm-title">
+      <button type="button" class="f-modal-x" id="sr-rm-x" aria-label="Close">&times;</button>
+      <h2 id="sr-rm-title">Remove supervisor</h2>
+      <p class="f-modal-note">Take <strong id="sr-rm-name"></strong> off this shelter. Their phone can no longer open the report or its 6409s. Everything they already typed stays. Adding the same name again brings them back.</p>
+      <form id="sr-rm-form" novalidate>
+        <div id="sr-rm-creds">
+          <p class="f-modal-note">Needs the lead user name and password (the same as opening and closing a shelter), or an HQ login.</p>
+          <label class="field">User name <input id="sr-rm-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+          <label class="field">Password <input id="sr-rm-pass" type="password" autocomplete="current-password"></label>
+        </div>
+        <p class="form-error" id="sr-rm-error" hidden></p>
+        <div class="rec-warn-actions">
+          <button type="submit" class="esc-btn rec-close-solid" id="sr-rm-yes">Remove</button>
+          <button type="button" class="esc-btn" id="sr-rm-no">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- All of today's log entries in one view (v0.27.43) -->
   <div class="f-modal sr-all-modal" id="sr-all-modal" hidden>
     <div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="sr-all-title">
@@ -197,10 +224,10 @@
   </div>
 </div>
 
-<script src="../js/config.js?v=0.27.44"></script>
-<script src="../js/view-bar.js?v=0.27.44"></script>
-<script src="../js/current-ops.js?v=0.27.44"></script>
-<script src="../js/shelter.js?v=0.27.44"></script>
-<script src="../js/close-tab.js?v=0.27.44"></script>
+<script src="../js/config.js?v=0.27.46"></script>
+<script src="../js/view-bar.js?v=0.27.46"></script>
+<script src="../js/current-ops.js?v=0.27.46"></script>
+<script src="../js/shelter.js?v=0.27.46"></script>
+<script src="../js/close-tab.js?v=0.27.46"></script>
 </body>
 </html>

@@ -221,7 +221,18 @@ function doPost(e) {
       shAddSup: shAddSup_,
       shList: shList_,
       shExport: shExport_,
-      shClose: shClose_
+      shClose: shClose_,
+      shRemoveSup: shRemoveSup_,
+      rqList: rqList_,
+      rqNew: rqNew_,
+      rqGet: rqGet_,
+      rqSave: rqSave_,
+      rqApprove: rqApprove_,
+      rqUnapprove: rqUnapprove_,
+      rqStatus: rqStatus_,
+      rqReceive: rqReceive_,
+      rqCancel: rqCancel_,
+      rqShare: rqShare_
     };
     var fn = actions[d.action || 'shiftSignup'];
     if (!fn) return json_({ ok: false, error: 'Unknown request.' });
@@ -1971,7 +1982,7 @@ function annList_() {
      Shelters closed      just the code and time of each closed shelter (nothing else is kept)
    ========================================================= */
 var SH_HEADERS = ['ID', 'Opened', 'Shelter name', 'Address', 'Opened by', 'Last activity', 'Last activity ms (do not edit)', 'Link code (do not edit)'];
-var SH_SUP_HEADERS = ['Shelter ID', 'Name', 'Added', 'Added by'];
+var SH_SUP_HEADERS = ['Shelter ID', 'Name', 'Added', 'Added by', 'Removed'];   // Removed since v0.27.46
 var SH_DAY_HEADERS = ['Shelter ID', 'Day', 'Last saved', 'Last saved by', 'Answers (do not edit)'];
 var SH_LOG_HEADERS = ['Shelter ID', 'Entry ID', 'Day', 'Time', 'Supervisor', 'Entry', 'Edited', 'Flagged'];   // Flagged since v0.27.41
 var SH_KEEP_DAYS = 14;
@@ -1980,8 +1991,13 @@ var SH_QUESTIONS = 16;
 function shTab_() { makeTab_('Shelters', SH_HEADERS); return tab_('Shelters'); }
 /* Makes sure all the shelter tabs exist before anything reads them (v0.27.41: the first report after
    opening a shelter failed because the Shelter Log tab did not exist yet). */
-function shTabs_() { shTab_(); shSupTab_(); shDayTab_(); shLogTab_(); shClosedTab_(); }
-function shSupTab_() { makeTab_('Shelter Supervisors', SH_SUP_HEADERS); return tab_('Shelter Supervisors'); }
+function shTabs_() { shTab_(); shSupTab_(); shDayTab_(); shLogTab_(); shClosedTab_(); rqTab_(); rqLinkTab_(); }
+function shSupTab_() {
+  makeTab_('Shelter Supervisors', SH_SUP_HEADERS);
+  var sh = tab_('Shelter Supervisors');
+  if (sh.getLastColumn() < SH_SUP_HEADERS.length) sh.getRange(1, 5, 1, 1).setValues([['Removed']]).setFontWeight('bold');   // a tab made before v0.27.46
+  return sh;
+}
 function shDayTab_() { makeTab_('Shelter Reports', SH_DAY_HEADERS); return tab_('Shelter Reports'); }
 function shLogTab_() {
   makeTab_('Shelter Log', SH_LOG_HEADERS);
@@ -2007,6 +2023,8 @@ function shAccess_(d) {
   var r = sh.getRange(row, 1, 1, SH_HEADERS.length).getValues()[0];
   var hq = shIsHq_(d), key = escKey_(d.key);
   if (!hq && (!key || key !== escText_(r[7]))) return { err: { ok: false, nokey: true, hqLogin: !!d.token, error: 'This link cannot open the shelter report.' } };
+  // v0.27.46: a supervisor taken off the list (Remove supervisor) can no longer use the shelter from that phone.
+  if (!hq && shName_(d.me) && shRemoved_(id, d.me)) return { err: { ok: false, removed: true, shelter: escText_(r[2]), error: 'You have been removed from ' + escText_(r[2]) + '.' } };
   return { id: id, sh: sh, row: row, r: r, hq: hq };
 }
 function shTouch_(a, now) {
@@ -2052,9 +2070,18 @@ function shReport_(id, day) {
   var dr = shDayRow_(id, day);
   return { day: day, answers: dr ? shAnswers_(dr.r[4]) : {}, saved: dr ? iso_(dr.r[2]) : '', savedBy: dr ? escText_(dr.r[3]) : '', log: shLogFor_(id, day) };
 }
-function shSups_(id) {
-  return rows_('Shelter Supervisors').filter(function (r) { return String(r[0]) === id; })
+function shSups_(id) {      // the CURRENT supervisors (v0.27.46: removed ones are left out)
+  return rows_('Shelter Supervisors').filter(function (r) { return String(r[0]) === id && !escText_(r[4]); })
     .map(function (r) { return { name: escText_(r[1]), added: iso_(r[2]), by: escText_(r[3]) }; });
+}
+function shRemoved_(id, name) {
+  var n = shName_(name).toLowerCase(), out = false;
+  rows_('Shelter Supervisors').forEach(function (r) { if (String(r[0]) === id && escText_(r[1]).toLowerCase() === n) out = !!escText_(r[4]); });
+  return out;
+}
+function shListed_(id, name) {
+  var n = shName_(name).toLowerCase();
+  return !!n && shSups_(id).some(function (s) { return s.name.toLowerCase() === n; });
 }
 function shDays_(id, today) {      // earlier days that have anything saved, newest first
   var seen = {};
@@ -2080,7 +2107,8 @@ function shGet_(d) {
     shelter: { id: a.id, name: escText_(a.r[2]), address: escText_(a.r[3]), opened: iso_(a.r[1]), openedBy: escText_(a.r[4]) },
     sups: shSups_(a.id), report: shReport_(a.id, today), days: shDays_(a.id, today),
     // v0.27.41: flagged issues from earlier days that nobody has unflagged ("Carried-over issues")
-    carry: shLogFor_(a.id, '').filter(function (e) { return e.flag && e.day < today; }) };
+    carry: shLogFor_(a.id, '').filter(function (e) { return e.flag && e.day < today; }),
+    rqOpen: rqOpenCount_(a.id) };
   if (a.hq) res.joinKey = escText_(a.r[7]);
   return res;
 }
@@ -2163,7 +2191,13 @@ function shAddSup_(d) {
   if (!name) return { ok: false, error: 'Please type the supervisor\'s name.' };
   var have = shSups_(a.id).some(function (s) { return s.name.toLowerCase() === name.toLowerCase(); });
   var now = new Date();
-  if (!have) shSupTab_().appendRow([a.id, safe_(name), stamp_(now), d.self ? 'Opened the link' : safe_('Added by ' + shWho_(a, d))]);
+  if (!have) {
+    // v0.27.46: adding back someone who was removed clears the removal (their old row is reused)
+    var st = shSupTab_(), data = st.getDataRange().getValues(), back = 0;
+    for (var i = 1; i < data.length; i++) if (String(data[i][0]) === a.id && escText_(data[i][1]).toLowerCase() === name.toLowerCase()) back = i + 1;
+    if (back) st.getRange(back, 3, 1, 3).setValues([[stamp_(now), safe_('Added back by ' + shWho_(a, d)), '']]);
+    else st.appendRow([a.id, safe_(name), stamp_(now), d.self ? 'Opened the link' : safe_('Added by ' + shWho_(a, d)), '']);
+  }
   return { ok: true, ms: String(have ? a.r[6] : shTouch_(a, now)), sups: shSups_(a.id), joinKey: escText_(a.r[7]) };
 }
 
@@ -2201,7 +2235,7 @@ function shClose_(d) {
   return { ok: true, closed: true };
 }
 function shErase_(id, how) {
-  [['Shelters', 0], ['Shelter Supervisors', 0], ['Shelter Reports', 0], ['Shelter Log', 0]].forEach(function (t) {
+  [['Shelters', 0], ['Shelter Supervisors', 0], ['Shelter Reports', 0], ['Shelter Log', 0], ['Requisitions', 0], ['Requisition Links', 0]].forEach(function (t) {
     var sh = tab_(t[0]); if (!sh) return;
     var last = sh.getLastRow(); if (last < 2) return;
     var ids = sh.getRange(2, 1, last - 1, 1).getValues();
@@ -2219,4 +2253,260 @@ function shPurge_(force) {
   shTabs_();
   var cut = Date.now() - SH_KEEP_DAYS * 86400000;
   rows_('Shelters').forEach(function (r) { if ((Number(r[6]) || 0) < cut) shErase_(String(r[0]), 'automatic, no activity for ' + SH_KEEP_DAYS + ' days'); });
+}
+
+// REMOVE a supervisor (website v0.27.46, Sean: only people currently listed as supervisors may share and
+// use 6409s). HQ, or the lead user name and password (the same pair that opens and closes a shelter).
+// The row stays, marked "Removed by ...", so adding the same name again brings them back.
+// The removed person's phone shows "You have been removed from <shelter>" the next time it checks.
+function shRemoveSup_(d) {
+  var hq = shIsHq_(d);
+  if (!hq) {
+    var bad = leadDenied_({ user: d.user || '', password: d.password || '' });
+    if (bad) return { ok: false, leadLogin: true, error: bad.error || 'Please type the lead user name and password.' };
+  }
+  var a = shAccess_({ id: d.id, key: d.key, token: hq ? d.token : '' }); if (a.err) return a.err;
+  var name = shName_(d.name);
+  if (!name) return { ok: false, error: 'Which supervisor?' };
+  var st = shSupTab_(), data = st.getDataRange().getValues(), now = new Date(), found = 0;
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === a.id && escText_(data[i][1]).toLowerCase() === name.toLowerCase() && !escText_(data[i][4])) {
+      st.getRange(i + 1, 5, 1, 1).setValues([[safe_('Removed by ' + (hq ? 'HQ' : 'the lead login') + ' ' + stamp_(now))]]);
+      found = 1;
+    }
+  }
+  if (!found) return { ok: false, error: 'That supervisor was not found.' };
+  return { ok: true, ms: String(shTouch_(a, now)), sups: shSups_(a.id) };
+}
+
+
+/* =========================================================
+   6409 DISASTER REQUISITION, LIVE (pages/req.html, js/req.js), website v0.27.46. A PROTOTYPE:
+   Sean will workshop it with the logistics and mass care teams ("build it with your best
+   recommendations"). Follows the paper form DCS JT DMWT Disaster Requisition (F6409 / F6409B) V.2.0.
+   - Each 6409 belongs to one open shelter (one form per delivery address, as the paper form says).
+     It is numbered 1, 2, 3... within its shelter.
+   - Who can do what:
+       Supervisors CURRENTLY on the shelter's list (and HQ): start a 6409, fill in the request, approve
+         someone else's, confirm delivery, cancel, and "Share with Team member".
+       The requester cannot approve their own 6409 (paper form rule). HQ can undo an approval.
+       Logistics (anyone opening the link "Share with Team member" sends): see every 6409 of that shelter,
+         type the requisition number, set the status and add notes. They cannot change the request, and
+         the link does NOT open the shelter's report or log (client privacy).
+   - Steps: Draft (waiting for approval) > Approved > With logistics > Ordered > On the way > Delivered.
+     Also Cannot fill (logistics) and Cancelled.
+   - Signatures are a typed name plus the time (the person's name on that phone).
+   - Erased with the shelter (Close shelter, or 14 days without activity).
+   Tabs (appear by themselves):
+     Requisitions        one row per 6409; the form itself is kept coded in the last column (do not edit)
+     Requisition Links   each shelter's logistics link code
+   ========================================================= */
+var RQ_HEADERS = ['Shelter ID', '6409 ID', 'No.', 'Started', 'Requested by', 'Status', 'Last change', 'Last change ms (do not edit)', 'Form (do not edit)'];
+var RQ_STEPS = ['Draft', 'Approved', 'With logistics', 'Ordered', 'On the way', 'Delivered', 'Cannot fill', 'Cancelled'];
+var RQ_LOG_STEPS = ['With logistics', 'Ordered', 'On the way', 'Cannot fill'];      // what logistics may set
+var RQ_UNITS = ['', 'EA', 'PK', 'CS', 'BX'];
+var RQ_METHODS = ['', 'Donation', 'ReQuest', 'Concur Invoice', 'P-card', 'Transfer', 'Loan', 'Other'];
+// The fields people type into, and how long each may be. Request fields: supervisors/HQ while a Draft.
+var RQ_REQ_FIELDS = { dr: 40, drName: 120, date: 20, title: 80, phone: 30, poc: 60, pocPhone: 30, pocEmail: 120, addr: 200, city: 80, state: 20, zip: 12,
+  special: 2000, acct: 60, method: 20, methodOther: 120 };
+var RQ_LOG_FIELDS = { reqNo: 40, logNote: 2000 };       // logistics (and HQ), any time before it is closed
+
+function rqTab_() { makeTab_('Requisitions', RQ_HEADERS); return tab_('Requisitions'); }
+function rqLinkTab_() { makeTab_('Requisition Links', ['Shelter ID', 'Logistics link code (do not edit)', 'Made', 'Made by']); return tab_('Requisition Links'); }
+function rqLinkCode_(id) {
+  var out = '';
+  rows_('Requisition Links').forEach(function (r) { if (String(r[0]) === id) out = escText_(r[1]); });
+  return out;
+}
+function rqForm_(cell) { try { var f = JSON.parse(escText_(cell)); return f && typeof f === 'object' ? f : {}; } catch (e) { return {}; } }
+function rqClosed_(status) { return status === 'Delivered' || status === 'Cancelled' || status === 'Cannot fill'; }
+function rqOpenCount_(id) {
+  var t = tab_('Requisitions'); if (!t) return 0;
+  return rows_('Requisitions').filter(function (r) { return String(r[0]) === id && !rqClosed_(escText_(r[5])); }).length;
+}
+
+/* Who is asking, and may they? role: 'hq', 'sup' (on the shelter's CURRENT list) or 'log' (logistics link). */
+function rqAccess_(d) {
+  shTabs_();
+  var id = escId_(d.id);
+  if (!id) return { err: { ok: false, error: 'This link cannot open the 6409.' } };
+  var lkey = escKey_(d.lkey);
+  if (lkey && !shIsHq_(d) && !escKey_(d.key)) {
+    if (shIsClosed_(id)) return { err: { ok: true, closed: true } };
+    var sh = shTab_(), row = escFindRow_(sh, id);
+    if (!row) return { err: { ok: false, gone: true, error: 'That shelter was not found. It may have been closed.' } };
+    if (lkey !== rqLinkCode_(id)) return { err: { ok: false, nokey: true, error: 'This link no longer opens these 6409s.' } };
+    return { id: id, sh: sh, row: row, r: sh.getRange(row, 1, 1, SH_HEADERS.length).getValues()[0], hq: false, role: 'log',
+      who: shName_(d.me) ? shName_(d.me) + ' (logistics)' : 'Logistics' };
+  }
+  var a = shAccess_(d); if (a.err) return a;
+  if (a.hq && (d.asHq || !escKey_(d.key))) { a.role = 'hq'; a.who = 'HQ'; return a; }
+  if (!shListed_(a.id, d.me)) return { err: { ok: false, notlisted: true, error: 'Only supervisors listed on this shelter can use its 6409s. Ask a supervisor to add you, or open the shelter\'s link again.' } };
+  a.role = 'sup'; a.who = shName_(d.me);
+  return a;
+}
+function rqFind_(a, rid) {
+  rid = escId_(rid); if (!rid) return null;
+  var t = rqTab_(), data = t.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) if (String(data[i][0]) === a.id && String(data[i][1]) === rid) return { t: t, row: i + 1, r: data[i], f: rqForm_(data[i][8]) };
+  return null;
+}
+function rqWrite_(a, q, now, status) {
+  var ms = now.getTime();
+  q.t.getRange(q.row, 6, 1, 4).setValues([[status || escText_(q.r[5]), stamp_(now), String(ms), JSON.stringify(q.f)]]);
+  shTouch_(a, now);         // keeps the shelter "active" (so it is not erased after 14 days while 6409s are moving)
+  return String(ms);
+}
+function rqHist_(q, who, what, now) {
+  q.f.hist = q.f.hist || [];
+  q.f.hist.push({ at: stamp_(now), by: who, what: clean_(what, 300) });
+  if (q.f.hist.length > 80) q.f.hist = q.f.hist.slice(-80);
+}
+function rqOut_(a, q) {
+  var f = q.f, out = { id: String(q.r[1]), no: Number(q.r[2]) || 0, started: iso_(q.r[3]), by: escText_(q.r[4]), status: escText_(q.r[5]), ms: escText_(q.r[7]), f: f };
+  if (a.role === 'log') { out.f = JSON.parse(JSON.stringify(f)); delete out.f.acct; }     // the account string stays inside the Red Cross side
+  return out;
+}
+function rqShelter_(a) { return { id: a.id, name: escText_(a.r[2]), address: escText_(a.r[3]) }; }
+function rqCan_(a) {
+  return { share: a.role !== 'log', start: a.role !== 'log', logistics: a.role !== 'sup', hq: a.role === 'hq' };
+}
+
+// The shelter's 6409s, newest first.
+function rqList_(d) {
+  var a = rqAccess_(d); if (a.err) return a.err;
+  var items = rows_('Requisitions').filter(function (r) { return String(r[0]) === a.id; }).map(function (r) {
+    var f = rqForm_(r[8]), its = (f.items || []).filter(function (x) { return x && x.desc; });
+    return { id: String(r[1]), no: Number(r[2]) || 0, started: iso_(r[3]), by: escText_(r[4]), status: escText_(r[5]), last: iso_(r[6]), ms: Number(r[7]) || 0,
+      first: its.length ? its[0].desc : '', count: its.length, need: its.map(function (x) { return x.need || ''; }).filter(String).sort()[0] || '', reqNo: f.reqNo || '' };
+  }).sort(function (x, y) { return y.no - x.no; });
+  return { ok: true, role: a.role, can: rqCan_(a), shelter: rqShelter_(a), items: items, now: Date.now(), today: today_() };
+}
+
+// Start a new 6409 (supervisors and HQ). Filled in from the shelter and the person.
+function rqNew_(d) {
+  var a = rqAccess_(d); if (a.err) return a.err;
+  if (a.role === 'log') return { ok: false, error: 'Logistics cannot start a 6409.' };
+  var rid = escId_(d.rid);
+  if (!rid) return { ok: false, error: 'Please reload the page and try again.' };
+  var t = rqTab_(), no = 0;
+  rows_('Requisitions').forEach(function (r) { if (String(r[0]) === a.id) { no = Math.max(no, Number(r[2]) || 0); if (String(r[1]) === rid) no = -1e9; } });
+  if (no < 0) return { ok: true, id: rid };        // already made (a double tap)
+  no += 1;
+  var now = new Date(), who = a.role === 'hq' ? 'HQ' : a.who;
+  var f = { date: today_(), poc: a.role === 'hq' ? '' : a.who, addr: escText_(a.r[3]), state: 'PA', items: [{}], hist: [] };
+  f.requester = a.role === 'hq' ? '' : a.who;
+  f.hist.push({ at: stamp_(now), by: who, what: 'Started 6409 #' + no });
+  t.appendRow([a.id, rid, no, stamp_(now), safe_(who), 'Draft', stamp_(now), String(now.getTime()), JSON.stringify(f)]);
+  shTouch_(a, now);
+  return { ok: true, id: rid, no: no };
+}
+
+// One 6409. d.since: the "ms" the page already has; when nothing changed it only answers "same".
+function rqGet_(d) {
+  var a = rqAccess_(d); if (a.err) return a.err;
+  var q = rqFind_(a, d.rid);
+  if (!q) return { ok: false, norq: true, error: 'That 6409 was not found.' };
+  if (d.since && String(d.since) === escText_(q.r[7])) return { ok: true, same: true, role: a.role };
+  return { ok: true, role: a.role, can: rqCan_(a), shelter: rqShelter_(a), rq: rqOut_(a, q), me: a.who, today: today_() };
+}
+
+// Save ONE field (or the whole list of items).
+function rqSave_(d) {
+  var a = rqAccess_(d); if (a.err) return a.err;
+  var q = rqFind_(a, d.rid); if (!q) return { ok: false, norq: true, error: 'That 6409 was not found.' };
+  var k = String(d.f || ''), status = escText_(q.r[5]), now = new Date();
+  if (k === 'items' || RQ_REQ_FIELDS[k] || k === 'requester') {
+    if (a.role === 'log') return { ok: false, locked: true, error: 'Logistics cannot change the request. Add a note instead.' };
+    if (status !== 'Draft') return { ok: false, locked: true, error: 'This 6409 is approved, so the request is locked. HQ can undo the approval to change it.' };
+    if (k === 'items') {
+      var list = Array.isArray(d.v) ? d.v.slice(0, 30) : [];
+      q.f.items = list.map(function (x) {
+        x = x || {};
+        return { stock: clean_(x.stock, 40), qty: clean_(x.qty, 12), unit: RQ_UNITS.indexOf(String(x.unit || '')) >= 0 ? String(x.unit || '') : '',
+          total: clean_(x.total, 12), desc: clean_(x.desc, 300), need: clean_(x.need, 40) };
+      });
+    } else if (k === 'method') q.f.method = RQ_METHODS.indexOf(String(d.v || '')) >= 0 ? String(d.v || '') : '';
+    else if (k === 'requester') { if (a.role !== 'hq') return { ok: false, error: 'Only HQ can change the requester.' }; q.f.requester = shName_(d.v); }
+    else q.f[k] = clean_(d.v, RQ_REQ_FIELDS[k]);
+  } else if (RQ_LOG_FIELDS[k]) {
+    if (a.role === 'sup') return { ok: false, locked: true, error: 'Only logistics (or HQ) fill this in.' };
+    if (status === 'Cancelled') return { ok: false, locked: true, error: 'This 6409 was cancelled.' };
+    q.f[k] = clean_(d.v, RQ_LOG_FIELDS[k]);
+  } else return { ok: false, error: 'Unknown field.' };
+  q.f.saved = { at: stamp_(now), by: a.who };
+  return { ok: true, ms: rqWrite_(a, q, now), at: stamp_(now), by: a.who };
+}
+
+// APPROVE: a listed supervisor who is NOT the requester, or HQ. Locks the request.
+function rqApprove_(d) {
+  var a = rqAccess_(d); if (a.err) return a.err;
+  if (a.role === 'log') return { ok: false, error: 'Logistics cannot approve a 6409.' };
+  var q = rqFind_(a, d.rid); if (!q) return { ok: false, norq: true, error: 'That 6409 was not found.' };
+  if (escText_(q.r[5]) !== 'Draft') return { ok: false, error: 'This 6409 is already ' + escText_(q.r[5]).toLowerCase() + '.' };
+  if (a.role === 'sup' && (q.f.requester || '').toLowerCase() === a.who.toLowerCase()) return { ok: false, self: true, error: 'The requester cannot approve their own 6409. Ask another supervisor, or HQ.' };
+  if (!(q.f.items || []).some(function (x) { return x && x.desc; })) return { ok: false, error: 'Add at least one item (a description) before approving.' };
+  var now = new Date();
+  q.f.approved = { by: a.who, at: stamp_(now), title: clean_(d.title, 80), phone: clean_(d.phone, 30) };
+  rqHist_(q, a.who, 'Approved', now);
+  return { ok: true, ms: rqWrite_(a, q, now, 'Approved') };
+}
+// HQ only: undo an approval (back to Draft) so the request can be changed.
+function rqUnapprove_(d) {
+  var a = rqAccess_(d); if (a.err) return a.err;
+  if (a.role !== 'hq') return { ok: false, login: true, error: 'Only HQ can undo an approval. Please log in as HQ.' };
+  var q = rqFind_(a, d.rid); if (!q) return { ok: false, norq: true, error: 'That 6409 was not found.' };
+  if (rqClosed_(escText_(q.r[5]))) return { ok: false, error: 'This 6409 is closed.' };
+  var now = new Date();
+  delete q.f.approved;
+  rqHist_(q, 'HQ', 'Undid the approval (back to Draft)', now);
+  return { ok: true, ms: rqWrite_(a, q, now, 'Draft') };
+}
+// LOGISTICS (and HQ): set the step, with an optional note.
+function rqStatus_(d) {
+  var a = rqAccess_(d); if (a.err) return a.err;
+  if (a.role === 'sup') return { ok: false, error: 'Only logistics (or HQ) set this.' };
+  var q = rqFind_(a, d.rid); if (!q) return { ok: false, norq: true, error: 'That 6409 was not found.' };
+  var to = String(d.status || ''), status = escText_(q.r[5]);
+  if (RQ_LOG_STEPS.indexOf(to) < 0) return { ok: false, error: 'Unknown step.' };
+  if (status === 'Draft') return { ok: false, error: 'This 6409 is not approved yet.' };
+  if (status === 'Cancelled' || status === 'Delivered') return { ok: false, error: 'This 6409 is already ' + status.toLowerCase() + '.' };
+  var now = new Date(), note = clean_(d.note, 500);
+  rqHist_(q, a.who, to + (note ? ': ' + note : ''), now);
+  return { ok: true, ms: rqWrite_(a, q, now, to) };
+}
+// RECEIPT (6409-B): the site confirms what arrived. Supervisors and HQ.
+function rqReceive_(d) {
+  var a = rqAccess_(d); if (a.err) return a.err;
+  if (a.role === 'log') return { ok: false, error: 'The shelter confirms the delivery.' };
+  var q = rqFind_(a, d.rid); if (!q) return { ok: false, norq: true, error: 'That 6409 was not found.' };
+  var status = escText_(q.r[5]);
+  if (status === 'Draft' || status === 'Cancelled') return { ok: false, error: 'This 6409 is ' + (status === 'Draft' ? 'not approved yet.' : 'cancelled.') };
+  var all = !!d.all, disc = clean_(d.disc, 2000);
+  if (!all && !disc) return { ok: false, error: 'Please say what was missing or wrong.' };
+  var now = new Date();
+  q.f.receipt = { all: all, disc: disc, group: clean_(d.group, 80), by: a.who, at: stamp_(now) };
+  rqHist_(q, a.who, all ? 'Delivery received, all items' : 'Delivery received, with discrepancies', now);
+  return { ok: true, ms: rqWrite_(a, q, now, 'Delivered') };
+}
+// CANCEL (supervisors and HQ), not after delivery.
+function rqCancel_(d) {
+  var a = rqAccess_(d); if (a.err) return a.err;
+  if (a.role === 'log') return { ok: false, error: 'Logistics cannot cancel a 6409. Use Cannot fill instead.' };
+  var q = rqFind_(a, d.rid); if (!q) return { ok: false, norq: true, error: 'That 6409 was not found.' };
+  if (escText_(q.r[5]) === 'Delivered') return { ok: false, error: 'This 6409 was already delivered.' };
+  var now = new Date();
+  rqHist_(q, a.who, 'Cancelled' + (clean_(d.note, 300) ? ': ' + clean_(d.note, 300) : ''), now);
+  return { ok: true, ms: rqWrite_(a, q, now, 'Cancelled') };
+}
+// SHARE WITH TEAM MEMBER: a listed supervisor or HQ gets the shelter's logistics link code (made the first time).
+function rqShare_(d) {
+  var a = rqAccess_(d); if (a.err) return a.err;
+  if (a.role === 'log') return { ok: false, error: 'Only the shelter\'s supervisors and HQ can share.' };
+  var code = rqLinkCode_(a.id);
+  if (!code) {
+    code = Utilities.getUuid().replace(/-/g, '').slice(0, 28);
+    rqLinkTab_().appendRow([a.id, code, stamp_(), safe_(a.who)]);
+  }
+  return { ok: true, lkey: code, shelter: rqShelter_(a) };
 }

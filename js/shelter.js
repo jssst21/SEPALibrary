@@ -274,6 +274,11 @@
         forget(id); notice('This link no longer opens that shelter.'); startScreen(); return true;
       }
       if (r && r.gone) { forget(id); notice(r.error); startScreen(); return true; }
+      // v0.27.46: taken off the supervisor list (Remove supervisor)
+      if (r && r.removed) {
+        forget(id); $('sr-today').hidden = $('sr-prev').hidden = true; Array.prototype.forEach.call(document.querySelectorAll('.f-modal'), function (m) { m.hidden = true; });
+        notice('You have been removed from ' + (r.shelter || 'that shelter') + '. To run another shelter, open a new one below.'); startScreen(); return true;
+      }
       return false;
     }
     call(auth({ action: 'shGet' })).then(function (r) {
@@ -349,6 +354,9 @@
       $('sr-saved').textContent = r.report.saved ? clock(r.report.saved) + ' by ' + r.report.savedBy : 'Nothing saved yet today';
       fillQs($('sr-qs'), cur.answers, r.today);
       drawSups(r.sups || []);
+      // v0.27.46: the 6409 box
+      $('sr-rq').href = 'req.html?s=' + id;
+      $('sr-rq').textContent = '6409 Requisitions' + (r.rqOpen ? ' (' + r.rqOpen + ' open)' : '');
       var wrap = $('sr-log-wrap'), keep = wrap.scrollTop;
       drawLog($('sr-log'), r.report.log || [], r.today, '');
       S.log = r.report.log || [];
@@ -372,7 +380,11 @@
         var b = el('b', '', s.name); li.appendChild(b);
         if (s.by === 'Opened the shelter') li.appendChild(el('span', 'sr-tag', 'Opened the shelter'));
         if (me && s.name.toLowerCase() === me.toLowerCase()) li.appendChild(el('span', 'sr-tag sr-you', 'You'));
-        li.appendChild(el('small', '', 'Added ' + when(s.added, S.today) + (s.by && s.by !== 'Opened the shelter' && s.by !== 'Opened the link' ? ' · ' + s.by.replace(/^Added by/, 'by') : '')));
+        li.appendChild(el('small', '', 'Added ' + when(s.added, S.today) + (s.by && s.by !== 'Opened the shelter' && s.by !== 'Opened the link' ? ' · ' + s.by.replace(/^Added (back )?by/, function (x) { return /back/.test(x) ? 'added back by' : 'by'; }) : '')));
+        // v0.27.46: Remove supervisor (HQ, or the lead user name and password)
+        var rm = el('button', 'link-btn sr-rm', 'Remove'); rm.type = 'button';
+        rm.addEventListener('click', function () { openRemove(s.name); });
+        b.after(rm);
         ul.appendChild(li);
       });
     }
@@ -608,6 +620,31 @@
             if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { $('sr-add-hint').textContent = 'The link was copied. Paste it into a text to ' + n + '.'; }, hold);
             else hold();
           };
+        });
+      };
+    }
+
+    // ---- Remove supervisor (v0.27.46)
+    function openRemove(name) {
+      var m = $('sr-rm-modal'); m.hidden = false;
+      $('sr-rm-name').textContent = name; $('sr-rm-creds').hidden = S.hq; $('sr-rm-error').hidden = true;
+      function shut() { m.hidden = true; }
+      $('sr-rm-x').onclick = shut; $('sr-rm-no').onclick = shut;
+      m.onclick = function (e) { if (e.target === m) shut(); };
+      $('sr-rm-form').onsubmit = function (e) {
+        e.preventDefault();
+        var btn = $('sr-rm-yes'), err = $('sr-rm-error');
+        var o = { action: 'shRemoveSup', id: id, name: name };
+        if (key) o.key = key;
+        if (S.hq) o.token = token(); else {
+          o.user = $('sr-rm-user').value; o.password = $('sr-rm-pass').value;
+          if (!o.user.trim() || !o.password) { err.textContent = 'Please type the user name and password.'; err.hidden = false; return; }
+        }
+        btn.disabled = true; err.hidden = true;
+        call(o).then(function (r) {
+          btn.disabled = false;
+          if (!(r && r.ok)) { err.textContent = oldScript(r) ? 'Removing supervisors is not switched on yet. The site admin needs to update the Google script.' : (r && r.error) || 'Could not connect. Please try again.'; err.hidden = false; return; }
+          $('sr-rm-pass').value = ''; shut(); drawSups(r.sups || []); poll(true);
         });
       };
     }

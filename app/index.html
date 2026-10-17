@@ -132,6 +132,22 @@
   .sh .done { margin-top: auto; width: 100%; max-width: 340px; min-height: 50px; border: 2px solid var(--red); border-radius: 14px; background: #fff;
     color: var(--red); font: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
   .inst-alt { display: block; margin-top: 3px; font-style: normal; font-size: 14px; color: #5a514b; }
+  /* v0.27.46 Mass Care pop-up (Sean): SCIA, Shelter Log (the Daily Shelter Report) and Beta Tests, which holds the 6409 Requisition. Replaces the SCIA button, so the number of buttons is the same and Share stays on screen. */
+  button.tile { width: 100%; border: 0; font: inherit; color: var(--ink); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .pick { position: fixed; inset: 0; z-index: 10; display: flex; align-items: flex-end; justify-content: center; background: rgba(20,14,12,.45); }
+  .pick[hidden] { display: none; }
+  .pick-card { width: 100%; max-width: 480px; padding: 20px 18px calc(18px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; background: #fff; color: var(--ink); }
+  .pick-card h2 { margin: 2px 0 14px; font-size: 24px; color: var(--red); text-align: center; }
+  .pick-opt { display: flex; align-items: center; gap: 14px; margin: 0 0 10px; padding: 14px 16px; border: 2px solid #ecdcdc; border-radius: 14px; color: var(--ink); text-decoration: none; }
+  .pick-opt svg { flex: none; width: 34px; height: 34px; fill: none; stroke: var(--red); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .pick-opt strong { display: block; font-size: 18px; }
+  .pick-opt small { display: block; margin-top: 2px; font-size: 14px; color: #7a6f68; }
+  button.pick-opt { width: 100%; background: #fff; font: inherit; text-align: left; cursor: pointer; }
+  .pick-opt .pick-more { margin-left: auto; font-style: normal; font-size: 30px; line-height: 1; color: var(--red); }
+  .pick-note { margin: -6px 0 12px; text-align: center; font-size: 14.5px; color: #7a6f68; }
+  .pick-card[hidden] { display: none; }
+  .pick-back { border-color: #ecdcdc; color: var(--ink); }
+  .pick-x { display: block; width: 100%; min-height: 50px; margin-top: 6px; border: 2px solid var(--red); border-radius: 14px; background: #fff; color: var(--red); font: inherit; font-size: 17px; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -185,8 +201,8 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2zM10 20a2 2 0 0 0 4 0"/></svg><span>Noggin</span></a>
     <a class="tile" href="/pages/shifts.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8.5 14.5l2 2 4-4"/></svg><span>Shift Sign Up</span></a>
-    <a class="tile" href="https://www.redcross.org/scia">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span>SCIA</span></a>
+    <button class="tile" id="shel-btn" type="button" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span>Mass Care</span></button>
     <a class="tile" href="/pages/escalation.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9.5 17h-19L12 3z"/><path d="M12 10v4.5M12 17.5v.01"/></svg><span>Escalation</span></a>
     <a class="tile" href="/pages/reception.html">
@@ -203,6 +219,29 @@
 
   <button class="share-btn" id="share-btn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg>Share SEPA Tools with someone</button>
 
+  <div class="pick" id="shel" role="dialog" aria-modal="true" aria-labelledby="shel-title" hidden>
+    <div class="pick-card" id="shel-main">
+      <h2 id="shel-title">Mass Care</h2>
+      <a class="pick-opt" href="https://www.redcross.org/scia">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg>
+        <span><strong>SCIA</strong><small>Opens the Red Cross site. Sign in there.</small></span></a>
+      <a class="pick-opt" href="/pages/shelter.html">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 9.5h7M8.5 13h7M8.5 16.5h4"/></svg>
+        <span><strong>Shelter Log</strong><small>The Daily Shelter Report: running log and status check</small></span></a>
+      <button class="pick-opt" id="beta-btn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7 15h10"/></svg>
+        <span><strong>Beta Tests</strong><small>New tools being tried out</small></span><i class="pick-more" aria-hidden="true">&rsaquo;</i></button>
+      <button class="pick-x" id="shel-x" type="button">Close</button>
+    </div>
+    <div class="pick-card" id="shel-beta" hidden>
+      <h2 id="beta-title">Beta Tests</h2>
+      <p class="pick-note">New tools being tried out. They may change.</p>
+      <a class="pick-opt" href="/pages/req.html">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.5L12 4l8.5 4.5v9L12 22l-8.5-4.5z"/><path d="M3.5 8.5L12 13l8.5-4.5M12 13v9"/></svg>
+        <span><strong>6409 Requisition</strong><small>Request supplies and track them with logistics</small></span></a>
+      <button class="pick-x pick-back" id="beta-back" type="button">&lsaquo; Back to Mass Care</button>
+    </div>
+  </div>
   <div class="sh" id="sh" role="dialog" aria-modal="true" aria-labelledby="sh-title" hidden>
     <h2 id="sh-title">Get SEPA Tools</h2>
     <p class="lead">Have them point their phone's <strong>camera</strong> at this code.</p>
@@ -220,7 +259,7 @@
 
   <p class="foot"><a href="/index.html">SEPA Resource Library website</a></p>
 </div>
-<script src="../js/config.js?v=0.27.44"></script>
+<script src="../js/config.js?v=0.27.46"></script>
 <script>
   /* ANNOUNCEMENTS (v0.27.19). Read from the Google Sheet's Announcements tab (see sepa-backend.gs,
      ANNOUNCEMENTS). The last list is kept on the phone so the bar still works with a weak signal.
@@ -277,6 +316,22 @@
 <script>
   // Lets the button screen open even with a weak signal (see sw.js). Harmless if the phone does not support it.
   if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('sw.js'); } catch (e) {} }
+</script>
+<script>
+  /* v0.27.46 Mass Care button: opens the pop-up (SCIA, Shelter Log, Beta Tests). Beta Tests swaps in its own list (6409 Requisition). */
+  (function () {
+    var pop = document.getElementById('shel'), btn = document.getElementById('shel-btn');
+    if (!pop || !btn) return;
+    var main = document.getElementById('shel-main'), beta = document.getElementById('shel-beta');
+    function view(b) { main.hidden = b; beta.hidden = !b; (b ? document.getElementById('beta-back') : document.getElementById('shel-x')).focus(); }
+    function shut() { pop.hidden = true; btn.focus(); }
+    btn.onclick = function () { pop.hidden = false; view(false); };
+    document.getElementById('shel-x').onclick = shut;
+    document.getElementById('beta-btn').onclick = function () { view(true); };
+    document.getElementById('beta-back').onclick = function () { view(false); };
+    pop.onclick = function (e) { if (e.target === pop) shut(); };
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) shut(); });
+  })();
 </script>
 </body>
 </html>

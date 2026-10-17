@@ -1454,7 +1454,7 @@ a.f-page:hover { border-color: var(--red); color: var(--red); }
    every Mass Care file in groups, one line each, with a search box.
    ========================================================= */
 .mc-launch { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
-@media (min-width: 900px) { .mc-launch { grid-template-columns: repeat(5, 1fr); } }   /* five buttons since v0.27.39 */
+@media (min-width: 900px) { .mc-launch { grid-template-columns: repeat(6, 1fr); } }   /* six buttons across since v0.27.46 (five since v0.27.39) */
 .mc-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 120px;
   padding: 16px 14px; border-radius: 14px; background: #fff; color: var(--navy); text-align: center; text-decoration: none;
@@ -1806,7 +1806,7 @@ a.f-chip:hover { background: var(--bt); }
    CURRENT OPERATIONS (js/current-ops.js, website v0.27.42): the open events at the top of the Start
    screen of the Escalation, Reception Center and Daily Shelter Report forms.
    ========================================================= */
-.co-box { margin: 16px 0 0; padding: 14px 16px; border: 2px solid var(--navy); border-radius: 12px; background: #eef2f8; }
+.co-box { margin: 16px 0 14px; padding: 14px 16px; border: 2px solid #b08a4a; border-radius: 12px; background: #fbf3e4; }   /* v0.27.45 warm sand (Sean: the field below is pale blue) */
 .co-box[hidden], .co-or[hidden] { display: none; }
 .co-h { margin: 0 0 4px; font-family: "Source Serif 4", Georgia, serif; font-size: 22px; color: var(--navy); }
 .co-how { margin: 0 0 10px; font-size: 15px; color: var(--ink-soft); }
@@ -1820,6 +1820,12 @@ a.f-chip:hover { background: var(--bt); }
 .co-item.co-hq { background: #fff; color: var(--navy); border: 1.5px solid #c9d6e8; }
 .co-item.co-hq:hover { border-color: var(--navy); }
 .co-item.co-hq b { background: var(--navy); color: #fff; }
+.co-load { display: flex; align-items: center; gap: 12px; margin: 6px 0 2px; font-size: 16px; font-weight: 600; color: var(--navy); }
+.co-load small { display: block; margin-top: 2px; font-size: 13.5px; font-weight: 400; color: var(--ink-soft); }
+.co-spin { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 3px solid #e6d3b0; border-top-color: var(--navy); animation: co-spin .8s linear infinite; }
+@keyframes co-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .co-spin { animation-duration: 2.4s; } }
+.co-how.co-none { margin: 0; }
 .co-or { margin: 18px 0 0; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); text-align: center; }
 
 /* Log box: flagged + 3 newest visible, older ones scroll inside (v0.27.43) */
@@ -1838,3 +1844,89 @@ a.f-chip:hover { background: var(--bt); }
 
 /* A greyed-out side of the view switch (v0.27.43: Previous days before the shelter has an earlier day) */
 .vt .vt-off { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; font-size: 17px; font-weight: 700; color: #a3aab6; background: #f1f3f6; cursor: not-allowed; }
+
+/* ===== 6409 DISASTER REQUISITION, LIVE (pages/req.html, js/req.js), v0.27.46 ===== */
+.rq-back { margin: 0 0 4px; font-size: 15px; font-weight: 600; }
+.rq-back a { color: var(--navy); }
+.rq-page .co-item { margin-top: 10px; }
+.rq-pick-sr { margin-top: 14px; text-align: center; text-decoration: none; display: block; }
+.rq-role { margin: 0; font-size: 15px; color: var(--ink-soft); }
+.rq-page .esc-buttons .primary-btn { flex: 1 1 100%; }
+.rq-share-btn { flex: 1 1 100%; border: 2px solid var(--navy); color: var(--navy); font-weight: 700; }
+.rq-card { display: block; margin: 0 0 10px; padding: 14px 16px; border: 1.5px solid var(--line); border-left: 6px solid #9aa6b8; border-radius: var(--radius); background: #fff; color: var(--ink); text-decoration: none; }
+.rq-card:hover { border-color: var(--navy); }
+.rq-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 18px; }
+.rq-card-what { display: block; margin-top: 6px; font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
+.rq-card-sub { display: block; margin-top: 3px; font-size: 14px; color: var(--ink-soft); }
+.rq-chip { flex: none; display: inline-block; padding: 3px 11px; border-radius: 999px; background: #eef2f8; color: var(--navy); font-size: 13px; font-weight: 700; white-space: nowrap; }
+/* step colours: draft amber, moving navy, delivered green, stopped red */
+.rq-chip.rq-s-draft { background: #fbf3e4; color: #6b4a12; }
+.rq-card.rq-s-draft { border-left-color: #d9a441; }
+.rq-chip.rq-s-approved, .rq-chip.rq-s-with-logistics, .rq-chip.rq-s-ordered, .rq-chip.rq-s-on-the-way { background: var(--navy); color: #fff; }
+.rq-card.rq-s-approved, .rq-card.rq-s-with-logistics, .rq-card.rq-s-ordered, .rq-card.rq-s-on-the-way { border-left-color: var(--navy); }
+.rq-chip.rq-s-delivered { background: #e9f5ee; color: #1f5c38; }
+.rq-card.rq-s-delivered { border-left-color: #3f7d58; }
+.rq-chip.rq-s-cannot-fill, .rq-chip.rq-s-cancelled { background: var(--red-tint); color: var(--red); }
+.rq-card.rq-s-cannot-fill, .rq-card.rq-s-cancelled { border-left-color: var(--red); opacity: .85; }
+.rq-top-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.rq-top-head .sr-h { margin: 0; }
+.rq-shelter { margin: 2px 0 0; font-size: 15px; color: var(--ink-soft); }
+.rq-steps { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; margin: 14px 0 0; padding: 0; counter-reset: rq; }
+.rq-steps li { flex: 1 1 30%; min-width: 0; padding: 6px 6px; border-radius: 6px; background: #f1eeeb; color: #8a817a; font-size: 12.5px; font-weight: 700; text-align: center; }
+.rq-steps li.done { background: #e1e8f2; color: var(--navy); }
+.rq-steps li.now { background: var(--navy); color: #fff; }
+.rq-next { margin: 12px 0 0; font-size: 16px; font-weight: 600; color: var(--navy); }
+.rq-next.rq-bad { color: var(--red); }
+.rq-saved { margin: 6px 0 0; font-size: 14px; color: var(--ink-soft); }
+.rq-top .sr-state { margin: 4px 0 0; }
+.rq-grid { display: flex; flex-wrap: wrap; gap: 0 12px; }
+.rq-grid > .rq-field { flex: 1 1 100%; min-width: 0; }
+.rq-grid > .rq-half { flex: 1 1 calc(50% - 6px); }
+.rq-grid > .rq-third { flex: 1 1 calc(33% - 8px); }
+.rq-field { margin-top: 12px; }
+.rq-field .esc-in { display: block; width: 100%; margin-top: 4px; }
+.rq-field:first-child { margin-top: 4px; }
+.rq-ro .rq-ro-v { display: block; margin-top: 4px; padding: 10px 12px; border-radius: 8px; background: #f6f4f2; font-weight: 600; min-height: 22px; }
+.rq-ro small { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--ink-soft); }
+.esc-in.rq-locked { background: #f6f4f2; border-color: transparent; color: var(--ink); }
+.rq-items { margin-top: 8px; }
+.rq-item { position: relative; display: flex; flex-wrap: wrap; gap: 8px 10px; margin: 0 0 10px; padding: 12px 12px 10px 40px; border: 1.5px solid #c9d6e8; border-radius: 10px; background: #f8fafd; }
+.rq-item::before { content: attr(data-n); position: absolute; left: 10px; top: 12px; width: 22px; height: 22px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 13px; font-weight: 700; line-height: 22px; text-align: center; }
+.rq-i { display: block; min-width: 0; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+.rq-i .esc-in { display: block; width: 100%; margin-top: 3px; padding: 9px 10px; font-size: 16px; }
+.rq-i-desc { flex: 1 1 100%; }
+.rq-i-qty, .rq-i-total { flex: 1 1 calc(26% - 10px); }
+.rq-i-unit { flex: 1 1 calc(24% - 10px); }
+.rq-i-need { flex: 1 1 calc(55% - 10px); }
+.rq-i-stock { flex: 1 1 calc(40% - 10px); }
+.rq-i-x { flex: 1 1 100%; text-align: left; font-size: 14px; }
+.rq-add[hidden] { display: none; }
+.rq-add .esc-btn { width: 100%; }
+.rq-quick-how { margin: 10px 0 4px; font-size: 14px; color: var(--ink-soft); }
+.rq-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.rq-q { padding: 7px 12px; border: 1.5px solid #c9d6e8; border-radius: 999px; background: #fff; color: var(--navy); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.rq-q:hover { border-color: var(--navy); }
+.rq-dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 10px 0 0; font-size: 15px; }
+.rq-dl dt { font-weight: 700; color: var(--ink-soft); }
+.rq-dl dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.rq-ap-who { margin: 10px 0 0; font-weight: 600; }
+.rq-approve { margin-top: 14px; }
+.rq-det summary { cursor: pointer; font-family: "Source Serif 4", Georgia, serif; font-size: 20px; font-weight: 700; color: var(--navy); }
+.rq-label { margin: 14px 0 0; font-weight: 600; font-size: 16px; }
+.rq-log-steps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.rq-log-steps .esc-btn { flex: 1 1 calc(50% - 8px); }
+.rq-log-steps .esc-btn.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.rq-log-steps .esc-btn.rq-cant { color: var(--red); border-color: #e2b5bc; }
+.rq-log-steps .esc-btn.rq-cant.on { background: var(--red); border-color: var(--red); color: #fff; }
+.rq-rcv-body .rc-choice button { flex: 1 1 100%; }
+.rq-rcv-body .primary-btn { margin-top: 14px; }
+.rq-hist { list-style: none; margin: 4px 0 0; padding: 0; }
+.rq-hist li { padding: 8px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.rq-hist li:first-child { border-top: 0; }
+.rq-hist small { display: block; margin-top: 2px; font-size: 13.5px; color: var(--ink-soft); }
+.rq-end { margin: 6px 0 24px; }
+.rq-end[hidden], .rq-box[hidden] { display: none; }
+.rq-end .esc-btn { width: 100%; }
+/* Daily Shelter Report: the 6409 box and Remove supervisor (v0.27.46) */
+.sr-rq-btn { display: block; text-align: center; text-decoration: none; }
+.sr-sups .sr-rm { margin-left: 8px; font-size: 13.5px; font-weight: 600; }

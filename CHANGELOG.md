@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.27.46 (Oct 16, 2026)
+- 6409 DISASTER REQUISITION, LIVE (new pages/req.html, js/req.js). A PROTOTYPE: Sean will workshop it with the logistics and mass care teams ("build it with your best recommendations"). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - Follows the paper form in the library (DCS JT DMWT Disaster Requisition F6409 / F6409B V.2.0): request header, requester, delivery information, items (stock no., quantity, unit EA/PK/CS/BX, total each, description, date needed), special instructions, approval, optional procurement method, and the 6409-B delivery receipt.
+  - Each 6409 belongs to one open shelter (one form per delivery address, as the paper form says), numbered 1, 2, 3... Delivery fills in from the shelter. Saves as you type; other phones see changes within seconds.
+  - Who does what: supervisors CURRENTLY on the shelter's list (Sean) and HQ start a 6409, fill it in, approve someone else's (the requester can never approve their own, as on the paper form), confirm delivery and cancel. HQ can undo an approval. Typed name plus time stands in for signatures.
+  - "Share with Team member" (listed supervisors and HQ): sends logistics a link to the shelter's 6409s. Logistics types their name once, then can enter the requisition number, add notes and set the step. They cannot change the request, do not see the account string, and the link does NOT open the shelter's report or log.
+  - Steps: Draft (needs approval) > Approved > With logistics > Ordered > On the way > Delivered; also Cannot fill (logistics, with a note) and Cancelled. Shortcut buttons add common items (cots, blankets, pillows, comfort kits, water, snacks, hygiene kits, diapers).
+  - Erased with the shelter (Close shelter, or 14 days with no activity; 6409 activity counts as activity).
+  - Where to find it: "Supplies (6409)" box on the Daily Shelter Report, a sixth button on the Mass Care page (six across on a computer), and in the app under Mass Care > Beta Tests. Marked BETA on the website (Sean: it is being tried out).
+- DAILY SHELTER REPORT: REMOVE SUPERVISOR. A "Remove" link next to each supervisor; needs the lead user name and password (same as opening and closing) or HQ. The removed person's phone shows "You have been removed from [shelter]" and can no longer open the report or its 6409s; what they typed stays. Adding the same name again brings them back. Google Sheet: new "Removed" column in Shelter Supervisors (added by itself).
+- SEPA TOOLS APP: the SCIA button is now "Mass Care" (same spot, same icon; Sean). It opens a panel with SCIA, Shelter Log (the Daily Shelter Report) and Beta Tests; Beta Tests holds the 6409 Requisition, with a Back button. Same number of buttons, so "Share SEPA Tools with someone" stays on screen (checked at iPhone size). Practice SCIA unchanged. App cache number now sepa-tools-20.
+- Version number is now ?v=0.27.46 on every page and the homepage footer reads v0.27.46
+
+## v0.27.45 (Oct 16, 2026)
+- CURRENT OPERATIONS: LOADING MESSAGE AND NEW COLOUR (Escalation, Reception Center and Daily Shelter Report Start screens). Sean: it takes a moment for the events to load, which confuses people. No Google script change: push only.
+  - While it checks, the box shows at once with a spinner: "Looking for active events... This takes a few seconds." Then it fills in with the events, as before.
+  - Found nothing: the box stays and says "No active events found. Start a new one below." (it used to never appear).
+  - A phone with nothing to check (never on a worksheet / center / shelter, not logged in as HQ) knows at once, so no box at all, as before (no flash).
+  - Box colour is now warm sand instead of pale blue (Sean: the field below it is also pale blue).
+- Version number is now ?v=0.27.45 on every page and the homepage footer reads v0.27.45
+
 ## v0.27.44 (Oct 16, 2026)
 - iPHONE INSTALL STEPS: BOTH SAFARI LAYOUTS (from a user's email: newer iOS has no ••• button; the menu is the small icon at the left end of the address bar, two lines with a little square on top; everything from Share on is the same). No Google script change: push only.
   - get-app/iphone.html, step 2: "Open Safari's menu", case A (••• at the bottom right) and case B (the icon at the left of the address bar), each with its own drawing.
