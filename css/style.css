@@ -1224,7 +1224,8 @@ body:not(.esc-viewing) .esc-flash { animation-name: esc-flash-edit; }
 .onb-say { margin: 10px 0 0; padding: 10px 16px; border-left: 4px solid var(--red); background: var(--red-tint); border-radius: 0 8px 8px 0; font-style: italic; }
 .onb-steps .onb-people { margin-top: 12px; grid-template-columns: 1fr !important; }
 @media (min-width: 640px) { .onb-steps .onb-people { grid-template-columns: 1fr 1fr !important; } }
-@media (min-width: 1100px) { .onb-steps .onb-people { grid-template-columns: repeat(3, 1fr) !important; } }
+/* 2x2 at wide widths so four Team Leader cards sit evenly (v0.27.54) */
+@media (min-width: 1100px) { .onb-steps .onb-people { grid-template-columns: 1fr 1fr !important; } }
 .onb-close { margin: 18px 0 0; font-size: 18px; font-weight: 600; color: var(--ink); }
 #guides { margin-top: 34px; }
 .doc:target { animation: onb-spot 2.4s ease-out 1; }

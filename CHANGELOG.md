@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.27.54 (Oct 18, 2026)
+- ONBOARDING PAGE, FOURTH TEAM LEADER CONTACT (Sean). Irvin Diaz (PhilaBucks Chapter Lead, irvin.diaz@redcross.org, photo from the Contacts page) added after Michael Bradley in step 1 "Start with your Team Leader", on the English and Spanish pages.
+  - The line above now reads "Email any of these four" / "estas cuatro personas".
+  - The four cards sit in a 2x2 grid on wide screens (was three across); phones unchanged (one per row).
+- Version number is now ?v=0.27.54 on every page and the homepage footer reads v0.27.54
+
 ## v0.27.53 (Oct 17, 2026)
 - DAILY SHELTER REPORT, CALMER MAIN SCREEN (Sean: too many buttons and boxes the same size; the carried-over issues and the log input should be the main thing on screen).
   - Under the shelter name there is now a small bar with two pills: "Add/remove supervisor" and "6409 Supplies" (Beta tag, plus a number when 6409s are open).
