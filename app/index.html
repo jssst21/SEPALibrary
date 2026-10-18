@@ -197,10 +197,10 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9.5 17h-19L12 3z"/><path d="M12 10v4.5M12 17.5v.01"/></svg><span>Escalation</span></a>
     <a class="tile" href="/pages/reception.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3.5 19c.5-3.5 3-5.5 5.5-5.5s5 2 5.5 5.5M14.5 14.5c.8-.6 1.6-.9 2.5-.9 2 0 3.6 1.5 4 5.4"/></svg><span>Reception Center</span></a>
-    <a class="tile practice" href="https://rccare--training3.sandbox.my.site.com/RCCare/login?ec=302&amp;startURL=%2FRCCare%2Fs%2F"><em>Practice</em>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 14h7M8.5 18h4"/></svg><span>Practice RC Care</span></a>
-    <a class="tile practice" href="https://www.redcross.org/scia-training"><em>Practice</em>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span>Practice SCIA</span></a>
+    <a class="tile practice" href="#sandboxes"><em>Practice</em>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 14h19l-1.5 6h-16z"/><path d="M5.5 14c1-2.6 3.2-3.8 5.5-3.8s3.7 1.2 4.5 3.8"/><path d="M17.5 3.5L15 11.5M13.6 11l2.6 1"/></svg><span>Sandboxes</span></a>
+    <a class="tile" href="/pages/forums.html?b=photos">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Community</span></a>
     <a class="tile" href="/pages/new.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9L12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11v4.5c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3V11M21.5 9v5"/></svg><span>Onboarding</span></a>
     <a class="tile help" style="grid-column: 2" href="help.html">
@@ -211,6 +211,12 @@
        grid in place of the main one (#mass-care, #beta, so the phone's Back button works too). Same size
        or smaller than the main grid, so "Share SEPA Tools with someone" never moves down. -->
   <div class="subhead" id="sub-head" hidden><a class="sub-back" id="sub-back" href="#">&lsaquo; Back</a><h2 id="sub-title"></h2></div>
+  <nav class="grid" id="g-sand" aria-label="Sandboxes" hidden>
+    <a class="tile practice" href="https://rccare--training3.sandbox.my.site.com/RCCare/login?ec=302&amp;startURL=%2FRCCare%2Fs%2F"><em>Practice</em>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 14h7M8.5 18h4"/></svg><span>Practice RC Care</span></a>
+    <a class="tile practice" href="https://www.redcross.org/scia-training"><em>Practice</em>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span>Practice SCIA</span></a>
+  </nav>
   <nav class="grid" id="g-mc" aria-label="Mass Care" hidden>
     <a class="tile" href="https://www.redcross.org/scia">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span>SCIA</span></a>
@@ -247,7 +253,7 @@
 
   <p class="foot"><a href="/index.html">SEPA Resource Library website</a></p>
 </div>
-<script src="../js/config.js?v=0.27.54"></script>
+<script src="../js/config.js?v=0.27.55"></script>
 <script>
   /* ANNOUNCEMENTS (v0.27.19). Read from the Google Sheet's Announcements tab (see sepa-backend.gs,
      ANNOUNCEMENTS). The last list is kept on the phone so the bar still works with a weak signal.
@@ -308,11 +314,11 @@
 <script>
   /* v0.27.49 Mass Care and Beta Tests grids: #mass-care and #beta swap the main grid for theirs. */
   (function () {
-    var views = { '': ['g-main', ''], '#mass-care': ['g-mc', 'Mass Care', '#'], '#beta': ['g-beta', 'Beta Tests', '#mass-care'] };
+    var views = { '': ['g-main', ''], '#mass-care': ['g-mc', 'Mass Care', '#'], '#beta': ['g-beta', 'Beta Tests', '#mass-care'], '#sandboxes': ['g-sand', 'Sandboxes', '#'] };
     var ann = document.querySelector('.ann');
     function show() {
       var v = views[location.hash] || views[''];
-      ['g-main', 'g-mc', 'g-beta'].forEach(function (id) { document.getElementById(id).hidden = id !== v[0]; });
+      ['g-main', 'g-mc', 'g-beta', 'g-sand'].forEach(function (id) { document.getElementById(id).hidden = id !== v[0]; });
       var head = document.getElementById('sub-head'); head.hidden = !v[1];
       if (ann) ann.hidden = !!v[1];
       if (v[1]) { document.getElementById('sub-title').textContent = v[1]; document.getElementById('sub-back').setAttribute('href', v[2]); }

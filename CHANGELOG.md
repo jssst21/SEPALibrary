@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.27.55 (Oct 18, 2026)
+- SEPA TOOLS APP: SANDBOXES AND COMMUNITY (Sean).
+  - "Practice RC Care" and "Practice SCIA" are now one pink "Sandboxes" tile (Practice tag, new sandbox icon). It opens its own grid (#sandboxes, with Back) holding the two practice tiles, the same way Mass Care works.
+  - The free spot is a new "Community" tile (camera icon) that opens the forum's photo board (pages/forums.html?b=photos, "Photos, stories and shout outs").
+- app/sw.js CACHE is now sepa-tools-24
+- Version number is now ?v=0.27.55 on every page and the homepage footer reads v0.27.55
+
 ## v0.27.54 (Oct 18, 2026)
 - ONBOARDING PAGE, FOURTH TEAM LEADER CONTACT (Sean). Irvin Diaz (PhilaBucks Chapter Lead, irvin.diaz@redcross.org, photo from the Contacts page) added after Michael Bradley in step 1 "Start with your Team Leader", on the English and Spanish pages.
   - The line above now reads "Email any of these four" / "estas cuatro personas".
