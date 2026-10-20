@@ -2060,3 +2060,13 @@ a.f-chip:hover { background: var(--bt); }
 .ev-photo-rm { margin-left: 14px; }
 .ev-photo-wait { margin: 0; padding: 30px 10px; text-align: center; font-size: 14.5px; color: var(--ink-soft); background: #f7f5f2; border-radius: 8px; }
 .ev-photo-wait[hidden] { display: none; }
+/* Add a responder / Add a lead under "Who is on this ..." on both forms and their summaries (v0.27.59) */
+.add-box { display: flex; flex-direction: column; gap: 10px; margin: 0 0 16px; }
+.add-box[hidden], .add-box p[hidden], .add-box label[hidden] { display: none; }
+.add-box .primary-btn, .add-box .esc-btn { width: 100%; margin: 0; }
+.add-box .add-lead2 { border: 2px solid var(--navy); background: #fff; color: var(--navy); font-weight: 700; }
+.add-box .add-need, .add-box .esc-note { margin: 0; }
+.add-need { font-size: 14.5px; color: var(--ink-soft); }
+#add-login .al-ask { margin-top: 18px; padding-top: 14px; border-top: 1.5px solid var(--line); }
+#add-login .al-send { width: 100%; margin-top: 6px; }
+#add-login .al-note[hidden], #add-login .al-linkbox[hidden] { display: none; }

@@ -209,7 +209,7 @@
     function auth(o) { o.leadKey = leadKey; o.key = key; o.me = dev(); return o; }
     var form = $('rec-form');
     $('rec-work').hidden = false;
-    $('rec-lead-tools').hidden = !lead;
+    $('rec-lead-tools').hidden = !lead; $('rec-lead-tools2').hidden = !lead;
     $('rec-joined-how').hidden = lead;
 
     function centerName() { return lsGet('sepaRecCenter:' + id) || 'Reception center'; }
@@ -232,8 +232,7 @@
         goNewCenter();
       }) });
     header();
-    if (!lead) $('rec-joined-how').textContent = 'You joined this reception center. Your intakes go to your lead and HQ. Only a lead can add responders and see the summary.';
-    if (coLead) $('rec-lead-how').textContent = 'You are a lead on this reception center. Add a responder sends a link for doing intakes. Add a lead gives someone already here the lead\'s buttons, for example if you are leaving the scene.';
+    if (!lead) $('rec-joined-how').textContent = 'You joined this reception center. Your intakes go to your lead and HQ. Only a lead can see the summary.';
     function leadsLine(names) { return (names.indexOf(',') >= 0 ? 'Leads: ' : 'Lead: ') + names; }
 
     // ---- the choice buttons (Yes / No ...) and the follow-up boxes they open
@@ -358,7 +357,7 @@
           if (r && r.ok) {
             state = 'on';
             if (r.center && r.center !== lsGet('sepaRecCenter:' + id)) { lsSet('sepaRecCenter:' + id, r.center); header(); }
-            if (!lead && r.lead) $('rec-joined-how').textContent = 'You joined this reception center. ' + leadsLine(r.lead) + '. Your intakes go to your lead and HQ. Only a lead can add responders and see the summary.';
+            if (!lead && r.lead) $('rec-joined-how').textContent = 'You joined this reception center. ' + leadsLine(r.lead).replace(/\.$/, '') + '. Your intakes go to your lead and HQ. Only a lead can see the summary.';
           } else if (r && r.nokey) state = 'nokey';
           else if (oldScript(r)) state = 'off';
           else state = 'offline';
@@ -423,7 +422,6 @@
         call(auth({ action: 'makeLead', form: 'rec', id: id, dev: d })).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
       };
       var drawRoster = function (list) { SEPAAskLead.roster($('rec-roster'), list, removeOne, 'reception center', { makeLead: makeLead }); };
-      $('rec-add-lead').addEventListener('click', function () { SEPAAskLead.leadPicker(makeLead, drawRoster); });
       var pollAsks = function () {
         if (!document.hidden) call(auth({ action: 'recAsks', id: id })).then(function (r) {
           if (r && r.ok) { showAsks(r.asks || []); drawRoster(r.roster || []); }
@@ -443,11 +441,16 @@
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { showLink(url, label); note(copied); }, hold);
       else hold();
     }
-    $('rec-add').addEventListener('click', function () {
-      send(pageLink('id=' + id) + '#k=' + key, 'Join the reception center',
-        'Join the reception center at ' + centerName() + '. Open this link to do intakes.',
-        'Join link for a responder', 'The join link was copied. Paste it into a text to your teammate.');
-    });
+    // v0.27.59: Add a responder / Add a lead, under who is on this center, for every phone on it (js/ask-lead.js addBox)
+    if (typeof SEPAAskLead !== 'undefined' && SEPAAskLead.addBox) SEPAAskLead.addBox($('rec-adds'), { form: 'rec', id: id, what: 'reception center',
+      place: centerName, canAdd: function () { return lead; },
+      joinLink: function () { return key ? pageLink('id=' + id) + '#k=' + key : ''; },
+      pick: function () { if (lead && makeLead) SEPAAskLead.leadPicker(makeLead, drawRoster); },
+      becameLead: function () {     // logged in with the lead or HQ password: reload to show the lead's buttons (an intake being typed is kept as a draft)
+        lsSet('sepaRecCoLead:' + id, '1');
+        lsSet('sepaRecNote', 'You are now a lead on this reception center. Tap "+ Add a responder" or "+ Add a lead" again to carry on.');
+        location.reload();
+      } });
     $('rec-share').addEventListener('click', function () {
       send(summaryUrl, 'Reception center summary',
         'Summary of the reception center at ' + centerName() + '. It updates as intakes come in. HQ log in needed.',
@@ -517,6 +520,7 @@
     var asLead = !!(leadKey || coKey);
     function auth(o) { o.leadKey = leadKey; o.key = coKey; o.me = coKey && typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('rec', id) : ''; o.token = token(); return o; }
     var barShown = false, logApi = null;     // logApi: the Running log (v0.27.57)
+    var viewAdds = null, viewJoinKey = '';     // v0.27.59: the add box
     function changeCenter() {        // HQ: every open reception center, to jump between them (v0.27.27)
       return { label: 'Change center', title: 'Change center', note: 'Open reception centers, most recent activity first.',
         allHref: pageLink('view=list'), allLabel: 'See all centers on one page',
@@ -613,6 +617,14 @@
             call(auth({ action: 'makeLead', form: 'rec', id: id, dev: d })).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
           };
           SEPAAskLead.roster($('rec-view-roster'), r.roster || [], vRemove, 'reception center', { makeLead: vMake, hq: !!token() });
+          // v0.27.59: Add a responder / Add a lead here too (only a lead or HQ can open the Summary)
+          if (r.joinKey) viewJoinKey = r.joinKey;
+          if (!viewAdds && SEPAAskLead.addBox) viewAdds = SEPAAskLead.addBox($('rec-view-adds'), { form: 'rec', id: id, what: 'reception center',
+            place: function () { return (last && last.center) || ''; },
+            canAdd: function () { return true; },
+            joinLink: function () { var k = goodKey(lsGet('sepaRecKey:' + id)) || viewJoinKey; return k ? pageLink('id=' + id) + '#k=' + k : ''; },
+            pick: function () { SEPAAskLead.leadPicker(vMake, function () { load(); }); },
+            becameLead: function () {} });
           // v0.27.50: requests to join show here too, for HQ and leads (Sean: roles swap, people get called away)
           (function showViewAsks(list) {
             SEPAAskLead.render($('rec-view-asks'), list, function (rid, yes) {

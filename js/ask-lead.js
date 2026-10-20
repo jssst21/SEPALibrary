@@ -290,6 +290,101 @@ var SEPAAskLead = (function () {
     });
   }
 
+
+  // ---------------------------------------------------------------- ADD A RESPONDER / ADD A LEAD (v0.27.59)
+  // Sean, Oct 20: both buttons right under "Who is on this ...", on the worksheet / intake screen AND on the
+  // Scene Summary / Summary, so nobody has to switch screens. Everyone on the event sees them. A lead or HQ goes
+  // straight through; anyone else gets a pop-up for the lead or HQ log in (coLogin: the same as Join > log in,
+  // which makes this phone a lead), or, if they do not know the password, a link to send so the new person can
+  // ask to join (the lead or HQ then taps Let in). Most volunteers are 65+: bring things to them.
+  // opt: { form: 'esc' | 'rec', id, what: 'worksheet', place(): name, canAdd(): true for a lead or HQ,
+  //        joinLink(): the join link ('' if not ready), pick(): opens the Add a lead picker,
+  //        becameLead(key): this phone is now a lead (the page shows the lead's buttons), beforeSend(): optional }
+  function addBox(host, opt) {
+    if (!host) return null;
+    host.className = 'add-box'; host.hidden = false;
+    host.innerHTML = '<button type="button" class="primary-btn add-resp">+ Add a responder</button>' +
+      '<button type="button" class="esc-btn add-lead2">+ Add a lead</button>' +
+      '<p class="add-need" hidden>Needs the lead or HQ log in. Don\'t know it? Tap anyway: you can send a link to ask to join.</p>' +
+      '<p class="esc-note add-note" role="status" hidden></p>' +
+      '<label class="esc-link-box add-linkbox" hidden><span class="add-linklabel">Link</span><input class="add-link" readonly></label>';
+    var q = function (c) { return host.querySelector(c); };
+    function note(t) { q('.add-note').textContent = t || ''; q('.add-note').hidden = !t; }
+    function showLink(url, label) { q('.add-linkbox').hidden = false; q('.add-linklabel').textContent = label; q('.add-link').value = url; }
+    function send(url, title, text, label) {
+      if (navigator.share) { navigator.share({ title: title, text: text, url: url }).catch(function () {}); return; }
+      var hold = function () { showLink(url, label); note('Press and hold the link below to copy it, then paste it into a text.'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { showLink(url, label); note('The link was copied. Paste it into a text.'); }, hold);
+      else hold();
+    }
+    function where() { var p = opt.place ? opt.place() : ''; return p ? ' at ' + p : ''; }
+    function addResponder() {
+      var link = opt.joinLink ? opt.joinLink() : '';
+      if (!link) { note('The join link is not ready yet. Try again in a few seconds.'); return; }
+      if (opt.beforeSend) opt.beforeSend();
+      send(link, opt.form === 'esc' ? 'Join the DAT escalation form' : 'Join the reception center',
+        (opt.form === 'esc' ? 'Join the DAT escalation worksheet' + where() + '. Open this link to type into the same worksheet.'
+                            : 'Join the reception center' + where() + '. Open this link to do intakes.'), 'Join link for a responder');
+    }
+    function askLink() { return page + '?ask=' + encodeURIComponent(opt.id); }
+    function refresh() { q('.add-need').hidden = !!(opt.canAdd && opt.canAdd()); }
+    refresh();
+    q('.add-resp').addEventListener('click', function () { note(''); if (opt.canAdd()) addResponder(); else login('resp'); });
+    q('.add-lead2').addEventListener('click', function () { note(''); if (opt.canAdd()) opt.pick(); else login('lead'); });
+
+    function login(kind) {
+      var old = document.getElementById('add-login'); if (old) old.remove();
+      var m = document.createElement('div'); m.className = 'f-modal'; m.id = 'add-login';
+      var nameNow = lsGet(opt.form === 'esc' ? 'sepaEscName' : 'sepaRecName') || lsGet('sepaAskName') || '';
+      m.innerHTML = '<div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="add-login-t">' +
+        '<button type="button" class="f-modal-x" aria-label="Close">&times;</button>' +
+        '<h2 id="add-login-t">' + (kind === 'lead' ? 'Add a lead' : 'Add a responder') + '</h2>' +
+        '<p class="f-modal-note">This needs the <strong>lead</strong> or <strong>HQ</strong> user name and password. Logging in makes this phone a lead on this ' + esc(opt.what) + '.</p>' +
+        '<label class="field">Your name <input class="al-name" autocomplete="name" maxlength="60" value="' + esc(nameNow) + '"></label>' +
+        '<label class="field">User name <input class="al-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>' +
+        '<label class="field">Password <input class="al-pass" type="password" autocomplete="current-password"></label>' +
+        '<p class="form-error al-err" hidden></p>' +
+        '<button type="button" class="primary-btn al-go">Log in and continue</button>' +
+        '<div class="al-ask"><p class="co-j-head">Don\'t know the password?</p>' +
+        '<p class="f-modal-note">Send the new person a link. They open it, type their name and tap <strong>Request access</strong>. The lead or HQ lets them in.' +
+        (kind === 'lead' ? ' To make someone a lead, ask a lead or HQ.' : '') + '</p>' +
+        '<button type="button" class="esc-btn al-send">Send a link to request to join</button>' +
+        '<p class="esc-note al-note" role="status" hidden></p>' +
+        '<label class="esc-link-box al-linkbox" hidden><span>Link</span><input class="al-link" readonly></label></div></div>';
+      document.body.appendChild(m);
+      var g = function (c) { return m.querySelector(c); };
+      function close() { m.remove(); }
+      function err(t) { g('.al-err').textContent = t || ''; g('.al-err').hidden = !t; }
+      g('.f-modal-x').onclick = close; m.onclick = function (e) { if (e.target === m) close(); };
+      g('.al-send').onclick = function () {
+        var url = askLink(), text = (opt.form === 'esc' ? 'Join the DAT escalation worksheet' : 'Join the reception center') + where() +
+          '. Open this link, type your name and tap Request access. The lead or HQ will let you in.';
+        if (navigator.share) { navigator.share({ title: 'Ask to join', text: text, url: url }).catch(function () {}); return; }
+        var shown = function (t) { g('.al-linkbox').hidden = false; g('.al-link').value = url; g('.al-note').textContent = t; g('.al-note').hidden = false; };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { shown('The link was copied. Paste it into a text to the new person.'); }, function () { shown('Press and hold the link below to copy it.'); });
+        else shown('Press and hold the link below to copy it.');
+      };
+      g('.al-go').onclick = function () {
+        var b = this, who = g('.al-name').value.trim();
+        if (!who) return err('Please type your name.');
+        if (!g('.al-user').value.trim() || !g('.al-pass').value) return err('Please type the user name and password.');
+        b.disabled = true; err('');
+        post({ action: 'coLogin', form: opt.form, id: opt.id, who: who, user: g('.al-user').value, password: g('.al-pass').value, dev: device(opt.form, opt.id) }).then(function (r) {
+          b.disabled = false;
+          if (!(r && r.ok)) return err(r && r.offline ? 'No connection. Please try again.' : (r && r.error) || 'Could not log in.');
+          lsSet('sepaAskName', who);
+          close();
+          opt.becameLead(r.key, kind);
+          refresh();
+          if (kind === 'lead') opt.pick();
+          else note('You are now a lead. Tap "+ Add a responder" again to send the link.');
+        });
+      };
+      setTimeout(function () { (g('.al-name').value ? g('.al-user') : g('.al-name')).focus(); }, 50);
+    }
+    return { refresh: refresh, note: note };
+  }
+
   if (F) Array.prototype.forEach.call(document.querySelectorAll('.ask-lead'), function (box) { responder(box); texter(box); });
-  return { render: render, roster: roster, leadPicker: leadPicker, device: device, forgetDevice: forgetDevice };
+  return { render: render, roster: roster, leadPicker: leadPicker, device: device, forgetDevice: forgetDevice, addBox: addBox };
 })();

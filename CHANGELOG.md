@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.27.59 (Oct 20, 2026)
+- ADD A RESPONDER / ADD A LEAD WHERE PEOPLE LOOK (Sean: people get confused switching between the worksheet and the Scene Summary, and "Add a lead" seemed to have gone; it had been pushed far down by the Running log). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version) BEFORE the push.
+  - Escalation AND Reception Center, on BOTH screens (Worksheet / Intake and Scene Summary / Summary): "+ Add a responder" with "+ Add a lead" right under it, directly under "Who is on this ...", above the Running log.
+  - Every phone on the event sees them. A lead or HQ goes straight through. Anyone else gets a pop-up asking for the lead or HQ user name and password; logging in makes that phone a lead (the same as Join > log in) and carries on.
+  - The same pop-up has "Don't know the password?" with "Send a link to request to join" (Sean: most of our people are 65+, bring things to them). The link (form?ask=ID) opens that event's Join pop-up straight away; the new person types their name, taps Request access, and a lead or HQ taps Let in.
+  - "Add a lead" still makes someone already on the event a lead (a new person is added as a responder first). A link that makes a stranger a lead would get around the password, so there is none (Sean agreed).
+  - HQ typing into a worksheet now gets "Add a lead" too. HQ on either summary can send the join link (the Google script now gives HQ the join code there).
+  - The old "For your team on scene" / "For your team" buttons further down, and the extra "Add a responder" at the bottom of the worksheet, are gone (one place for them). "Share the Scene Summary" and "Send HQ the summary link" stay where they were.
+  - Request access / Let in for people without a password is unchanged.
+- app/sw.js CACHE is now sepa-tools-27
+- Version number is now ?v=0.27.59 on every page and the homepage footer reads v0.27.59
+
+## v0.27.58 (Oct 20, 2026) - Google script only
+- OLDER ESCALATION WORKSHEETS CAN BE OPENED AGAIN (Sean: worksheets started before Oct 15 could not be opened with any login, so they could not be used as demos or cleared).
+  - Cause: worksheets started before v0.27.28 never stored the code that "Join > log in and open" (and HQ letting someone in) hands out, so the script refused every login for them.
+  - Fix: the first time someone logs in to one of these (lead or HQ login), or HQ lets someone in, the script makes it a second code. Phones already on the worksheet keep working with their own code.
+  - No website change: paste the script and deploy a New version.
+
 ## v0.27.57 (Oct 20, 2026)
 - ESCALATION AND RECEPTION CENTER FORMS ALWAYS OPEN ON "CURRENT OPERATIONS" (Sean: closing an event and opening the form again went straight back into the last event instead of the "looking for current events" screen).
   - Opening either form plainly (the app, the website, a bookmark) now always lands on the Start screen with Current Operations. The events this phone is on are listed there; tap one to go in.

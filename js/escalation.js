@@ -375,7 +375,7 @@
           // A worksheet begun on this phone before v0.27.1 that Google never received: it needs the
           // HQ log in to be started. What is typed stays on this phone meanwhile.
           live = 'nostart';
-          startAsLead(id, key, function (bad) { if (bad === null) { lead = true; live = 'unknown'; $('esc-add-how').hidden = false; $('esc-joined-how').hidden = true; Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.hidden = false; }); leadOnly(); sync(); } });
+          startAsLead(id, key, function (bad) { if (bad === null) { lead = true; live = 'unknown'; $('esc-joined-how').hidden = true; if (adds) adds.refresh(); leadOnly(); sync(); } });
         }
         else if (r && r.toolong) { live = 'on'; problem = r.error || 'This worksheet is too long to save.'; }
         else if (r && !r.offline && /unknown request/i.test(r.error || '')) live = 'off';
@@ -403,12 +403,19 @@
       call({ action: 'makeLead', form: 'esc', id: id, key: key, dev: d, me: myDev() }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
     }
     function drawRoster(list) { SEPAAskLead.roster($('esc-roster'), list, removeOne, 'worksheet', { makeLead: makeLead }); }
-    $('esc-add-lead').addEventListener('click', function () { if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.leadPicker(makeLead, drawRoster); });
+    // v0.27.59: Add a responder / Add a lead, under who is on this worksheet, for everyone on it (js/ask-lead.js addBox)
+    var adds = typeof SEPAAskLead !== 'undefined' && SEPAAskLead.addBox ? SEPAAskLead.addBox($('esc-adds'), { form: 'esc', id: id, what: 'worksheet',
+      place: function () { return cur('incident_addresses').split('\n')[0]; },
+      canAdd: function () { return lead || hq; },
+      joinLink: function () { return (hq && !hqJoinKey) || (!hq && !key) ? '' : joinUrl(); },
+      pick: function () { SEPAAskLead.leadPicker(makeLead, drawRoster); },
+      beforeSend: function () { claim = true; sync(); },       // make sure Google knows this worksheet before the link goes out
+      becameLead: function () { becomeLead(); } }) : null;
     // A lead or HQ made THIS phone a lead: show the lead's buttons straight away (no reload needed here).
     function becomeLead() {
       lead = true; coLead = true;
       lsSet('sepaEscLead:' + id, '1'); lsSet('sepaEscCoLead:' + id, '1');
-      Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.hidden = false; });
+      if (adds) adds.refresh();
       leadOnly(); addHow(); showBar();
       var cn = $('esc-cleared-note');
       cn.textContent = 'You are now a lead on this worksheet. You can add responders and leads, and share the Scene Summary.';
@@ -457,10 +464,9 @@
     function whose() {
       var name = cur('leaders_arc_lead_1').split('\n')[0];
       if (hq) { $('esc-joined-how').textContent = 'You are typing into this worksheet as HQ' + (name ? '. Lead: ' + name : '') + '. Everything you type is shared with the team on scene, and Add a responder sends a join link. If you and someone on scene type in the same box at the same time, the later one wins.'; return; }
-      $('esc-joined-how').textContent = 'You joined this worksheet' + (name ? '. Lead: ' + name : '') + '. Only a lead can add responders.';
+      $('esc-joined-how').textContent = 'You joined this worksheet' + (name ? '. Lead: ' + name : '') + '.';
     }
-    // HQ typing (v0.27.28) also gets Add a responder, but not Add a lead (HQ does that from the Scene Summary).
-    Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { b.hidden = !(lead || (hq && b.id !== 'esc-add-lead')); });
+    // v0.27.59: HQ typing gets both Add a responder and Add a lead (the add box above, no log in needed).
     // v0.27.3: buttons a responder cannot use are not shown to them (Scene Summary, the HQ list).
     function leadOnly() {
       Array.prototype.forEach.call(document.querySelectorAll('[data-esc="share"]'), function (b) { b.hidden = !lead; });
@@ -479,8 +485,7 @@
       $('esc-myname').closest('label').style.display = 'none';
     }
     function addHow() {
-      $('esc-add-how').hidden = !lead; $('esc-joined-how').hidden = lead;
-      if (coLead) $('esc-add-how').innerHTML = 'You are a lead on this worksheet. <strong>Add a responder</strong> sends a link; whoever opens it types into this same worksheet. <strong>Add a lead</strong> gives someone already on it the lead\'s buttons, for example if you are leaving the scene.';
+      $('esc-joined-how').hidden = lead;
     }
     addHow();
 
@@ -536,18 +541,7 @@
       if (navigator.share) navigator.share(msg).catch(function () {});
       else copy(viewUrl, function () { showLink(); note('The Scene Summary link was copied. Paste it into a message or email.'); });
     }
-    function add() {
-      if (live === 'off' || !URL) { note('A responder cannot be added yet: live sharing is not switched on.'); return; }
-      if (!(lead || hq) || live === 'nokey') { note('Only a lead or HQ can add a responder.'); return; }
-      if (hq && !hqJoinKey) { note('The join link is not ready yet. Try again in a few seconds.'); sync(); return; }
-      claim = true; sync();
-      var link = joinUrl();
-      var msg = { title: 'Join the DAT escalation form', text: 'Join the DAT escalation form' + where() + '. Open this link to type into the same worksheet.', url: link };
-      if (navigator.share) navigator.share(msg).catch(function () {});
-      else copy(link, function () { showLink(link, 'Join link for a responder'); note('The join link was copied. Paste it into a text or email to your teammate.'); }, link, 'Join link for a responder');
-    }
     Array.prototype.forEach.call(document.querySelectorAll('[data-esc="share"]'), function (b) { b.addEventListener('click', share); });
-    Array.prototype.forEach.call(document.querySelectorAll('[data-esc="add"]'), function (b) { if (b.id !== 'esc-add-lead') b.addEventListener('click', add); });
     $('esc-copy').addEventListener('click', function () { claim = true; sync(); copy(viewUrl, function () { showLink(); note('Link copied.'); }); });
 
     // ---- "Starting a new scene?" (v0.27.29: the red button in the bar replaces the old link at the bottom)
@@ -688,6 +682,7 @@
     var myKey = goodKey(lsGet('sepaEscKey:' + id)), leadHere = !!myKey && lsGet('sepaEscLead:' + id) === '1';
     function auth(o) { o.token = token(); if (leadHere) { o.key = myKey; o.me = typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('esc', id) : ''; } return o; }
     var barShown = false, logApi = null;     // logApi: the Running log (v0.27.57)
+    var viewAdds = null, viewJoinKey = '';     // v0.27.59: the add box
     function changeWorksheet() {     // HQ: every recent worksheet, to jump between them (v0.27.27)
       return { label: 'Change scene', title: 'Change scene', note: 'Recent scenes, most recent change first.',
         allHref: pageLink('view=list'), allLabel: 'See all worksheets on one page',
@@ -738,11 +733,20 @@
               call(auth({ action: 'askAnswer', form: 'esc', id: id, rid: rid, yes: yes })).then(function (x) { if (x && x.ok) showViewAsks(x.asks || []); else load(); });
             });
           })(r.asks || []);
+          var vMake = function (d, cb) {     // v0.27.24: a lead or HQ can make someone a lead
+            call(auth({ action: 'makeLead', form: 'esc', id: id, dev: d })).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
+          };
           if (typeof SEPAAskLead !== 'undefined') SEPAAskLead.roster($('esc-view-roster'), r.roster || [], function (d, cb) {
             call(auth({ action: 'rosterRemove', form: 'esc', id: id, dev: d })).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
-          }, 'worksheet', { hq: isHQ, makeLead: function (d, cb) {     // v0.27.24: a lead or HQ can make someone a lead
-            call(auth({ action: 'makeLead', form: 'esc', id: id, dev: d })).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
-          } });
+          }, 'worksheet', { hq: isHQ, makeLead: vMake });
+          // v0.27.59: Add a responder / Add a lead here too (only a lead or HQ can open the Scene Summary)
+          if (r.joinKey) viewJoinKey = r.joinKey;
+          if (!viewAdds && typeof SEPAAskLead !== 'undefined' && SEPAAskLead.addBox) viewAdds = SEPAAskLead.addBox($('esc-view-adds'), { form: 'esc', id: id, what: 'worksheet',
+            place: function () { return String((lastData && lastData.incident_addresses) || '').split('\n')[0]; },
+            canAdd: function () { return true; },
+            joinLink: function () { var k = myKey || viewJoinKey; return k ? pageLink('id=' + id) + '#k=' + k : ''; },
+            pick: function () { SEPAAskLead.leadPicker(vMake, function () { load(); }); },
+            becameLead: function () {} });
           var text = JSON.stringify(r.data);
           fill(r.data, !first && text !== lastText);
           first = false; lastText = text;

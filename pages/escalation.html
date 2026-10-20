@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.57">
+<link rel="stylesheet" href="../css/style.css?v=0.27.59">
 </head>
 <body class="home" data-ask-form="escalation">
 
@@ -121,6 +121,9 @@
     <div class="ask-requests" id="esc-asks" role="status" hidden></div>
     <!-- Who is on this worksheet, with Remove (lead, v0.27.3) -->
     <div class="rost-box" id="esc-roster" hidden></div>
+    <!-- v0.27.59 (Sean, Oct 20): Add a responder / Add a lead right under who is on it, for everyone on the worksheet
+         (a lead or HQ goes straight through; anyone else logs in or sends a request-to-join link). js/ask-lead.js addBox. -->
+    <div id="esc-adds" hidden></div>
     <!-- v0.27.57: the Running log, the same as the Daily Shelter Report's (js/event-log.js draws it) -->
     <div id="esc-log" hidden></div>
     <p class="esc-how">Tap a box and type. There is no Save button: everything saves by itself.</p>
@@ -131,15 +134,7 @@
     <!-- Two groups of buttons. The first lets teammates on scene type into this same worksheet.
          The second sends HQ the read-only Scene Summary (called the "live view" before v0.27.3).
          Since v0.27.3 the "For HQ" group shows only on the lead's phone: responders cannot use it. -->
-    <p class="esc-group">For your team on scene</p>
-    <div class="esc-buttons">
-      <button type="button" class="primary-btn esc-add" data-esc="add">Add a responder</button>
-      <!-- v0.27.24: makes someone already on this worksheet a lead too (pop-up from js/ask-lead.js) -->
-      <button type="button" class="primary-btn esc-add add-lead-btn" data-esc="add" id="esc-add-lead">Add a lead</button>
-    </div>
-    <!-- Only the phone that started the worksheet (the lead) gets the button. A phone that joined
-         gets the second line instead, filled in by js/escalation.js. -->
-    <p class="esc-group-how" id="esc-add-how">You started this worksheet, so you are its lead. <strong>Add a responder</strong> sends a link; whoever opens it types into this same worksheet with you. <strong>Add a lead</strong> gives someone already on it the lead's buttons, for example if you are leaving the scene.</p>
+    <!-- v0.27.59: "For your team on scene" (Add a responder / Add a lead) moved up, under who is on this worksheet (#esc-adds). -->
     <p class="esc-group-how" id="esc-joined-how" hidden></p>
     <div id="esc-hq-tools">
     <p class="esc-group">For HQ</p>
@@ -172,6 +167,7 @@
     <!-- Who is on this worksheet, with Remove (HQ, v0.27.3) -->
     <div class="ask-requests" id="esc-view-asks" role="status" hidden></div>     <!-- v0.27.50: requests to join, for HQ and leads -->
     <div class="rost-box" id="esc-view-roster" hidden></div>
+    <div id="esc-view-adds" hidden></div>     <!-- v0.27.59: Add a responder / Add a lead here too -->
     <div id="esc-view-log" hidden></div>     <!-- v0.27.57: the Running log -->
     <!-- HQ only (v0.27.32): the whole worksheet as a file that opens in Excel. Shown by js/escalation.js. -->
     <div class="esc-buttons" id="esc-dl-line" style="display:none">
@@ -219,7 +215,6 @@
 
   <section class="esc-bottom" id="esc-bottom" hidden>
     <div class="esc-buttons">
-      <button type="button" class="primary-btn esc-add" data-esc="add">Add a responder</button>
       <button type="button" class="primary-btn esc-share" data-esc="share">Share the Scene Summary</button>
     </div>
     <!-- v0.27.29: "Start a new blank worksheet" moved to the red "Starting a new scene?" button in the bar at the top. -->
@@ -234,14 +229,14 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.57"></script>
-<script src="../js/test-log.js?v=0.27.57"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
-<script src="../js/ask-lead.js?v=0.27.57"></script>
-<script src="../js/phone-format.js?v=0.27.57"></script>
-<script src="../js/view-bar.js?v=0.27.57"></script>
-<script src="../js/current-ops.js?v=0.27.57"></script>
-<script src="../js/event-log.js?v=0.27.57"></script>     <!-- v0.27.57: the Running log -->
-<script src="../js/escalation.js?v=0.27.57"></script>
-<script src="../js/close-tab.js?v=0.27.57"></script>
+<script src="../js/config.js?v=0.27.59"></script>
+<script src="../js/test-log.js?v=0.27.59"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
+<script src="../js/ask-lead.js?v=0.27.59"></script>
+<script src="../js/phone-format.js?v=0.27.59"></script>
+<script src="../js/view-bar.js?v=0.27.59"></script>
+<script src="../js/current-ops.js?v=0.27.59"></script>
+<script src="../js/event-log.js?v=0.27.59"></script>     <!-- v0.27.57: the Running log -->
+<script src="../js/escalation.js?v=0.27.59"></script>
+<script src="../js/close-tab.js?v=0.27.59"></script>
 </body>
 </html>

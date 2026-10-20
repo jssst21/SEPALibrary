@@ -14,6 +14,7 @@
 // It only reads what the phone already keeps and asks the Google script with calls the forms already use.
 var SEPACurrentOps = (function () {
   var URL = (typeof SEPA_BACKEND_URL === 'string') ? SEPA_BACKEND_URL : '';
+  var ASK_ID = (/[?&]ask=([A-Za-z0-9]{8,24})/.exec(location.search) || [])[1] || '';   // v0.27.59: read before the form tidies the address bar
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function keysStarting(p) { var out = []; try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf(p) === 0) out.push(k.slice(p.length)); } } catch (e) {} return out; }
   function goodId(v) { return /^[A-Za-z0-9]{8,24}$/.test(v || '') ? v : ''; }
@@ -283,6 +284,11 @@ var SEPACurrentOps = (function () {
       });
       or.hidden = false;
       if (p0 && p0.rid && join.some(function (x) { return x.id === p0.id; })) watch(form, p0);    // opens by itself once let in
+      // v0.27.59: a "request to join" link (?ask=ID, sent from "+ Add a responder" by someone without the password)
+      // opens that event's Join pop-up straight away, with the cursor in "Your name" (Sean: bring things to them).
+      var askId = ASK_ID;
+      var askIt = askId && join.filter(function (x) { return x.id === askId; })[0];
+      if (askIt) { joinModal(form, askIt); var nm = document.querySelector('#co-join .co-j-name'); if (nm && !nm.value) nm.focus(); }
     });
   }
   return { show: show };

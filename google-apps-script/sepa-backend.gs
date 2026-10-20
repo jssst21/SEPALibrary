@@ -952,6 +952,23 @@ function escDenied_(d) {
 function escId_(v) { v = String(v || ''); return /^[A-Za-z0-9]{8,24}$/.test(v) ? v : ''; }
 function escKey_(v) { v = String(v || ''); return /^[A-Za-z0-9]{16,40}$/.test(v) ? v : ''; }
 function escKeyMark_(id, key) { return hash_('esc-edit-key|' + id, key).slice(0, 32); }
+/* v0.27.58: does this edit key open this worksheet? Its own key (meta.k) or the second key (meta.k2) that
+   escShareKey_ makes for a worksheet started before v0.27.28. */
+function escKeyOk_(meta, id, key) { if (!key || !meta) return false; var m = escKeyMark_(id, key); return meta.k === m || (!!meta.k2 && meta.k2 === m); }
+/* THE KEY HANDED TO A LEAD / HQ LOGIN ON ANOTHER DEVICE, or to someone HQ lets in (v0.27.58, Sean Oct 20: the
+   older worksheets could not be opened with any login). Worksheets started before v0.27.28 never kept their
+   real key (meta.e), so this makes a second key for them, once. Phones already on the worksheet keep theirs. */
+function escShareKey_(sh, row, id) {
+  var cell = sh.getRange(row, 7, 1, 1), w = escOpen_(cell.getValues()[0][0]), key = escKey_(w.meta.e);
+  if (key) return key;
+  key = Utilities.getUuid().replace(/-/g, '').slice(0, 24);
+  w.meta.e = key; w.meta.k2 = escKeyMark_(id, key);
+  var store = {};
+  Object.keys(w.data).forEach(function (k) { store[k] = w.data[k]; });
+  store[ESC_META] = w.meta;
+  cell.setValues([[JSON.stringify(store)]]);
+  return key;
+}
 function escText_(v) { return String(v == null ? '' : v).replace(/^'/, ''); }
 
 function escFindRow_(sh, id) {
@@ -1007,7 +1024,7 @@ function escSync_(d) {
   var w = row ? escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]) : { data: {}, meta: { r: 0, k: '', f: {} } };
   var adopt = !hq && !w.meta.k;                // a new worksheet, or one saved before v0.18: this key becomes its key
   if (adopt) w.meta.k = escKeyMark_(id, key);
-  else if (!hq && w.meta.k !== escKeyMark_(id, key)) return { ok: false, nokey: true, error: 'This link cannot open the worksheet.' };
+  else if (!hq && !escKeyOk_(w.meta, id, key)) return { ok: false, nokey: true, error: 'This link cannot open the worksheet.' };
 
   // v0.27.28: keep the real edit key too (meta.e), so HQ can send a join link ("Add a responder" while
   // typing as HQ). Only an HQ login is ever given it back. Older worksheets pick it up on a team phone's next sync.
@@ -1039,7 +1056,7 @@ function escSync_(d) {
   Object.keys(w.meta.f).forEach(function (k) { if (w.meta.f[k] > since) out[k] = w.data[k] || ''; });
   var res = { ok: true, rev: w.meta.r, changed: out, now: now.getTime() };
   // Who is on this worksheet (website v0.27.3). What this phone typed was saved above even if it was removed.
-  if (hq) { res.hq = true; res.joinKey = escKey_(w.meta.e); return res; }
+  if (hq) { res.hq = true; res.joinKey = escKey_(w.meta.e) || escShareKey_(sh, row, id); return res; }     // v0.27.58: older worksheets too
   var me = rosterCheckIn_('esc', id, d, d.lead ? 'lead' : '');
   if (me && !me.removed && me.role === 'co-lead') res.coLead = true;     // made a lead by a lead or HQ (website v0.27.24)
   if (me && me.removed) { res.removed = true; res.where = clean_(String(w.data.incident_addresses || '').split('\n')[0], 80); }
@@ -1080,9 +1097,12 @@ function escGet_(d) {
   if (!id) return { ok: false, error: 'This worksheet link is not valid.' };
   var sh = escTab_(), row = escFindRow_(sh, id), now = new Date().getTime();
   if (!row) return { ok: true, found: false, cleared: escIsCleared_(id), now: now };
-  var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0];
-  return { ok: true, found: true, hq: hq, id: id, started: iso_(r[1]), updated: iso_(r[2]), ms: Number(escText_(r[5])) || 0, now: now, data: escOpen_(r[6]).data,
+  var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0], w = escOpen_(r[6]);
+  var res = { ok: true, found: true, hq: hq, id: id, started: iso_(r[1]), updated: iso_(r[2]), ms: Number(escText_(r[5])) || 0, now: now, data: w.data,
     roster: rosterPublic_('esc', id), asks: askWaiting_('esc', id) };
+  // v0.27.59: HQ can send the join link from the Scene Summary ("+ Add a responder"), as it already can from the worksheet
+  if (hq) res.joinKey = escKey_(w.meta.e) || escShareKey_(sh, row, id);
+  return res;
 }
 /* IS THIS PHONE A LEAD of this worksheet? (website v0.27.27) The worksheet's edit key (d.key, which every
    phone on it has) plus the phone's own code (d.me), marked "lead" or "co-lead" in the Responders tab. */
@@ -1090,7 +1110,7 @@ function escLeadAuth_(id, d) {
   var key = escKey_(d.key), dev = rosterDev_(d.me);
   if (!key || !dev) return false;
   var sh = escTab_(), row = escFindRow_(sh, id);
-  if (!row || escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta.k !== escKeyMark_(id, key)) return false;
+  if (!row || !escKeyOk_(escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta, id, key)) return false;
   return rosterGet_('esc', id).some(function (x) { return x.dev === dev && !x.removed && (x.role === 'lead' || x.role === 'co-lead'); });
 }
 
@@ -1391,8 +1411,10 @@ function recGet_(d) {
       items.push(o);
     });
   }
-  return { ok: true, found: true, hq: hq, id: id, center: escText_(c.r[3]), lead: recLeadNames_(id, c), started: iso_(c.r[1]),
+  var res = { ok: true, found: true, hq: hq, id: id, center: escText_(c.r[3]), lead: recLeadNames_(id, c), started: iso_(c.r[1]),
     ms: Number(escText_(c.r[6])) || 0, keepDays: REC_KEEP_DAYS, now: now, items: items, roster: rosterPublic_('rec', id), asks: askWaiting_('rec', id) };
+  if (hq) res.joinKey = escKey_(c.r[9]);     // v0.27.59: HQ can send the join link from the Summary ("+ Add a responder")
+  return res;
 }
 
 /* EDIT ONE INTAKE (website v0.27.7). The lead (with the lead key) or HQ (logged in) corrects an intake
@@ -1842,8 +1864,8 @@ function askAnswer_(d) {
     var key = escKey_(d.key), sh = escTab_(), row = escFindRow_(sh, id);
     if (!row || (!key && !hqAns)) return { ok: false, error: 'Not allowed.' };
     var w = escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]);
-    if (hqAns && (!key || w.meta.k !== escKeyMark_(id, key))) { key = escKey_(w.meta.e); if (!key) return { ok: false, error: 'This worksheet needs one of its phones to check in first.' }; }
-    else if (w.meta.k !== escKeyMark_(id, key)) return { ok: false, error: 'Not allowed.' };
+    if (hqAns && !escKeyOk_(w.meta, id, key)) key = escShareKey_(sh, row, id);     // v0.27.58: older worksheets too
+    else if (!escKeyOk_(w.meta, id, key)) return { ok: false, error: 'Not allowed.' };
     give = key;
   } else if (form === 'rec') {
     if (hqAns) {
@@ -1925,7 +1947,7 @@ function evAccess_(d) {
     var sh = escTab_(), row = escFindRow_(sh, id);
     if (!row) return { err: { ok: false, gone: true, error: 'That worksheet was not found.' } };
     var key = escKey_(d.key);
-    var keyOk = !!key && escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta.k === escKeyMark_(id, key);
+    var keyOk = escKeyOk_(escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta, id, key);
     if (!keyOk && !hq) return { err: { ok: false, nokey: true, login: !!d.token, error: 'This link cannot open the log.' } };
     return { form: form, id: id, hq: hq, key: keyOk };
   }
@@ -2146,7 +2168,7 @@ function rosterRemove_(d) {
   if (!form || !id || !dev) return { ok: false, error: 'Bad request.' };
   if (form === 'esc') {
     var key = escKey_(d.key), sh = escTab_(), row = escFindRow_(sh, id);
-    if (row && key && escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta.k === escKeyMark_(id, key)) by = 'Lead';
+    if (row && key && escKeyOk_(escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta, id, key)) by = 'Lead';
   } else {
     var lc = recLeadAuth_(id, d);
     if (lc && lc.ok) by = 'Lead';
@@ -2173,7 +2195,7 @@ function makeLead_(d) {
   if (!form || !id || !dev) return { ok: false, error: 'Bad request.' };
   if (form === 'esc') {
     var key = escKey_(d.key), sh = escTab_(), row = escFindRow_(sh, id), asker = rosterDev_(d.me);
-    if (row && key && asker && escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta.k === escKeyMark_(id, key) &&
+    if (row && key && asker && escKeyOk_(escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta, id, key) &&
         rosterGet_('esc', id).some(function (x) { return x.dev === asker && !x.removed && (x.role === 'lead' || x.role === 'co-lead'); })) by = 'Lead';
   } else {
     var lc = recLeadAuth_(id, d);
@@ -3106,8 +3128,7 @@ function coLogin_(d) {
   if (form === 'esc') {
     var sh = escTab_(), row = escFindRow_(sh, id);
     if (!row || escIsCleared_(id)) return { ok: false, gone: true, error: 'That worksheet is no longer open.' };
-    var key = escKey_(escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta.e);
-    if (!key) return { ok: false, error: 'This worksheet was started before this could work. Ask the lead to let you in instead.' };
+    var key = escShareKey_(sh, row, id);     // v0.27.58: also works for worksheets started before v0.27.28
     rosterCheckIn_('esc', id, { dev: d.dev, who: who }, 'co-lead');
     return { ok: true, key: key };
   }

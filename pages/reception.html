@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.57">
+<link rel="stylesheet" href="../css/style.css?v=0.27.59">
 </head>
 <body class="home" data-ask-form="reception">
 
@@ -125,13 +125,12 @@
         <div class="ask-requests" id="rec-asks" role="status" hidden></div>
         <!-- Who is on this reception center, with Remove (lead, v0.27.3) -->
         <div class="rost-box" id="rec-roster" hidden></div>
-        <p class="esc-group">For your team</p>
-        <div class="esc-buttons">
-          <button type="button" class="primary-btn" id="rec-add">Add a responder</button>
-          <!-- v0.27.24: makes someone already on this center a lead too (pop-up from js/ask-lead.js) -->
-          <button type="button" class="primary-btn add-lead-btn" id="rec-add-lead">Add a lead</button>
-        </div>
-        <p class="esc-group-how" id="rec-lead-how"><strong>Add a responder</strong> sends a link for doing intakes. <strong>Add a lead</strong> gives someone already here the lead's buttons, for example if you are leaving the scene.</p>
+      </div>
+      <!-- v0.27.59 (Sean, Oct 20): Add a responder / Add a lead right under who is on it, for EVERY phone on the center
+           (a lead or HQ goes straight through; anyone else logs in or sends a request-to-join link). js/ask-lead.js addBox. -->
+      <div id="rec-adds" hidden></div>
+      <!-- Lead only -->
+      <div id="rec-lead-tools2" hidden>
         <p class="esc-group">Everyone's intakes</p>
         <div class="esc-buttons">
           <button type="button" class="esc-btn" id="rec-share">Send HQ the summary link</button>
@@ -228,6 +227,7 @@
     <!-- Who is on this reception center, with Remove (lead and HQ, v0.27.3) -->
     <div class="ask-requests" id="rec-view-asks" role="status" hidden></div>     <!-- v0.27.50: requests to join, for HQ and leads -->
     <div class="rost-box" id="rec-view-roster" hidden></div>
+    <div id="rec-view-adds" hidden></div>     <!-- v0.27.59: Add a responder / Add a lead here too -->
     <div id="rec-view-log" hidden></div>     <!-- v0.27.57: the Running log -->
     <div class="esc-buttons" id="rec-view-buttons" hidden>
       <!-- HQ only (v0.27.26): leads never export. js/reception.js shows it only to an HQ login. -->
@@ -425,14 +425,14 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.57"></script>
-<script src="../js/test-log.js?v=0.27.57"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
-<script src="../js/ask-lead.js?v=0.27.57"></script>
-<script src="../js/phone-format.js?v=0.27.57"></script>
-<script src="../js/view-bar.js?v=0.27.57"></script>
-<script src="../js/current-ops.js?v=0.27.57"></script>
-<script src="../js/event-log.js?v=0.27.57"></script>     <!-- v0.27.57: the Running log -->
-<script src="../js/reception.js?v=0.27.57"></script>
-<script src="../js/close-tab.js?v=0.27.57"></script>
+<script src="../js/config.js?v=0.27.59"></script>
+<script src="../js/test-log.js?v=0.27.59"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
+<script src="../js/ask-lead.js?v=0.27.59"></script>
+<script src="../js/phone-format.js?v=0.27.59"></script>
+<script src="../js/view-bar.js?v=0.27.59"></script>
+<script src="../js/current-ops.js?v=0.27.59"></script>
+<script src="../js/event-log.js?v=0.27.59"></script>     <!-- v0.27.57: the Running log -->
+<script src="../js/reception.js?v=0.27.59"></script>
+<script src="../js/close-tab.js?v=0.27.59"></script>
 </body>
 </html>
