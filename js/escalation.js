@@ -500,6 +500,10 @@
     }
     status();
     sync();
+    // v0.27.56: the Running log (js/event-log.js), near the top like the Daily Shelter Report's.
+    // HQ typing into the worksheet uses the HQ login (entries marked HQ); everyone else the worksheet's code.
+    if (typeof SEPAEventLog !== 'undefined') SEPAEventLog.mount({ host: $('esc-log'), photosHost: $('esc-photos'), form: 'esc', id: id, who: myName,
+      auth: function (o) { if (hq) o.token = token(); else { o.key = key; o.me = myDev(); } return o; } });
 
     // ---- sharing: the live view (for HQ) and the join link (for teammates on scene)
     var viewUrl = pageLink('view=' + id);
@@ -671,7 +675,7 @@
     // (escLeadAuth_ in the Google script); HQ with the HQ login, as before.
     var myKey = goodKey(lsGet('sepaEscKey:' + id)), leadHere = !!myKey && lsGet('sepaEscLead:' + id) === '1';
     function auth(o) { o.token = token(); if (leadHere) { o.key = myKey; o.me = typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('esc', id) : ''; } return o; }
-    var barShown = false;
+    var barShown = false, logApi = null;     // logApi: the Running log (v0.27.56)
     function changeWorksheet() {     // HQ: every recent worksheet, to jump between them (v0.27.27)
       return { label: 'Change scene', title: 'Change scene', note: 'Recent scenes, most recent change first.',
         allHref: pageLink('view=list'), allLabel: 'See all worksheets on one page',
@@ -706,6 +710,8 @@
           $('esc-clear-line').hidden = !isHQ;
           $('esc-dl-line').style.display = isHQ ? '' : 'none';     // HQ only: leads never export (v0.27.32)
           lastData = r.data || {};
+          if (!logApi && typeof SEPAEventLog !== 'undefined') logApi = SEPAEventLog.mount({ host: $('esc-view-log'), photosHost: $('esc-photos'), form: 'esc', id: id, auth: auth,
+            who: function () { return lsGet('sepaEscName') || lsGet('sepaAskName') || ''; } });
           var place = String((r.data && r.data.incident_addresses) || '').split('\n')[0] || 'Escalation worksheet';
           if (!barShown && typeof SEPAViewBar !== 'undefined') {
             barShown = true;
@@ -748,6 +754,7 @@
       var place = String(lastData.incident_addresses || '').split('\n')[0];
       var lines = [q('DAT Response Lead Incident Reporting Worksheet'), q('Downloaded ' + day + ' ' + d.toTimeString().slice(0, 5)), '', 'Box,Entry'];
       Object.keys(inputs).forEach(function (k) { lines.push(q(inputs[k].getAttribute('aria-label')) + ',' + q(lastData[k] || '')); });
+      if (logApi) lines = lines.concat(SEPAEventLog.csv(logApi.rows(), q));     // v0.27.56: the Running log below the boxes
       var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
       var a = document.createElement('a');
       a.href = window.URL.createObjectURL(blob);

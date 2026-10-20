@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.55">
+<link rel="stylesheet" href="../css/style.css?v=0.27.56">
 </head>
 <body class="home" data-ask-form="reception">
 
@@ -144,6 +144,9 @@
       <p class="esc-group-how" id="rec-joined-how" hidden></p>
     </div>
 
+    <!-- v0.27.56: the Running log, the same as the Daily Shelter Report's (js/event-log.js draws it). Every phone on the center sees it. -->
+    <div id="rec-log" hidden></div>
+
     <p class="rec-saved" id="rec-saved" role="status" hidden></p>
 
     <form class="esc-form rec-form" id="rec-form" novalidate>
@@ -225,6 +228,7 @@
     <!-- Who is on this reception center, with Remove (lead and HQ, v0.27.3) -->
     <div class="ask-requests" id="rec-view-asks" role="status" hidden></div>     <!-- v0.27.50: requests to join, for HQ and leads -->
     <div class="rost-box" id="rec-view-roster" hidden></div>
+    <div id="rec-view-log" hidden></div>     <!-- v0.27.56: the Running log -->
     <div class="esc-buttons" id="rec-view-buttons" hidden>
       <!-- HQ only (v0.27.26): leads never export. js/reception.js shows it only to an HQ login. -->
       <button type="button" class="esc-btn rec-dl-solid" id="rec-download" hidden>Download for Excel</button>
@@ -239,6 +243,10 @@
     <div class="rec-totals" id="rec-totals"></div>
     <div class="rec-table-wrap"><table class="rec-table" id="rec-table"></table></div>
   </section>
+
+  <!-- v0.27.56: Add photo / See photos (n), at the very bottom of the intake screen and the summary (js/event-log.js).
+       Photos never show inside the form. -->
+  <div class="ev-photos-host" id="rec-photos" hidden></div>
 
   <!-- Edit one intake (v0.27.7): opened by the Edit button in each summary row (lead and HQ only).
        The questions here are short versions of the intake form above. If a question is added or
@@ -417,13 +425,14 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.55"></script>
-<script src="../js/test-log.js?v=0.27.55"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
-<script src="../js/ask-lead.js?v=0.27.55"></script>
-<script src="../js/phone-format.js?v=0.27.55"></script>
-<script src="../js/view-bar.js?v=0.27.55"></script>
-<script src="../js/current-ops.js?v=0.27.55"></script>
-<script src="../js/reception.js?v=0.27.55"></script>
-<script src="../js/close-tab.js?v=0.27.55"></script>
+<script src="../js/config.js?v=0.27.56"></script>
+<script src="../js/test-log.js?v=0.27.56"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
+<script src="../js/ask-lead.js?v=0.27.56"></script>
+<script src="../js/phone-format.js?v=0.27.56"></script>
+<script src="../js/view-bar.js?v=0.27.56"></script>
+<script src="../js/current-ops.js?v=0.27.56"></script>
+<script src="../js/event-log.js?v=0.27.56"></script>     <!-- v0.27.56: the Running log -->
+<script src="../js/reception.js?v=0.27.56"></script>
+<script src="../js/close-tab.js?v=0.27.56"></script>
 </body>
 </html>

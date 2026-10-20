@@ -218,6 +218,13 @@ function doPost(e) {
       shLog: shLog_,
       shLogEdit: shLogEdit_,
       shLogFlag: shLogFlag_,
+      evLog: evLog_,           // v0.27.56: Running log on the Escalation and Reception Center forms
+      evLogGet: evLogGet_,
+      evLogFlag: evLogFlag_,
+      evLogEdit: evLogEdit_,
+      evPhotoAdd: evPhotoAdd_,     // v0.27.56: Add photo / See photos on the same two forms
+      evPhotoGet: evPhotoGet_,
+      evPhotoRemove: evPhotoRemove_,
       shAddSup: shAddSup_,
       shList: shList_,
       shExport: shExport_,
@@ -1210,6 +1217,7 @@ function recDelete_(id, how) {
   if (row) csh.deleteRow(row);
   if (!recIsCleared_(id)) recClearedTab_().appendRow([id, stamp_(), how]);
   rosterDelete_('rec', id);
+  evLogDelete_('rec', id);     // v0.27.56: the center's running log goes with it
 }
 
 /* The 5-day automatic delete. Also removes intakes whose center is gone (a row deleted by hand). */
@@ -1883,6 +1891,198 @@ function recAsks_(d) {
 var ROSTER_HEADERS = ['Form', 'Event ID', 'Device (do not edit)', 'Name', 'Role', 'First seen', 'Last seen', 'Removed (type YES)', 'Removed by'];
 var ROSTER_CACHE_SECS = 60;     // hand edits in the tab show within a minute
 var ROSTER_SEEN_SECS = 120;     // "last seen" is written at most every 2 minutes per phone
+/* =========================================================
+   RUNNING LOG ON THE ESCALATION AND RECEPTION CENTER FORMS (website v0.27.56, Sean Oct 20, 2026)
+   The same running log as the Daily Shelter Report: type what happened, Add to the log, and the entry
+   is stamped with the time and the person's name. Entries can be flagged (red, at the top until someone
+   removes the flag). HQ can edit or remove an entry (it stays, marked as edited or removed by HQ).
+   No midnight rollover: the log covers the whole event.
+   WHO MAY USE IT: anyone on the event (any phone with the worksheet's or center's link code, the lead,
+   added leads) and HQ (logged in).
+   Every entry is one row in the tab "Event Log". When HQ closes a reception center its log is deleted
+   with it (client details are never kept). A cleared escalation worksheet keeps its log, like the
+   copy of the worksheet itself in "Escalations cleared".
+   ========================================================= */
+var EV_LOG_HEADERS = ['Form', 'Event ID', 'Entry ID', 'Saved', 'By', 'Entry', 'Edited', 'Flagged'];
+function evLogTab_() { makeTab_('Event Log', EV_LOG_HEADERS); return tab_('Event Log'); }
+function evForm_(f) { return f === 'esc' || f === 'rec' ? f : ''; }
+function evRevKey_(form, id) { return 'evlog:' + form + ':' + id; }
+// A number that changes whenever the event's log changes, so phones checking every few seconds get "same" cheaply.
+function evRev_(form, id) {
+  var c = CacheService.getScriptCache(), k = evRevKey_(form, id), v = c.get(k);
+  if (!v) { v = String(Date.now()); c.put(k, v, 21600); }
+  return v;
+}
+function evTouch_(form, id) { var v = String(Date.now()); CacheService.getScriptCache().put(evRevKey_(form, id), v, 21600); return v; }
+
+/* May this request use this event's log? Returns { form, id, hq, key } or { err }. */
+function evAccess_(d) {
+  var form = evForm_(d.form), id = escId_(d.id);
+  if (!form || !id) return { err: { ok: false, error: 'This log cannot be opened.' } };
+  var hq = !!d.token && !escDenied_(d);
+  if (form === 'esc') {
+    if (escIsCleared_(id)) return { err: { ok: true, cleared: true } };
+    var sh = escTab_(), row = escFindRow_(sh, id);
+    if (!row) return { err: { ok: false, gone: true, error: 'That worksheet was not found.' } };
+    var key = escKey_(d.key);
+    var keyOk = !!key && escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta.k === escKeyMark_(id, key);
+    if (!keyOk && !hq) return { err: { ok: false, nokey: true, login: !!d.token, error: 'This link cannot open the log.' } };
+    return { form: form, id: id, hq: hq, key: keyOk };
+  }
+  if (recIsCleared_(id)) return { err: { ok: true, cleared: true } };
+  var j = recCenter_(id, escKey_(d.key), 'join');
+  if (!j) return { err: { ok: false, gone: true, error: 'That reception center was not found.' } };
+  var l = recCenter_(id, escKey_(d.leadKey), 'lead');
+  var ok = j.ok || (l && l.ok);
+  if (!ok && !hq) return { err: { ok: false, nokey: true, login: !!d.token, error: 'This link cannot open the log.' } };
+  return { form: form, id: id, hq: hq, key: ok };
+}
+// The name an entry is marked with: HQ when HQ is using it as HQ, otherwise the person's name.
+function evWho_(a, d) {
+  if (a.hq && (d.asHq || !a.key)) return 'HQ';
+  var name = clean_(d.who, 60).replace(/\s+/g, ' ');
+  if (name) return name;
+  var dev = rosterDev_(d.me || d.dev);
+  if (dev) { var me = rosterGet_(a.form, a.id).filter(function (x) { return x.dev === dev; })[0]; if (me && me.name) return me.name; }
+  return 'A responder';
+}
+function evLogFor_(form, id) {
+  var sh = evLogTab_(), last = sh.getLastRow(), out = [];
+  if (last >= 2) sh.getRange(2, 1, last - 1, EV_LOG_HEADERS.length).getValues().forEach(function (r) {
+    if (String(r[0]) !== form || String(r[1]) !== id) return;
+    out.push({ id: String(r[2]), at: iso_(r[3]), by: escText_(r[4]), text: escText_(r[5]), edited: escText_(r[6]), flag: escText_(r[7]) });
+  });
+  return out;
+}
+function evFindRow_(form, id, eid) {
+  var sh = evLogTab_(), last = sh.getLastRow();
+  if (last < 2) return 0;
+  var v = sh.getRange(2, 1, last - 1, 3).getValues();
+  for (var i = 0; i < v.length; i++) if (String(v[i][0]) === form && String(v[i][1]) === id && String(v[i][2]) === eid) return i + 2;
+  return 0;
+}
+
+// THE CALL THE PAGE MAKES EVERY FEW SECONDS. d.since = the rev the page already has.
+function evLogGet_(d) {
+  var a = evAccess_(d); if (a.err) return a.err;
+  var rev = evRev_(a.form, a.id);
+  if (d.since && String(d.since) === rev) return { ok: true, same: true, rev: rev, hq: a.hq };
+  return { ok: true, rev: rev, hq: a.hq, log: evLogFor_(a.form, a.id), photos: evPhotosFor_(a.form, a.id) };
+}
+// Add an entry.
+function evLog_(d) {
+  var a = evAccess_(d); if (a.err) return a.err;
+  var text = clean_(d.text, 3000);
+  if (!text) return { ok: false, error: 'Please type something first.' };
+  var now = new Date(), who = evWho_(a, d), eid = 'L' + now.getTime().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+  var flag = d.flag ? safe_('Flagged by ' + who + ' ' + stamp_(now)) : '';
+  evLogTab_().appendRow([a.form, a.id, eid, stamp_(now), safe_(who), safe_(text), '', flag]);
+  return { ok: true, rev: evTouch_(a.form, a.id) };
+}
+// Flag or unflag an entry. Anyone on the event may.
+function evLogFlag_(d) {
+  var a = evAccess_(d); if (a.err) return a.err;
+  var row = evFindRow_(a.form, a.id, String(d.entry || ''));
+  if (!row) return { ok: false, error: 'That entry was not found.' };
+  evLogTab_().getRange(row, 8, 1, 1).setValues([[d.flag ? safe_('Flagged by ' + evWho_(a, d) + ' ' + stamp_()) : '']]);
+  return { ok: true, rev: evTouch_(a.form, a.id) };
+}
+// HQ only: change or remove (empty text) an entry. It stays, marked as edited or removed by HQ.
+function evLogEdit_(d) {
+  var a = evAccess_(d); if (a.err) return a.err;
+  if (!a.hq) return { ok: false, login: true, error: 'Only HQ can edit the log. Please log in as HQ.' };
+  var row = evFindRow_(a.form, a.id, String(d.entry || ''));
+  if (!row) return { ok: false, error: 'That entry was not found.' };
+  var text = clean_(d.text, 3000);
+  evLogTab_().getRange(row, 6, 1, 2).setValues([[safe_(text), (text ? 'Edited by HQ ' : 'Removed by HQ ') + stamp_()]]);
+  return { ok: true, rev: evTouch_(a.form, a.id) };
+}
+// Deletes one event's whole log (a reception center closed by HQ or deleted automatically).
+function evLogDelete_(form, id) {
+  var sh = tab_('Event Log');
+  if (!sh) return;
+  var last = sh.getLastRow();
+  if (last < 2) return;
+  var v = sh.getRange(2, 1, last - 1, 2).getValues();
+  for (var i = v.length - 1; i >= 0; i--) if (String(v[i][0]) === form && String(v[i][1]) === id) sh.deleteRow(i + 2);
+  evPhotosDelete_(form, id);
+  evTouch_(form, id);
+}
+
+/* PHOTOS (website v0.27.56, Sean Oct 20, 2026). "Add photo" at the bottom of the Escalation and Reception
+   Center forms; the photos never show inside the form, only a "See photos (2)" button that opens them.
+   Same people as the running log. The phone shrinks each photo first (longest side 1600 pixels, JPEG).
+   Each photo is a file in the Drive folder "SEPA Event Photos" (sepalibrary account), NOT shared with
+   anyone: the forms fetch it through this script, so only people on the event and HQ can see it.
+   One row per photo in the tab "Event Photos". HQ can remove a photo (the file goes to the Drive trash).
+   Closing a reception center deletes its photos too; a cleared escalation worksheet keeps them. */
+var EV_PHOTO_HEADERS = ['Form', 'Event ID', 'Photo ID', 'Saved', 'By', 'Drive file (do not edit)', 'Removed'];
+var EV_PHOTO_FOLDER = 'SEPA Event Photos';
+var EV_PHOTO_MAX = 30;      // per event
+function evPhotoTab_() { makeTab_('Event Photos', EV_PHOTO_HEADERS); return tab_('Event Photos'); }
+function evPhotoFolder_() {
+  var props = PropertiesService.getScriptProperties(), id = props.getProperty('eventPhotoFolder');
+  if (id) { try { var f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) {} }
+  var f2 = DriveApp.createFolder(EV_PHOTO_FOLDER);
+  props.setProperty('eventPhotoFolder', f2.getId());
+  return f2;
+}
+function evPhotoRows_(form, id) {
+  var sh = evPhotoTab_(), last = sh.getLastRow(), out = [];
+  if (last >= 2) sh.getRange(2, 1, last - 1, EV_PHOTO_HEADERS.length).getValues().forEach(function (r, i) {
+    if (String(r[0]) === form && String(r[1]) === id && !escText_(r[6])) out.push({ row: i + 2, id: String(r[2]), at: iso_(r[3]), by: escText_(r[4]), file: String(r[5]) });
+  });
+  return out;
+}
+function evPhotosFor_(form, id) {
+  if (!tab_('Event Photos')) return [];
+  return evPhotoRows_(form, id).map(function (x) { return { id: x.id, at: x.at, by: x.by }; });
+}
+// One photo, as a JPEG the phone already shrank.
+function evPhotoAdd_(d) {
+  var a = evAccess_(d); if (a.err) return a.err;
+  if (evPhotoRows_(a.form, a.id).length >= EV_PHOTO_MAX) return { ok: false, error: 'This event already has ' + EV_PHOTO_MAX + ' photos, the most it can hold.' };
+  var data = String(d.data || '').replace(/^data:image\/jpeg;base64,/, '');
+  if (!/^[A-Za-z0-9+\/=]+$/.test(data)) return { ok: false, error: 'That photo could not be read.' };
+  var bytes = Utilities.base64Decode(data);
+  if (bytes.length > FORUM_PHOTO_MAX_BYTES) return { ok: false, error: 'That photo is too large.' };
+  var now = new Date(), who = evWho_(a, d), pid = 'P' + now.getTime().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+  var file = evPhotoFolder_().createFile(Utilities.newBlob(bytes, 'image/jpeg', a.form + '-' + a.id + '-' + stamp_(now).replace(/\D/g, '') + '.jpg'));
+  evPhotoTab_().appendRow([a.form, a.id, pid, stamp_(now), safe_(who), file.getId(), '']);
+  return { ok: true, rev: evTouch_(a.form, a.id), photo: pid };
+}
+// Hands one photo back to a phone on the event (or HQ), as a data address the page can show.
+function evPhotoGet_(d) {
+  var a = evAccess_(d); if (a.err) return a.err;
+  var x = evPhotoRows_(a.form, a.id).filter(function (p) { return p.id === String(d.photo || ''); })[0];
+  if (!x) return { ok: false, error: 'That photo was not found.' };
+  try { return { ok: true, src: 'data:image/jpeg;base64,' + Utilities.base64Encode(DriveApp.getFileById(x.file).getBlob().getBytes()) }; }
+  catch (e) { return { ok: false, error: 'That photo could not be opened.' }; }
+}
+// HQ only: remove a photo. The row stays, marked removed; the file goes to the Drive trash.
+function evPhotoRemove_(d) {
+  var a = evAccess_(d); if (a.err) return a.err;
+  if (!a.hq) return { ok: false, login: true, error: 'Only HQ can remove a photo. Please log in as HQ.' };
+  var x = evPhotoRows_(a.form, a.id).filter(function (p) { return p.id === String(d.photo || ''); })[0];
+  if (!x) return { ok: false, error: 'That photo was not found.' };
+  try { DriveApp.getFileById(x.file).setTrashed(true); } catch (e) {}
+  evPhotoTab_().getRange(x.row, 7, 1, 1).setValues([['Removed by HQ ' + stamp_()]]);
+  return { ok: true, rev: evTouch_(a.form, a.id) };
+}
+// A reception center closed: its photos are deleted (files to the Drive trash, rows removed).
+function evPhotosDelete_(form, id) {
+  var sh = tab_('Event Photos');
+  if (!sh) return;
+  var last = sh.getLastRow();
+  if (last < 2) return;
+  var v = sh.getRange(2, 1, last - 1, 6).getValues();
+  for (var i = v.length - 1; i >= 0; i--) {
+    if (String(v[i][0]) !== form || String(v[i][1]) !== id) continue;
+    try { DriveApp.getFileById(String(v[i][5])).setTrashed(true); } catch (e) {}
+    sh.deleteRow(i + 2);
+  }
+}
+
 function rosterTab_() { makeTab_('Responders', ROSTER_HEADERS); return tab_('Responders'); }
 function rosterDev_(v) { v = String(v || ''); return /^[A-Za-z0-9]{12,40}$/.test(v) ? v : ''; }
 function rosterMs_(v) {

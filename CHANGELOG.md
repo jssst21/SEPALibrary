@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.27.56 (Oct 20, 2026)
+- RUNNING LOG AND PHOTOS ON THE ESCALATION AND RECEPTION CENTER FORMS (Sean). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version) BEFORE the push.
+  - Both forms now have the Daily Shelter Report's Running log, same look and same workings: type, "Add to the log", each entry stamped with the time and the person's name; "Flag as an issue" keeps it in red at the top until someone removes the flag; the box shows flagged issues plus the 3 newest, older ones scroll inside it; "See all entries" opens them all; HQ can edit or remove an entry (marked by HQ).
+  - Where: Escalation, near the top of the worksheet (under who is on it) and in the Scene Summary; Reception, above the intake form and in the Summary. Anyone on the event can post (responders, leads, HQ). No midnight rollover: one log per event.
+  - HQ's Download for Excel now includes the log under the worksheet boxes / intakes.
+  - "Add photo" at the very bottom of both forms (and their summaries). Photos never show in the form: once there are any, a "See photos (2)" button opens them in a pop-up. Shrunk on the phone first (1600 px JPEG), at most 30 per event. Saved in a new private Drive folder "SEPA Event Photos" (not shared; the forms fetch them through the script, so only people on the event and HQ see them). HQ can remove a photo.
+  - Closing a reception center deletes its log and photos with it (client details are never kept). A cleared escalation worksheet keeps its log and photos, like the copy of the worksheet.
+  - New js/event-log.js (shared by both forms); new Sheet tabs "Event Log" and "Event Photos" (made by themselves).
+- app/sw.js CACHE is now sepa-tools-25
+- Version number is now ?v=0.27.56 on every page and the homepage footer reads v0.27.56
+
 ## v0.27.55 (Oct 18, 2026)
 - SEPA TOOLS APP: SANDBOXES AND COMMUNITY (Sean).
   - "Practice RC Care" and "Practice SCIA" are now one pink "Sandboxes" tile (Practice tag, new sandbox icon). It opens its own grid (#sandboxes, with Back) holding the two practice tiles, the same way Mass Care works.

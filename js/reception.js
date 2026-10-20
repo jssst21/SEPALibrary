@@ -441,6 +441,10 @@
 
     // ---- leaving the center: the red "Starting a new reception center?" button in the bar (v0.27.29, see newCenter)
 
+    // v0.27.56: the Running log (js/event-log.js), above the intake form, for every phone on the center
+    if (typeof SEPAEventLog !== 'undefined') SEPAEventLog.mount({ host: $('rec-log'), photosHost: $('rec-photos'), form: 'rec', id: id, auth: auth,
+      who: function () { return lsGet('sepaRecName') || me; } });
+
     var carried = lsGet('sepaRecNote');
     if (carried) { notice(carried); lsSet('sepaRecNote', ''); }
     if (lsGet('sepaRecJoined:' + id) === '1' && !lead) { notice('You have joined the reception center. Your intakes go to your lead and HQ.'); lsSet('sepaRecJoined:' + id, ''); }
@@ -496,7 +500,7 @@
     var coKey = !leadKey && lsGet('sepaRecCoLead:' + id) === '1' ? goodKey(lsGet('sepaRecKey:' + id)) : '';
     var asLead = !!(leadKey || coKey);
     function auth(o) { o.leadKey = leadKey; o.key = coKey; o.me = coKey && typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('rec', id) : ''; o.token = token(); return o; }
-    var barShown = false;
+    var barShown = false, logApi = null;     // logApi: the Running log (v0.27.56)
     function changeCenter() {        // HQ: every open reception center, to jump between them (v0.27.27)
       return { label: 'Change center', title: 'Change center', note: 'Open reception centers, most recent activity first.',
         allHref: pageLink('view=list'), allLabel: 'See all centers on one page',
@@ -583,6 +587,8 @@
           return;
         }
         last = r;
+        if (!logApi && typeof SEPAEventLog !== 'undefined') logApi = SEPAEventLog.mount({ host: $('rec-view-log'), photosHost: $('rec-photos'), form: 'rec', id: id, auth: auth,
+          who: function () { return lsGet('sepaRecName') || ''; } });
         if (typeof SEPAAskLead !== 'undefined') {
           var vRemove = function (d, cb) {
             call(auth({ action: 'rosterRemove', form: 'rec', id: id, dev: d })).then(function (x) { cb(x && x.ok ? x.roster : null, x && x.error); });
@@ -754,6 +760,7 @@
       var cols = COLS.concat([['edited', 'Last edited'], ['edited_by', 'Edited by'], ['dda_set', 'DDA set'], ['dda_by', 'DDA set by']]);
       var lines = [cols.map(function (c) { return q(c[1]); }).join(',')];
       last.items.forEach(function (i) { lines.push(cols.map(function (c) { return q(i[c[0]]); }).join(',')); });
+      if (logApi) lines = lines.concat(SEPAEventLog.csv(logApi.rows(), q));     // v0.27.56: the Running log below the intakes
       var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
       var a = document.createElement('a'), d = new Date();
       a.href = window.URL.createObjectURL(blob);

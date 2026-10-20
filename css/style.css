@@ -2040,3 +2040,23 @@ a.f-chip:hover { background: var(--bt); }
 .sr-box.sr-carry .esc-how { font-size: 13.5px; }
 .sr-box.sr-carry .sr-log li { padding: 8px 10px; font-size: 14px; }
 .sr-box.sr-carry .sr-log li > small { font-size: 12px; }
+
+/* ---------- v0.27.56: Running log and photos on the Escalation and Reception Center forms (js/event-log.js).
+   The log itself uses the Daily Shelter Report's sr-* styles above. ---------- */
+.ev-log { margin-top: 14px; }
+.ev-photos-host { margin: 18px 0 8px; }
+.ev-photos-host[hidden] { display: none; }
+.ev-photos { padding: 14px 16px; border: 1.5px dashed var(--line); border-radius: var(--radius); background: #fff; }
+.ev-photos .esc-buttons { margin: 0; }
+.ev-photos .esc-btn { flex: 1 1 160px; min-height: 44px; }
+.ev-photos .esc-btn[hidden] { display: none; }
+.ev-photos .esc-status { margin: 10px 0 0; }
+.ev-photo-modal .f-modal-box { max-width: 720px; }
+.ev-photo { margin: 14px 0 0; padding: 0 0 12px; border-bottom: 1px solid var(--line); }
+.ev-photo img { display: block; width: 100%; height: auto; border-radius: 8px; background: #f2efeb; }
+.ev-photo img[hidden] { display: none; }
+.ev-photo figcaption { margin-top: 6px; font-size: 14px; color: var(--ink-soft); }
+.ev-photo figcaption b { color: var(--navy); }
+.ev-photo-rm { margin-left: 14px; }
+.ev-photo-wait { margin: 0; padding: 30px 10px; text-align: center; font-size: 14.5px; color: var(--ink-soft); background: #f7f5f2; border-radius: 8px; }
+.ev-photo-wait[hidden] { display: none; }
