@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.27.60 (Oct 20, 2026)
+- REQUESTS TO JOIN: THE BOX NOW GOES AWAY (Sean: after Let in or No the yellow box would not disappear). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - Reception Summary: the lead who started the center could not answer from the Summary (the page did not send the center's join code, so the script refused, and the same request came back every few seconds). Fixed.
+  - Daily Shelter Report: requests only refreshed when something else on the report changed, so one could show late or stay after someone else answered. Requests now come and go within seconds.
+  - Everywhere: if an answer does not go through, the request says why (no connection, HQ log in run out, ...) and Let in / No work again, instead of quietly coming back.
+- HQ ANSWERS REQUESTS FROM EVERY SCREEN (Sean: leads and HQ from both summary and intake). New: HQ on the Escalation worksheet and on a Reception intake screen sees requests and who is on it, and can answer. (Leads already could on both screens; HQ already could on the summaries.)
+- "MAKE ME A LEAD" FOR HQ (Sean: as HQ he could not add himself as a lead). In "+ Add a lead", an HQ phone that is not a lead yet gets "Make me a lead" at the top (name, no password again). The phone joins the event as a lead: on the worksheet it switches from HQ view to the lead's worksheet; on the summaries it reloads as a lead.
+- app/sw.js CACHE is now sepa-tools-28
+- Version number is now ?v=0.27.60 on every page and the homepage footer reads v0.27.60
+
 ## v0.27.59 (Oct 20, 2026)
 - ADD A RESPONDER / ADD A LEAD WHERE PEOPLE LOOK (Sean: people get confused switching between the worksheet and the Scene Summary, and "Add a lead" seemed to have gone; it had been pushed far down by the Running log). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version) BEFORE the push.
   - Escalation AND Reception Center, on BOTH screens (Worksheet / Intake and Scene Summary / Summary): "+ Add a responder" with "+ Add a lead" right under it, directly under "Who is on this ...", above the Running log.

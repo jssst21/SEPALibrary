@@ -338,7 +338,7 @@
       call(auth({ action: 'shGet', since: force ? '' : S.ms, day: S.today })).then(function (r) {
         if (gone(r)) return;
         if (!(r && r.ok)) { state(r && r.offline ? 'No connection. Your typing is kept on this page; it will save when the signal is back.' : '', true); return; }
-        if (r.same) { S.hq = !!r.hq; return; }
+        if (r.same) { S.hq = !!r.hq; if (r.asks) drawAsks(r.asks); return; }     // v0.27.60: requests to join come and go even when nothing else changed
         apply(r);
       });
     }

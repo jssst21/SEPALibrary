@@ -1056,7 +1056,11 @@ function escSync_(d) {
   Object.keys(w.meta.f).forEach(function (k) { if (w.meta.f[k] > since) out[k] = w.data[k] || ''; });
   var res = { ok: true, rev: w.meta.r, changed: out, now: now.getTime() };
   // Who is on this worksheet (website v0.27.3). What this phone typed was saved above even if it was removed.
-  if (hq) { res.hq = true; res.joinKey = escKey_(w.meta.e) || escShareKey_(sh, row, id); return res; }     // v0.27.58: older worksheets too
+  if (hq) {
+    res.hq = true; res.joinKey = escKey_(w.meta.e) || escShareKey_(sh, row, id);     // v0.27.58: older worksheets too
+    if (d.asks) { res.asks = askWaiting_('esc', id); res.roster = rosterPublic_('esc', id); }     // v0.27.60: HQ on the worksheet answers requests too
+    return res;
+  }
   var me = rosterCheckIn_('esc', id, d, d.lead ? 'lead' : '');
   if (me && !me.removed && me.role === 'co-lead') res.coLead = true;     // made a lead by a lead or HQ (website v0.27.24)
   if (me && me.removed) { res.removed = true; res.where = clean_(String(w.data.incident_addresses || '').split('\n')[0], 80); }
@@ -1895,7 +1899,8 @@ function askAnswer_(d) {
 // Reception lead's phone checks for requests (proven with the lead key).
 function recAsks_(d) {
   var id = escId_(d.id), c = recLeadAuth_(id, d);
-  if (!c || !c.ok) return { ok: false, error: 'Only the lead can see requests.' };
+  var hq = !!d.token && !escDenied_(d);     // v0.27.60: HQ answers requests from any screen
+  if (!hq && (!c || !c.ok)) return { ok: false, error: 'Only the lead can see requests.' };
   return { ok: true, asks: askWaiting_('rec', id), roster: rosterPublic_('rec', id) };
 }
 
@@ -2396,7 +2401,8 @@ function shGet_(d) {
   shPurge_();
   var a = shAccess_(d); if (a.err) return a.err;
   var today = today_(), ms = String(a.r[6]);
-  if (d.since && String(d.since) === ms && d.day === today) return { ok: true, same: true, today: today, hq: a.hq };
+  // v0.27.60: "nothing changed" still carries the requests to join, so a request (or one someone else answered) shows / goes away within seconds
+  if (d.since && String(d.since) === ms && d.day === today) return { ok: true, same: true, today: today, hq: a.hq, asks: askWaiting_('sh', a.id) };
   var res = { ok: true, today: today, ms: ms, hq: a.hq,
     shelter: { id: a.id, name: escText_(a.r[2]), address: escText_(a.r[3]), opened: iso_(a.r[1]), openedBy: escText_(a.r[4]) },
     sups: shSups_(a.id), report: shReport_(a.id, today), days: shDays_(a.id, today),
@@ -3123,7 +3129,9 @@ function coLogin_(d) {
   var form = askForm_(d.form), id = escId_(d.id), who = clean_(d.who, 60).replace(/\s+/g, ' ');
   if (!form || !id) return { ok: false, error: 'That event was not found.' };
   if (!who) return { ok: false, error: 'Please type your name.' };
-  var bad = leadDenied_({ user: d.user || '', password: d.password || '' });
+  // v0.27.60: HQ already logged in on this phone ("Make me a lead") needs no password again
+  var hqIn = !!d.token && !d.user && !escDenied_(d);
+  var bad = hqIn ? null : leadDenied_({ user: d.user || '', password: d.password || '' });
   if (bad) return { ok: false, error: bad.error || 'Please type the lead user name and password.' };
   if (form === 'esc') {
     var sh = escTab_(), row = escFindRow_(sh, id);

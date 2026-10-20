@@ -206,10 +206,10 @@
     // the join key plus its own phone code (see recLeadAuth_ in the Google script).
     var coLead = !leadKey && lsGet('sepaRecCoLead:' + id) === '1';
     var lead = !!leadKey || coLead, me = lsGet('sepaRecName') || '';
-    function auth(o) { o.leadKey = leadKey; o.key = key; o.me = dev(); return o; }
+    function auth(o) { o.leadKey = leadKey; o.key = key; o.me = dev(); if (!lead && token()) o.token = token(); return o; }     // v0.27.60: HQ on this phone answers requests too
     var form = $('rec-form');
     $('rec-work').hidden = false;
-    $('rec-lead-tools').hidden = !lead; $('rec-lead-tools2').hidden = !lead;
+    $('rec-lead-tools').hidden = !(lead || token()); $('rec-lead-tools2').hidden = !lead;     // v0.27.60: HQ sees requests and who is here
     $('rec-joined-how').hidden = lead;
 
     function centerName() { return lsGet('sepaRecCenter:' + id) || 'Reception center'; }
@@ -409,10 +409,10 @@
     $('rec-blank').addEventListener('click', function () { blank(); $('rec-form-error').hidden = true; });
 
     // ---- join requests from responders who asked in the app (v0.27.2), checked every 10 seconds
-    if (lead && typeof SEPAAskLead !== 'undefined') {
+    if ((lead || token()) && typeof SEPAAskLead !== 'undefined') {
       var showAsks = function (list) {
         SEPAAskLead.render($('rec-asks'), list, function (rid, yes) {
-          call(auth({ action: 'askAnswer', form: 'rec', id: id, rid: rid, yes: yes })).then(function (r) { if (r && r.ok) showAsks(r.asks || []); });
+          return call(auth({ action: 'askAnswer', form: 'rec', id: id, rid: rid, yes: yes })).then(function (r) { if (r && r.ok) showAsks(r.asks || []); return r; });
         });
       };
       var removeOne = function (d, done) {
@@ -443,9 +443,9 @@
     }
     // v0.27.59: Add a responder / Add a lead, under who is on this center, for every phone on it (js/ask-lead.js addBox)
     if (typeof SEPAAskLead !== 'undefined' && SEPAAskLead.addBox) SEPAAskLead.addBox($('rec-adds'), { form: 'rec', id: id, what: 'reception center',
-      place: centerName, canAdd: function () { return lead; },
+      place: centerName, canAdd: function () { return lead || !!token(); },
       joinLink: function () { return key ? pageLink('id=' + id) + '#k=' + key : ''; },
-      pick: function () { if (lead && makeLead) SEPAAskLead.leadPicker(makeLead, drawRoster); },
+      pick: function () { if (makeLead) SEPAAskLead.leadPicker(makeLead, drawRoster, !lead && token() ? { form: 'rec', id: id, go: function () { location.reload(); } } : null); },
       becameLead: function () {     // logged in with the lead or HQ password: reload to show the lead's buttons (an intake being typed is kept as a draft)
         lsSet('sepaRecCoLead:' + id, '1');
         lsSet('sepaRecNote', 'You are now a lead on this reception center. Tap "+ Add a responder" or "+ Add a lead" again to carry on.');
@@ -518,7 +518,8 @@
     // v0.27.24: an added lead (co-lead) opens the summary with the join key plus this phone's code.
     var coKey = !leadKey && lsGet('sepaRecCoLead:' + id) === '1' ? goodKey(lsGet('sepaRecKey:' + id)) : '';
     var asLead = !!(leadKey || coKey);
-    function auth(o) { o.leadKey = leadKey; o.key = coKey; o.me = coKey && typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('rec', id) : ''; o.token = token(); return o; }
+    // v0.27.60: the lead who started the center also sends the join key (Let in / No on the Summary failed without it, Sean Oct 20)
+    function auth(o) { o.leadKey = leadKey; o.key = coKey || (leadKey ? goodKey(lsGet('sepaRecKey:' + id)) : ''); o.me = coKey && typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('rec', id) : ''; o.token = token(); return o; }
     var barShown = false, logApi = null;     // logApi: the Running log (v0.27.57)
     var viewAdds = null, viewJoinKey = '';     // v0.27.59: the add box
     function changeCenter() {        // HQ: every open reception center, to jump between them (v0.27.27)
@@ -623,12 +624,12 @@
             place: function () { return (last && last.center) || ''; },
             canAdd: function () { return true; },
             joinLink: function () { var k = goodKey(lsGet('sepaRecKey:' + id)) || viewJoinKey; return k ? pageLink('id=' + id) + '#k=' + k : ''; },
-            pick: function () { SEPAAskLead.leadPicker(vMake, function () { load(); }); },
+            pick: function () { SEPAAskLead.leadPicker(vMake, function () { load(); }, token() && !asLead ? { form: 'rec', id: id, go: function () { location.reload(); } } : null); },
             becameLead: function () {} });
           // v0.27.50: requests to join show here too, for HQ and leads (Sean: roles swap, people get called away)
           (function showViewAsks(list) {
             SEPAAskLead.render($('rec-view-asks'), list, function (rid, yes) {
-              call(auth({ action: 'askAnswer', form: 'rec', id: id, rid: rid, yes: yes })).then(function (x) { if (x && x.ok) showViewAsks(x.asks || []); else load(); });
+              return call(auth({ action: 'askAnswer', form: 'rec', id: id, rid: rid, yes: yes })).then(function (x) { if (x && x.ok) showViewAsks(x.asks || []); else load(); return x; });
             });
           })(r.asks || []);
         }

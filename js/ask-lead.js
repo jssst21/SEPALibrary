@@ -48,6 +48,7 @@ var SEPAAskLead = (function () {
   // ---------------------------------------------------------------- the LEAD's phone: requests waiting
   // asks: [{rid, name, phone, at}]. answer(rid, yes) is called when the lead taps Approve or Decline.
   var seen = {};
+  var errs = {};     // v0.27.60: why an answer did not go through, by request
   function render(box, asks, answer) {
     if (!box) return;
     asks = asks || [];
@@ -64,14 +65,26 @@ var SEPAAskLead = (function () {
           (a.phone ? ' &middot; <a href="tel:' + esc(a.phone.replace(/[^0-9+]/g, '')) + '">' + esc(a.phone) + '</a>' : '') +
           ' <span class="ask-req-when">' + ago(a.at) + '</span></p>' +
           '<div class="esc-buttons"><button type="button" class="primary-btn" data-yes>Let in</button>' +
-          '<button type="button" class="esc-btn" data-no>No</button></div></div>';      // v0.27.49 (were Approve / Decline)
+          '<button type="button" class="esc-btn" data-no>No</button></div>' +
+          (errs[a.rid] ? '<p class="form-error">' + esc(errs[a.rid]) + '</p>' : '') + '</div>';      // v0.27.49 (were Approve / Decline)
       }).join('') + '<p class="esc-group-how">Let in adds them to this ' + (formName === 'reception' ? 'reception center' : 'worksheet') + ' straight away. Only let in people you expect.</p>';
     Array.prototype.forEach.call(box.querySelectorAll('.ask-req'), function (row) {
       var rid = row.getAttribute('data-rid');
       Array.prototype.forEach.call(row.querySelectorAll('button'), function (b) {
         b.addEventListener('click', function () {
-          Array.prototype.forEach.call(row.querySelectorAll('button'), function (x) { x.disabled = true; });
-          answer(rid, b.hasAttribute('data-yes'));
+          var btns = row.querySelectorAll('button');
+          Array.prototype.forEach.call(btns, function (x) { x.disabled = true; });
+          // v0.27.60 (Sean: the box would not go away): if the answer does not go through, say why instead of
+          // quietly putting the same request back. The page's answer() returns the Google script's reply.
+          var p = answer(rid, b.hasAttribute('data-yes'));
+          if (p && p.then) p.then(function (x) {
+            if (x && x.ok) { delete errs[rid]; return; }
+            errs[rid] = x && x.offline ? 'No connection. Please try again.' : x && x.login ? 'Your HQ log in has run out. Log in again, then try again.' : (x && x.error) || 'That did not go through. Please try again.';
+            if (!row.isConnected) return;
+            Array.prototype.forEach.call(btns, function (y) { y.disabled = false; });
+            var e = row.querySelector('.form-error'); if (!e) { e = document.createElement('p'); e.className = 'form-error'; row.appendChild(e); }
+            e.textContent = errs[rid];
+          });
         });
       });
     });
@@ -140,7 +153,26 @@ var SEPAAskLead = (function () {
   // Opened by the "Add a lead" button on a lead's phone. Lists the people on the event who are not leads
   // yet (from the last list the page fetched), each with Make lead. makeLead(dev, done) as in roster().
   // onDone(newList) is called after someone was made a lead, so the page can redraw its own list.
-  function leadPicker(makeLead, onDone) {
+  // v0.27.60 (Sean: as HQ he could not make himself a lead). meForm: 'esc' | 'rec' shows "Make me a lead" at the
+  // top for an HQ phone that is not a lead on this event yet; no password again (coLogin with the HQ login).
+  function makeMeLead(form, id, who, done) {
+    post({ action: 'coLogin', form: form, id: id, who: who, token: lsGet('sepaEscHQ') || '', dev: device(form, id) }).then(function (r) {
+      if (!(r && r.ok)) return done(r && r.offline ? 'No connection. Please try again.' : r && r.login ? 'Your HQ log in has run out. Log in again, then try again.' : (r && r.error) || 'That did not go through. Please try again.');
+      lsSet('sepaAskName', who);
+      if (form === 'esc') {
+        lsSet('sepaEscKey:' + id, r.key); lsSet('sepaEscLead:' + id, '1'); lsSet('sepaEscCoLead:' + id, '1'); lsSet('sepaEscSeen:' + id, '1'); lsSet('sepaEscCurrent', id);
+        if (!lsGet('sepaEscName')) lsSet('sepaEscName', who);
+        lsSet('sepaEscNote', 'You are now a lead on this worksheet.'); lsSet('sepaEscNoteOk', '1');
+      } else {
+        lsSet('sepaRecKey:' + id, r.key); lsSet('sepaRecCoLead:' + id, '1'); lsSet('sepaRecCurrent', id);
+        if (r.center) lsSet('sepaRecCenter:' + id, r.center);
+        if (!lsGet('sepaRecName')) lsSet('sepaRecName', who);
+        lsSet('sepaRecNote', 'You are now a lead on this reception center.');
+      }
+      done(null);
+    });
+  }
+  function leadPicker(makeLead, onDone, me) {     // me: { form, id, go() } (v0.27.60) or nothing
     var what = lastWhat || (formName === 'reception' ? 'reception center' : 'worksheet');
     var old = document.getElementById('ask-lead-pick'); if (old) old.remove();
     var m = document.createElement('div'); m.className = 'f-modal'; m.id = 'ask-lead-pick';
@@ -148,6 +180,10 @@ var SEPAAskLead = (function () {
     var leads = lastList.filter(isLead).map(function (x) { return x.name || 'Name not given'; });
     m.innerHTML = '<div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="ask-lead-pick-t">' +
       '<button type="button" class="f-modal-x" aria-label="Close">&times;</button><h2 id="ask-lead-pick-t">Add a lead</h2>' +
+      (me ? '<div class="pick-me-box"><label class="field">Your name <input class="pick-me-name" autocomplete="name" maxlength="60" value="' +
+        esc(lsGet(me.form === 'esc' ? 'sepaEscName' : 'sepaRecName') || lsGet('sepaAskName') || '') + '"></label>' +
+        '<button type="button" class="primary-btn pick-me">Make me a lead</button><p class="form-error pick-me-err" hidden></p>' +
+        '<p class="esc-group-how">You are logged in as HQ, so no password is needed. This phone joins as a lead.</p></div>' : '') +
       '<p class="f-modal-note">Tap the person who should also be a lead. Their phone gets the lead\'s buttons within about a minute. You stay a lead too.' +
       (leads.length ? ' Leads now: ' + esc(leads.join(', ')) + '.' : '') + '</p>' +
       (people.length ? people.map(function (x) {
@@ -164,6 +200,15 @@ var SEPAAskLead = (function () {
     function close() { m.remove(); }
     m.querySelector('.f-modal-x').addEventListener('click', close);
     m.querySelector('.pick-close').addEventListener('click', close);
+    if (me) m.querySelector('.pick-me').addEventListener('click', function () {
+      var b = this, who = m.querySelector('.pick-me-name').value.trim(), e = m.querySelector('.pick-me-err');
+      if (!who) { e.textContent = 'Please type your name.'; e.hidden = false; return; }
+      b.disabled = true; e.hidden = true;
+      makeMeLead(me.form, me.id, who, function (err) {
+        if (err) { b.disabled = false; e.textContent = err; e.hidden = false; return; }
+        close(); me.go();
+      });
+    });
     m.addEventListener('click', function (e) { if (e.target === m) close(); });
     Array.prototype.forEach.call(m.querySelectorAll('.pick-row'), function (row) {
       var b = row.querySelector('.pick-btn'), cf = row.querySelector('.rost-confirm');

@@ -338,7 +338,7 @@
       var req = { action: 'escSync', id: id, key: key, since: meta.rev, changes: sent };
       if (hq) req.token = token();        // HQ typing (v0.27.28): the HQ login instead of the edit key
       if (claiming) req.claim = true;
-      if (lead) req.asks = true;          // the lead's phone also collects join requests (v0.27.2)
+      if (lead || hq) req.asks = true;    // the lead's phone also collects join requests (v0.27.2); HQ too (v0.27.60)
       req.dev = myDev(); req.who = myName(); if (lead) req.lead = true;   // who is on this worksheet (v0.27.3)
       call(req).then(function (r) {
         busy = false;
@@ -346,10 +346,10 @@
         if (r && r.ok) {
           live = 'on'; problem = '';
           if (claiming) claim = false;
-          if (lead && r.asks) showAsks(r.asks);
+          if ((lead || hq) && r.asks) showAsks(r.asks);
           if (r.coLead && !lead) becomeLead();
           if (hq && r.joinKey) hqJoinKey = r.joinKey;      // v0.27.28: HQ can send the join link
-          if (lead && r.roster && typeof SEPAAskLead !== 'undefined') drawRoster(r.roster);
+          if ((lead || hq) && r.roster && typeof SEPAAskLead !== 'undefined') drawRoster(r.roster);
           if (r.removed) { removedSignal(r.where); }
           if ((r.rev || 0) < meta.rev) {
             meta = { rev: 0, base: {} }; again = true;      // Google holds less than this phone thought (a row was removed by hand): send everything again
@@ -396,11 +396,11 @@
     $('esc-myname').value = lsGet('sepaEscName') || lsGet('sepaAskName') || '';
     $('esc-myname').addEventListener('change', function () { lsSet('sepaEscName', this.value.trim()); sync(); });
     function removeOne(d, done) {
-      call({ action: 'rosterRemove', form: 'esc', id: id, key: key, dev: d }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
+      call({ action: 'rosterRemove', form: 'esc', id: id, key: key, dev: d, token: hq ? token() : '' }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
     }
     // ---- ADD A LEAD (v0.27.24): a lead makes someone already on this worksheet a lead too.
     function makeLead(d, done) {
-      call({ action: 'makeLead', form: 'esc', id: id, key: key, dev: d, me: myDev() }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
+      call({ action: 'makeLead', form: 'esc', id: id, key: key, dev: d, me: myDev(), token: hq ? token() : '' }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
     }
     function drawRoster(list) { SEPAAskLead.roster($('esc-roster'), list, removeOne, 'worksheet', { makeLead: makeLead }); }
     // v0.27.59: Add a responder / Add a lead, under who is on this worksheet, for everyone on it (js/ask-lead.js addBox)
@@ -408,7 +408,7 @@
       place: function () { return cur('incident_addresses').split('\n')[0]; },
       canAdd: function () { return lead || hq; },
       joinLink: function () { return (hq && !hqJoinKey) || (!hq && !key) ? '' : joinUrl(); },
-      pick: function () { SEPAAskLead.leadPicker(makeLead, drawRoster); },
+      pick: function () { SEPAAskLead.leadPicker(makeLead, drawRoster, hq ? { form: 'esc', id: id, go: function () { location.href = pageLink('id=' + id); } } : null); },
       beforeSend: function () { claim = true; sync(); },       // make sure Google knows this worksheet before the link goes out
       becameLead: function () { becomeLead(); } }) : null;
     // A lead or HQ made THIS phone a lead: show the lead's buttons straight away (no reload needed here).
@@ -436,8 +436,11 @@
     function showAsks(list) {
       if (typeof SEPAAskLead === 'undefined') return;
       SEPAAskLead.render($('esc-asks'), list, function (rid, yes) {
-        call({ action: 'askAnswer', form: 'esc', id: id, key: key, rid: rid, yes: yes }).then(function (r) {
+        var q = { action: 'askAnswer', form: 'esc', id: id, key: key, rid: rid, yes: yes };
+        if (hq) q.token = token();       // v0.27.60: HQ answers from the worksheet too
+        return call(q).then(function (r) {
           if (r && r.ok) showAsks(r.asks || []); else sync();
+          return r;
         });
       });
     }
@@ -682,7 +685,7 @@
     var myKey = goodKey(lsGet('sepaEscKey:' + id)), leadHere = !!myKey && lsGet('sepaEscLead:' + id) === '1';
     function auth(o) { o.token = token(); if (leadHere) { o.key = myKey; o.me = typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('esc', id) : ''; } return o; }
     var barShown = false, logApi = null;     // logApi: the Running log (v0.27.57)
-    var viewAdds = null, viewJoinKey = '';     // v0.27.59: the add box
+    var viewAdds = null, viewJoinKey = '', viewIsHQ = false;     // v0.27.59: the add box
     function changeWorksheet() {     // HQ: every recent worksheet, to jump between them (v0.27.27)
       return { label: 'Change scene', title: 'Change scene', note: 'Recent scenes, most recent change first.',
         allHref: pageLink('view=list'), allLabel: 'See all worksheets on one page',
@@ -730,7 +733,7 @@
           // v0.27.50: requests to join show here too, for HQ and leads (Sean: roles swap, people get called away)
           if (typeof SEPAAskLead !== 'undefined') (function showViewAsks(list) {
             SEPAAskLead.render($('esc-view-asks'), list, function (rid, yes) {
-              call(auth({ action: 'askAnswer', form: 'esc', id: id, rid: rid, yes: yes })).then(function (x) { if (x && x.ok) showViewAsks(x.asks || []); else load(); });
+              return call(auth({ action: 'askAnswer', form: 'esc', id: id, rid: rid, yes: yes })).then(function (x) { if (x && x.ok) showViewAsks(x.asks || []); else load(); return x; });
             });
           })(r.asks || []);
           var vMake = function (d, cb) {     // v0.27.24: a lead or HQ can make someone a lead
@@ -741,11 +744,12 @@
           }, 'worksheet', { hq: isHQ, makeLead: vMake });
           // v0.27.59: Add a responder / Add a lead here too (only a lead or HQ can open the Scene Summary)
           if (r.joinKey) viewJoinKey = r.joinKey;
+          viewIsHQ = isHQ;
           if (!viewAdds && typeof SEPAAskLead !== 'undefined' && SEPAAskLead.addBox) viewAdds = SEPAAskLead.addBox($('esc-view-adds'), { form: 'esc', id: id, what: 'worksheet',
             place: function () { return String((lastData && lastData.incident_addresses) || '').split('\n')[0]; },
             canAdd: function () { return true; },
             joinLink: function () { var k = myKey || viewJoinKey; return k ? pageLink('id=' + id) + '#k=' + k : ''; },
-            pick: function () { SEPAAskLead.leadPicker(vMake, function () { load(); }); },
+            pick: function () { SEPAAskLead.leadPicker(vMake, function () { load(); }, viewIsHQ && !leadHere ? { form: 'esc', id: id, go: function () { location.reload(); } } : null); },
             becameLead: function () {} });
           var text = JSON.stringify(r.data);
           fill(r.data, !first && text !== lastText);
