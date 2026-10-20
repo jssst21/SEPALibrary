@@ -1,4 +1,4 @@
-/* RUNNING LOG for the Escalation and Reception Center forms (website v0.27.56, Sean Oct 20, 2026).
+/* RUNNING LOG for the Escalation and Reception Center forms (website v0.27.57, Sean Oct 20, 2026).
    The same running log as the Daily Shelter Report (js/shelter.js), with the same look (the sr-* styles
    in css/style.css): type what happened, "Add to the log", and the entry is stamped with the time and
    your name. "Flag as an issue" keeps an entry in red at the top until someone removes the flag.
@@ -10,7 +10,7 @@
        auth: function (o) { add the page's codes to o; return o; },
        who: function () { return this person's name; } });
      log.rows()  -> the entries (for Download for Excel). log.refresh() -> check now.
-   PHOTOS (v0.27.56): pass photosHost: element too and it gets "Add photo" and, once there are photos,
+   PHOTOS (v0.27.57): pass photosHost: element too and it gets "Add photo" and, once there are photos,
    "See photos (2)". The photos never show inside the form; See photos opens them in a pop-up, one at a
    time as they load. Each photo is shrunk on the phone first (longest side 1600 pixels, JPEG).
    The Google script side is the "RUNNING LOG ON THE ESCALATION AND RECEPTION CENTER FORMS" section. */
@@ -217,7 +217,7 @@
     render(); load(true);
     setInterval(function () { if (!document.hidden) load(false); }, 8000);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) load(false); });
-    // ---- PHOTOS (v0.27.56)
+    // ---- PHOTOS (v0.27.57)
     S.photos = [];
     var ph = o.photosHost, pm = null, cache = {};
     if (ph) {

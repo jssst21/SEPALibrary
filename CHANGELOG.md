@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.27.57 (Oct 20, 2026)
+- ESCALATION AND RECEPTION CENTER FORMS ALWAYS OPEN ON "CURRENT OPERATIONS" (Sean: closing an event and opening the form again went straight back into the last event instead of the "looking for current events" screen).
+  - Opening either form plainly (the app, the website, a bookmark) now always lands on the Start screen with Current Operations. The events this phone is on are listed there; tap one to go in.
+  - Links that name an event (join links, the Current Operations entries, the Worksheet/Intake and Summary switch) still go straight in.
+  - Reception only: if intakes on this phone are still waiting to be sent, it goes back into that center so they get sent.
+  - Inside an event (worksheet, intake screen, Scene Summary, Summary) the top-right "× Close this tab" now reads "← Back to current events" and goes back to that screen (Sean: closing the app or leaving the event should land on the select-event screen). Elsewhere it still closes the tab.
+  - No script change.
+- app/sw.js CACHE is now sepa-tools-26
+- Version number is now ?v=0.27.57 on every page and the homepage footer reads v0.27.57
+
 ## v0.27.56 (Oct 20, 2026)
 - RUNNING LOG AND PHOTOS ON THE ESCALATION AND RECEPTION CENTER FORMS (Sean). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version) BEFORE the push.
   - Both forms now have the Daily Shelter Report's Running log, same look and same workings: type, "Add to the log", each entry stamped with the time and the person's name; "Flag as an issue" keeps it in red at the top until someone removes the flag; the box shows flagged issues plus the 3 newest, older ones scroll inside it; "See all entries" opens them all; HQ can edit or remove an entry (marked by HQ).

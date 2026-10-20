@@ -52,6 +52,12 @@
   }
   function oldScript(r) { return r && !r.offline && /unknown request/i.test(r.error || ''); }
   function pageLink(query) { return location.href.split('?')[0].split('#')[0] + (query ? '?' + query : ''); }
+  // v0.27.57 (Sean, Oct 20): inside an event, the top-right link goes back to the "Current Operations" screen
+  // (looking for current events) instead of closing the tab. js/close-tab.js leaves links marked data-leave alone.
+  function leaveLink() {
+    var a = document.querySelector('.back-link'); if (!a) return;
+    a.setAttribute('data-leave', '1'); a.href = pageLink(''); a.innerHTML = '&larr; Back to current events';
+  }
   function clock(t) {      // "2026-10-12 17:45:00" -> "5:45 PM"
     var m = /(\d{1,2}):(\d{2})/.exec((t || '').split(' ')[1] || '');
     if (!m) return t || '';
@@ -102,6 +108,14 @@
     }
     // v0.27.27: the Intake | Summary switch links to ?id=CODE. If this phone is on that center, open it.
     else if (urlId && goodKey(lsGet('sepaRecKey:' + urlId))) { lsSet('sepaRecCurrent', urlId); current = urlId; }
+    // v0.27.57 (Sean, Oct 20): opening the form plainly (no ?id=) ALWAYS lands on the Start screen with "Current
+    // Operations" (looking for current events); this phone's centers are listed there. Exception: intakes still
+    // waiting on this phone to be sent go back into their center so they get sent.
+    if (!urlId && current) {
+      var waiting = false;
+      try { waiting = (JSON.parse(lsGet('sepaRecQueue') || '[]') || []).some(function (q) { return q.id === current; }); } catch (e) {}
+      if (!waiting) current = '';
+    }
     try { history.replaceState(null, '', pageLink(current ? 'id=' + current : '')); } catch (e) {}   // the key never stays in the address bar
 
     if (!current || !goodKey(lsGet('sepaRecKey:' + current))) {
@@ -186,6 +200,7 @@
   }
 
   function work(id) {
+    leaveLink();
     var key = goodKey(lsGet('sepaRecKey:' + id)), leadKey = goodKey(lsGet('sepaRecLead:' + id));
     // v0.27.24: a phone made a lead with "Add a lead" (a co-lead) has no lead key; it proves itself with
     // the join key plus its own phone code (see recLeadAuth_ in the Google script).
@@ -441,7 +456,7 @@
 
     // ---- leaving the center: the red "Starting a new reception center?" button in the bar (v0.27.29, see newCenter)
 
-    // v0.27.56: the Running log (js/event-log.js), above the intake form, for every phone on the center
+    // v0.27.57: the Running log (js/event-log.js), above the intake form, for every phone on the center
     if (typeof SEPAEventLog !== 'undefined') SEPAEventLog.mount({ host: $('rec-log'), photosHost: $('rec-photos'), form: 'rec', id: id, auth: auth,
       who: function () { return lsGet('sepaRecName') || me; } });
 
@@ -491,6 +506,7 @@
   // ================================================================ SUMMARY (lead or HQ)
 
   function viewMode(id) {
+    leaveLink();
     document.body.classList.add('esc-viewing', 'rec-viewing');
     $('rec-title').textContent = 'Reception Center: summary';
     $('rec-intro').textContent = 'Every intake for this reception center.';
@@ -500,7 +516,7 @@
     var coKey = !leadKey && lsGet('sepaRecCoLead:' + id) === '1' ? goodKey(lsGet('sepaRecKey:' + id)) : '';
     var asLead = !!(leadKey || coKey);
     function auth(o) { o.leadKey = leadKey; o.key = coKey; o.me = coKey && typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('rec', id) : ''; o.token = token(); return o; }
-    var barShown = false, logApi = null;     // logApi: the Running log (v0.27.56)
+    var barShown = false, logApi = null;     // logApi: the Running log (v0.27.57)
     function changeCenter() {        // HQ: every open reception center, to jump between them (v0.27.27)
       return { label: 'Change center', title: 'Change center', note: 'Open reception centers, most recent activity first.',
         allHref: pageLink('view=list'), allLabel: 'See all centers on one page',
@@ -760,7 +776,7 @@
       var cols = COLS.concat([['edited', 'Last edited'], ['edited_by', 'Edited by'], ['dda_set', 'DDA set'], ['dda_by', 'DDA set by']]);
       var lines = [cols.map(function (c) { return q(c[1]); }).join(',')];
       last.items.forEach(function (i) { lines.push(cols.map(function (c) { return q(i[c[0]]); }).join(',')); });
-      if (logApi) lines = lines.concat(SEPAEventLog.csv(logApi.rows(), q));     // v0.27.56: the Running log below the intakes
+      if (logApi) lines = lines.concat(SEPAEventLog.csv(logApi.rows(), q));     // v0.27.57: the Running log below the intakes
       var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
       var a = document.createElement('a'), d = new Date();
       a.href = window.URL.createObjectURL(blob);

@@ -119,6 +119,12 @@
     return Math.round(s / 86400) + ' days ago';
   }
   function pageLink(query) { return location.href.split('?')[0].split('#')[0] + (query ? '?' + query : ''); }
+  // v0.27.57 (Sean, Oct 20): inside an event, the top-right link goes back to the "Current Operations" screen
+  // (looking for current events) instead of closing the tab. js/close-tab.js leaves links marked data-leave alone.
+  function leaveLink() {
+    var a = document.querySelector('.back-link'); if (!a) return;
+    a.setAttribute('data-leave', '1'); a.href = pageLink(''); a.innerHTML = '&larr; Back to current events';
+  }
 
   // ---------------------------------------------------------------- drawing the worksheet
   var inputs = {};     // field name -> its box on the page
@@ -276,6 +282,10 @@
       id = mine || newId();
       wrongLink = lsGet('sepaEscKey:' + urlId) === null && lsGet('sepaEscSeen:' + urlId) !== '1';
     }
+    // v0.27.57 (Sean, Oct 20): opening the form plainly (the app, the website, Close this tab and back) ALWAYS lands
+    // on the Start screen with "Current Operations" (looking for current events), like the Reception Center Form.
+    // The worksheets this phone is on are listed there; tapping one opens it (?id=CODE). Only links with ?id= go straight in.
+    else if (!urlId) return startMode(goodKey(lsGet('sepaEscKey:' + mine)) ? newId() : (mine || newId()), '');
     else id = mine || newId();
     var hadKey = goodKey(lsGet('sepaEscKey:' + id));
     // No key on this phone and no join link: this phone has no worksheet yet. Since v0.27.1 it has to
@@ -293,6 +303,7 @@
     }
     try { history.replaceState(null, '', pageLink('id=' + id + (hq ? '&as=hq' : ''))); } catch (e) {}    // also takes the key out of the address bar
     $('esc-edit-tools').hidden = false; $('esc-bottom').hidden = false;
+    leaveLink();
     draw();
 
     var saved = null, meta = null;
@@ -500,7 +511,7 @@
     }
     status();
     sync();
-    // v0.27.56: the Running log (js/event-log.js), near the top like the Daily Shelter Report's.
+    // v0.27.57: the Running log (js/event-log.js), near the top like the Daily Shelter Report's.
     // HQ typing into the worksheet uses the HQ login (entries marked HQ); everyone else the worksheet's code.
     if (typeof SEPAEventLog !== 'undefined') SEPAEventLog.mount({ host: $('esc-log'), photosHost: $('esc-photos'), form: 'esc', id: id, who: myName,
       auth: function (o) { if (hq) o.token = token(); else { o.key = key; o.me = myDev(); } return o; } });
@@ -665,6 +676,7 @@
 
   // ================================================================ SCENE SUMMARY (read only; called the live view before v0.27.3)
   function viewMode(id) {
+    leaveLink();
     readOnly = true;
     document.body.classList.add('esc-viewing');
     $('esc-view-tools').hidden = false;
@@ -675,7 +687,7 @@
     // (escLeadAuth_ in the Google script); HQ with the HQ login, as before.
     var myKey = goodKey(lsGet('sepaEscKey:' + id)), leadHere = !!myKey && lsGet('sepaEscLead:' + id) === '1';
     function auth(o) { o.token = token(); if (leadHere) { o.key = myKey; o.me = typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('esc', id) : ''; } return o; }
-    var barShown = false, logApi = null;     // logApi: the Running log (v0.27.56)
+    var barShown = false, logApi = null;     // logApi: the Running log (v0.27.57)
     function changeWorksheet() {     // HQ: every recent worksheet, to jump between them (v0.27.27)
       return { label: 'Change scene', title: 'Change scene', note: 'Recent scenes, most recent change first.',
         allHref: pageLink('view=list'), allLabel: 'See all worksheets on one page',
@@ -754,7 +766,7 @@
       var place = String(lastData.incident_addresses || '').split('\n')[0];
       var lines = [q('DAT Response Lead Incident Reporting Worksheet'), q('Downloaded ' + day + ' ' + d.toTimeString().slice(0, 5)), '', 'Box,Entry'];
       Object.keys(inputs).forEach(function (k) { lines.push(q(inputs[k].getAttribute('aria-label')) + ',' + q(lastData[k] || '')); });
-      if (logApi) lines = lines.concat(SEPAEventLog.csv(logApi.rows(), q));     // v0.27.56: the Running log below the boxes
+      if (logApi) lines = lines.concat(SEPAEventLog.csv(logApi.rows(), q));     // v0.27.57: the Running log below the boxes
       var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
       var a = document.createElement('a');
       a.href = window.URL.createObjectURL(blob);
