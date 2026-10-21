@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.27.67 (Oct 21, 2026) - Google script only, during the stress test
+- "NO CONNECTION" UNDER LOAD FIXED (stress test, Oct 21). Every request waited in one line for the script lock (up to 20 s); with many phones checking in every few seconds the line passed 20 s and requests failed (Executions showed most doPost calls failing at ~20.5 s). Reads and plain check-ins (escGet, escList, recGet, recList, recAsks, recPing, evLogGet, evPhotoGet, coOpen, askList, askStatus, testStatus, testLog, and escSync with nothing typed) no longer wait in the line; saves still do (tryLock 25 s, then "The system is busy. Please try again").
+
 ## v0.27.66 (Oct 21, 2026)
 - CALMER BUTTONS ON THE THREE EVENT FORMS (Sean: full-width buttons were visual clutter; smaller, centered, still legible). Escalation, Reception Center and Daily Shelter Report: buttons such as + Add a responder, + Add a lead, Add to the log, See all entries, Add photo, Share the Scene Summary and Send HQ the summary link are centered and sized to their words (16px text, at least 44px tall), same colours.
   - Kept full width: buttons inside pop-ups, and Reception's "Save and start the next intake" (the main repeated action).

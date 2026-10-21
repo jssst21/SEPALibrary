@@ -165,11 +165,24 @@ function doGet(e) {
 }
 
 // POST = everything else. Body is JSON with an "action".
+// v0.27.67 (stress test, Oct 21): every request used to wait in ONE line for the script lock (up to 20 s), so with
+// many phones checking in every few seconds the line grew past 20 s and phones saw "No connection". Requests that
+// only READ (and the regular check-ins that send nothing new) now skip the line; anything that saves still waits.
+var NO_LOCK_ACTIONS = { escGet: 1, escList: 1, recGet: 1, recList: 1, recAsks: 1, recPing: 1, evLogGet: 1, evPhotoGet: 1,
+  coOpen: 1, askList: 1, askStatus: 1, testStatus: 1, testLog: 1 };
+function needsLock_(d) {
+  if (NO_LOCK_ACTIONS[d.action]) return false;
+  // an Escalation check-in with nothing typed and no claim only reads (writes, if any, are tiny and rare)
+  if (d.action === 'escSync' && !d.claim && !(d.changes && Object.keys(d.changes).length)) return false;
+  return true;
+}
 function doPost(e) {
-  var lock = LockService.getScriptLock();
-  lock.waitLock(20000);
+  var d0 = {};
+  try { d0 = JSON.parse((e && e.postData && e.postData.contents) || '{}') || {}; } catch (x) {}
+  var lock = needsLock_(d0) ? LockService.getScriptLock() : null;
+  if (lock && !lock.tryLock(25000)) return json_({ ok: false, busy: true, error: 'The system is busy. Please try again in a few seconds.' });
   try {
-    var d = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    var d = d0;
     var actions = {
       shiftSignup: shiftSignup_,
       recurringSignup: recurringSignup_,
@@ -267,7 +280,7 @@ function doPost(e) {
   } catch (err) {
     return json_({ ok: false, error: 'Something went wrong. Please try again.' });
   } finally {
-    lock.releaseLock();
+    if (lock) lock.releaseLock();
   }
 }
 
