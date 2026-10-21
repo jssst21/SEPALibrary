@@ -112,6 +112,7 @@ var SEPAAskLead = (function () {
     if (box.querySelector('.rost-confirm:not([hidden])') || box.getAttribute('data-busy')) return;   // do not redraw under someone's finger
     if (!list.length) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false;
+    var nLeads = list.filter(isLead).length;     // v0.27.63: warn HQ before removing the only lead
     box.innerHTML = '<p class="rost-head">Who is on this ' + what + ' (' + list.length + ')</p>' + list.map(function (x) {
       var nm = x.name || 'Name not given', canRm = !isLead(x) || opt.hq, canLead = !isLead(x) && opt.makeLead;
       return '<div class="rost-row" data-dev="' + esc(x.dev) + '"><p class="rost-who"><strong>' + esc(nm) + '</strong>' + (isLead(x) ? ' (lead)' : '') +
@@ -120,7 +121,9 @@ var SEPAAskLead = (function () {
           (canRm ? '<button type="button" class="esc-btn rost-rm rost-rmv">Remove</button>' : '') + '</span>' : '') +
         (canLead ? '<p class="rost-confirm rost-confirm-lead" hidden>Make ' + esc(nm) + ' a lead? They get the lead\'s buttons on their phone. ' +
           '<button type="button" class="esc-btn rost-lead-yes">Yes, make lead</button> <button type="button" class="link-btn rost-no">Cancel</button></p>' : '') +
-        (canRm ? '<p class="rost-confirm rost-confirm-rm" hidden>Remove ' + esc(nm) + (isLead(x) ? ' (a lead)' : '') + '? What they entered stays here. ' +
+        (canRm ? '<p class="rost-confirm rost-confirm-rm" hidden>' + (isLead(x) && nLeads <= 1 ?
+          '<strong>' + esc(nm) + ' is the only lead.</strong> Remove anyway? You can make someone else a lead, or yourself, any time. ' :
+          'Remove ' + esc(nm) + (isLead(x) ? ' (a lead)' : '') + '? ') + 'What they entered stays here. ' +
           '<button type="button" class="esc-btn esc-danger rost-yes">Yes, remove</button> <button type="button" class="link-btn rost-no">Cancel</button></p>' : '') + '</div>';
     }).join('') + '<p class="rost-err form-error" hidden></p><p class="esc-group-how">' +
       (opt.makeLead ? 'Make lead gives someone the lead\'s buttons too, for example when you are leaving the scene. ' : '') +

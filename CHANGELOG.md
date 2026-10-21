@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.63 (Oct 21, 2026)
+- WARNING BEFORE HQ REMOVES THE ONLY LEAD (Sean: an event should have a lead, but it does not have to be the original; HQ can always add one). When HQ taps Remove on the last lead: "NAME is the only lead. Remove anyway? You can make someone else a lead, or yourself, any time." With two or more leads the usual question shows. No Google script change.
+- app/sw.js CACHE is now sepa-tools-31
+- Version number is now ?v=0.27.63 on every page and the homepage footer reads v0.27.63
+
 ## v0.27.62 (Oct 21, 2026)
 - HQ CAN REMOVE ANY LEAD, THE ONE WHO STARTED IT TOO (Sean: otherwise the original lead keeps getting requests to join for days or weeks). Replaces the Oct 15 rule "the lead who started it can never be removed". NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - Escalation and Reception, in "Who is on this ..." on any screen where HQ is logged in: Remove now shows on every lead, including the original one. It asks first, as before.
