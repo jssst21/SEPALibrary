@@ -2081,3 +2081,14 @@ a.f-chip:hover { background: var(--bt); }
 .who-ask { margin: 8px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff8e1; font-size: 14.5px; line-height: 1.45; }
 .who-ask b { display: block; }
 .who-ask .who-err { display: block; margin: 6px 0 0; }
+/* v0.27.66 (Sean, Oct 21): calmer buttons on the three event forms (Escalation, Reception Center, Daily Shelter
+   Report). Centered and sized to their words, still a comfortable tap (44px+), instead of full-width bars.
+   Pop-up buttons and Reception's "Save and start the next intake" keep their full width. */
+:is(body[data-ask-form], body.sr-page) .page-wrap :is(.primary-btn, .esc-btn):not(.rec-save):not(#rec-start-btn):not([hidden]):not(.f-modal *) {
+  display: block; flex: 0 0 auto; width: auto; min-width: 0; max-width: 100%;
+  margin-left: auto; margin-right: auto; padding: 11px 24px; min-height: 44px; font-size: 16px;
+}
+:is(body[data-ask-form], body.sr-page) .page-wrap .esc-buttons { justify-content: center; }
+:is(body[data-ask-form], body.sr-page) .page-wrap .add-box { align-items: center; }
+:is(body[data-ask-form], body.sr-page) .page-wrap .add-box > :not(button) { align-self: stretch; }
+:is(body[data-ask-form], body.sr-page) .page-wrap .ev-photos .esc-btn { flex: 0 0 auto; }

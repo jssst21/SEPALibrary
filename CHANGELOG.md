@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.27.66 (Oct 21, 2026)
+- CALMER BUTTONS ON THE THREE EVENT FORMS (Sean: full-width buttons were visual clutter; smaller, centered, still legible). Escalation, Reception Center and Daily Shelter Report: buttons such as + Add a responder, + Add a lead, Add to the log, See all entries, Add photo, Share the Scene Summary and Send HQ the summary link are centered and sized to their words (16px text, at least 44px tall), same colours.
+  - Kept full width: buttons inside pop-ups, and Reception's "Save and start the next intake" (the main repeated action).
+  - Checked every screen of the three forms at phone width: nothing scrolls sideways, no page errors.
+- Website only (css/style.css). app/sw.js CACHE is now sepa-tools-33
+- Version number is now ?v=0.27.66 on every page and the homepage footer reads v0.27.66
+
+## v0.27.65 (Oct 21, 2026)
+- JOIN POP-UP: REQUEST ACCESS FIRST (Sean: people saw the log in first, did not know Request access was below, and went to find the lead to say they do not know the password, which defeats the remote request). Escalation, Reception Center and Daily Shelter Report (one shared pop-up, js/current-ops.js):
+  - Top: "Joining to help? Ask to be let in", Your name, Your phone (optional; not on the Shelter Report), Request access.
+  - Below: "or", "Lead or HQ? Log in to open it now", User name, Password, Log in and open. The name typed at the top is used for both.
+  - Checked on iPhone SE, iPhone 15, Pixel 7, Galaxy S8, iPad and a laptop (Chrome device emulation): Request access is on screen without scrolling on all of them, it sends, and Log in and open still works.
+- No Google script change.
+- app/sw.js CACHE is now sepa-tools-32
+- Version number is now ?v=0.27.65 on every page and the homepage footer reads v0.27.65
+
 ## v0.27.64 (Oct 21, 2026) - Google script only
 - HQ AND LEAD LOG IN WORK ON EVERY RECEPTION CENTER AGAIN (Sean: "This center needs one of its phones to check in first" blocked even the HQ log in). Some centers had no join code stored (started before v0.27.49, or all their phones removed), so Join > log in, Let in and the summary's join link had nothing to hand out. The script now makes a join code for such a center the first time it is needed; phones already on the center keep theirs.
 - No website change: paste the script and deploy a New version.

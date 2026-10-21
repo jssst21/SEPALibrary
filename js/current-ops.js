@@ -192,17 +192,20 @@ var SEPACurrentOps = (function () {
     var nameNow = lsGet('sepaAskName') || lsGet('sepaRecName') || '';
     m.innerHTML = '<div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="co-join-t">' +
       '<button type="button" class="f-modal-x" aria-label="Close">&times;</button><h2 id="co-join-t">' + esc(it.title) + '</h2>' +
+      // v0.27.65 (Sean, Oct 20): Request access FIRST, the lead / HQ log in below it. People without the password saw the
+      // log in first and went looking for the lead instead of asking from where they were. Same on all three forms.
       '<div class="co-j-body"><p class="f-modal-note">This phone isn\'t on this ' + W.what + ' yet.</p>' +
+      '<p class="co-j-head">Joining to help? Ask to be let in</p>' +
       '<label class="field">Your name <input class="co-j-name" autocomplete="name" maxlength="60" value="' + esc(nameNow) + '"></label>' +
-      '<p class="co-j-head">Lead or HQ? Log in to open it now</p>' +
-      '<label class="field">User name <input class="co-j-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>' +
-      '<label class="field">Password <input class="co-j-pass" type="password" autocomplete="current-password"></label>' +
-      '<button type="button" class="primary-btn co-j-login">Log in and open</button>' +
-      '<p class="co-j-or">or</p>' +
       (form !== 'sh' ? '<label class="field">Your phone (optional) <input class="co-j-phone" type="tel" autocomplete="tel" maxlength="30"></label>' : '') +
       '<button type="button" class="primary-btn co-j-ask">Request access</button>' +
       '<p class="esc-group-how">' + (form === 'sh' ? 'A supervisor of this shelter or HQ lets you in.' : 'The lead or HQ lets you in.') + ' This phone remembers the ' + W.what + ' after that.</p>' +
-      '<p class="form-error co-j-err" hidden></p></div>' +
+      '<p class="form-error co-j-err" hidden></p>' +
+      '<p class="co-j-or">or</p>' +
+      '<p class="co-j-head">Lead or HQ? Log in to open it now</p>' +
+      '<label class="field">User name <input class="co-j-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>' +
+      '<label class="field">Password <input class="co-j-pass" type="password" autocomplete="current-password"></label>' +
+      '<button type="button" class="primary-btn co-j-login">Log in and open</button></div>' +
       '<div class="co-j-wait" hidden><p class="esc-status esc-warn co-j-msg"></p><button type="button" class="esc-btn co-j-cancel">Cancel my request</button></div></div>';
     document.body.appendChild(m);
     var q = function (c) { return m.querySelector(c); };
@@ -241,7 +244,7 @@ var SEPACurrentOps = (function () {
     };
     var p0 = pending(form);
     if (p0 && p0.id === it.id && p0.rid) waiting(p0);
-    else setTimeout(function () { (q('.co-j-name').value ? q('.co-j-user') : q('.co-j-name')).focus(); }, 50);
+    else setTimeout(function () { if (!q('.co-j-name').value) q('.co-j-name').focus(); }, 50);     // v0.27.65: no jump to the log in
   }
 
   function show(form, before, orText) {
