@@ -404,7 +404,7 @@
     }
     var leadsNow = 0;     // v0.27.61: how many leads, for "You are the only lead" on Log out as Lead
     function drawRoster(list) {
-      SEPAAskLead.roster($('esc-roster'), list, removeOne, 'worksheet', { makeLead: makeLead });
+      SEPAAskLead.roster($('esc-roster'), list, removeOne, 'worksheet', { makeLead: makeLead, hq: !!token() });     // v0.27.62: HQ can remove any lead
       var n = (list || []).filter(function (x) { return x.role === 'lead' || x.role === 'co-lead'; }).length;
       if (n !== leadsNow) { leadsNow = n; whoLine(); }
     }

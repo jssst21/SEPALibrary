@@ -113,7 +113,7 @@ var SEPAAskLead = (function () {
     if (!list.length) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false;
     box.innerHTML = '<p class="rost-head">Who is on this ' + what + ' (' + list.length + ')</p>' + list.map(function (x) {
-      var nm = x.name || 'Name not given', canRm = !isLead(x) || (x.role === 'co-lead' && opt.hq), canLead = !isLead(x) && opt.makeLead;
+      var nm = x.name || 'Name not given', canRm = !isLead(x) || opt.hq, canLead = !isLead(x) && opt.makeLead;
       return '<div class="rost-row" data-dev="' + esc(x.dev) + '"><p class="rost-who"><strong>' + esc(nm) + '</strong>' + (isLead(x) ? ' (lead)' : '') +
         (x.lastMs ? ' <span class="ask-req-when">seen ' + ago(x.lastMs) + '</span>' : '') + '</p>' +
         ((canLead || canRm) ? '<span class="rost-acts">' + (canLead ? '<button type="button" class="esc-btn rost-rm rost-mk">Make lead</button>' : '') +
@@ -123,7 +123,7 @@ var SEPAAskLead = (function () {
         (canRm ? '<p class="rost-confirm rost-confirm-rm" hidden>Remove ' + esc(nm) + (isLead(x) ? ' (a lead)' : '') + '? What they entered stays here. ' +
           '<button type="button" class="esc-btn esc-danger rost-yes">Yes, remove</button> <button type="button" class="link-btn rost-no">Cancel</button></p>' : '') + '</div>';
     }).join('') + '<p class="rost-err form-error" hidden></p><p class="esc-group-how">' +
-      (opt.makeLead ? 'Make lead gives someone the lead\'s buttons too, for example when you are leaving the scene. Nobody stops being a lead. ' : '') +
+      (opt.makeLead ? 'Make lead gives someone the lead\'s buttons too, for example when you are leaving the scene. ' : '') +
       'Remove takes someone off this ' + what + ', for example to free them to start a second one. What they already entered stays here. Their phone leaves within about a minute.' +
       (opt.hq ? '' : ' Only HQ can remove a lead.') + '</p>';
     Array.prototype.forEach.call(box.querySelectorAll('.rost-row'), function (row) {

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.27.62 (Oct 21, 2026)
+- HQ CAN REMOVE ANY LEAD, THE ONE WHO STARTED IT TOO (Sean: otherwise the original lead keeps getting requests to join for days or weeks). Replaces the Oct 15 rule "the lead who started it can never be removed". NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - Escalation and Reception, in "Who is on this ..." on any screen where HQ is logged in: Remove now shows on every lead, including the original one. It asks first, as before.
+  - The removed phone leaves the event within about a minute (back to Current Operations). What they entered stays. A Reception lead who started the center also loses the lead key's powers on the Google side straight away.
+  - Leads still cannot remove other leads.
+- app/sw.js CACHE is now sepa-tools-30
+- Version number is now ?v=0.27.62 on every page and the homepage footer reads v0.27.62
+
 ## v0.27.61 (Oct 21, 2026)
 - "LOGGED IN AS HQ / LEAD" WITH LOG OUT (Sean: he could not tell whether he was logged in as HQ or as Lead, and moves between the two). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - Escalation and Reception, on both screens: under the place name in the pinned bar, "Logged in as HQ" (yellow) and/or "Logged in as Lead" (navy; "and as Lead" when both), each with its own Log out. A phone that is neither shows "On this worksheet / reception center as a responder".

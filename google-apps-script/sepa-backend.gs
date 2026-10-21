@@ -1284,7 +1284,12 @@ function recCenter_(id, key, which) {
 function recLeadAuth_(id, d) {
   var c = recCenter_(id, escKey_(d.leadKey), 'lead');
   if (!c) return null;
-  if (c.ok) return { c: c, ok: true, who: escText_(c.r[4]) };
+  if (c.ok) {
+    // v0.27.62: the lead who started the center, if HQ removed them, is not a lead any more (even with the lead key)
+    var gone = rosterDev_(d.me) && rosterGet_('rec', id).some(function (x) { return x.dev === rosterDev_(d.me) && x.removed; });
+    if (!gone) return { c: c, ok: true, who: escText_(c.r[4]) };
+    return { c: c, ok: false };
+  }
   var dev = rosterDev_(d.me), key = escKey_(d.key);
   if (dev && key && escText_(c.r[7]) === recMark_('join', id, key)) {
     var me = rosterGet_('rec', id).filter(function (x) { return x.dev === dev && !x.removed && x.role === 'co-lead'; })[0];
@@ -2184,8 +2189,9 @@ function rosterRemove_(d) {
   var me = null;
   rosterRows_(form, id).forEach(function (x) { if (x.dev === dev) me = x; });
   if (!me) return { ok: false, error: 'That person is not on this event any more.' };
-  if (me.role === 'lead') return { ok: false, error: 'The lead who started this cannot be removed.' };
-  if (me.role === 'co-lead' && by !== 'HQ') return { ok: false, error: 'Only HQ can remove a lead.' };
+  // v0.27.62 (Sean, Oct 20): HQ can remove ANY lead, the one who started it too (otherwise that phone keeps getting
+  // requests for days or weeks). Leads still cannot remove leads.
+  if ((me.role === 'lead' || me.role === 'co-lead') && by !== 'HQ') return { ok: false, error: 'Only HQ can remove a lead.' };
   rosterTab_().getRange(me.row, 8, 1, 2).setValues([['YES', by + ' ' + stamp_()]]);
   rosterForget_(form, id);
   return { ok: true, roster: rosterPublic_(form, id) };
@@ -2193,7 +2199,7 @@ function rosterRemove_(d) {
 /* ADD A LEAD (website v0.27.24). A lead or HQ makes someone already on the event a lead too ("co-lead"
    in the Role column). Their phone gets the lead's buttons the next time it checks in. Nobody stops
    being a lead: two or more can work at once, or the first lead can hand over and leave the scene.
-   Only HQ can take an added lead off (Remove); the lead who started the event cannot be removed.
+   Only HQ can take a lead off (Remove), since v0.27.62 the lead who started the event too.
    d.dev = the person being made a lead. Who is asking: Escalation, the worksheet's edit key plus the
    asking phone's code (d.me), which must be a lead; Reception, see recLeadAuth_. Or HQ, logged in. */
 function makeLead_(d) {

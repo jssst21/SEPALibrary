@@ -206,7 +206,7 @@
     // the join key plus its own phone code (see recLeadAuth_ in the Google script).
     var coLead = !leadKey && lsGet('sepaRecCoLead:' + id) === '1';
     var lead = !!leadKey || coLead, me = lsGet('sepaRecName') || '';
-    function auth(o) { o.leadKey = leadKey; o.key = key; o.me = dev(); if (!lead && token()) o.token = token(); return o; }     // v0.27.60: HQ on this phone answers requests too
+    function auth(o) { o.leadKey = leadKey; o.key = key; o.me = dev(); if (token()) o.token = token(); return o; }     // v0.27.60/62: HQ on this phone (lead or not)     // v0.27.60: HQ on this phone answers requests too
     var form = $('rec-form');
     $('rec-work').hidden = false;
     $('rec-lead-tools').hidden = !(lead || token()); $('rec-lead-tools2').hidden = !lead;     // v0.27.60: HQ sees requests and who is here
@@ -438,7 +438,7 @@
         call(auth({ action: 'makeLead', form: 'rec', id: id, dev: d })).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
       };
       var drawRoster = function (list) {
-        SEPAAskLead.roster($('rec-roster'), list, removeOne, 'reception center', { makeLead: makeLead });
+        SEPAAskLead.roster($('rec-roster'), list, removeOne, 'reception center', { makeLead: makeLead, hq: !!token() });     // v0.27.62: HQ can remove any lead
         var n = (list || []).filter(function (x) { return x.role === 'lead' || x.role === 'co-lead'; }).length;
         if (n !== leadsNow) { leadsNow = n; whoLine(); }
       };
