@@ -196,6 +196,7 @@ function doPost(e) {
       recAsks: recAsks_,
       rosterRemove: rosterRemove_,
       makeLead: makeLead_,
+      stepDown: stepDown_,
       escSync: escSync_,
       escLogin: escLogin_,
       escGet: escGet_,
@@ -2212,6 +2213,27 @@ function makeLead_(d) {
   rosterRows_(form, id).forEach(function (x) { if (x.dev === dev) me = x; });
   if (!me || me.removed) return { ok: false, error: 'That person is not on this event any more.' };
   if (me.role !== 'lead' && me.role !== 'co-lead') rosterTab_().getRange(me.row, 5).setValue('co-lead');
+  rosterForget_(form, id);
+  return { ok: true, roster: rosterPublic_(form, id) };
+}
+/* LOG OUT AS LEAD (website v0.27.61, Sean Oct 21: option A). This phone stays on the event as a responder
+   (it keeps typing and the Running log) but is no longer a lead. It proves it is on the event with the event's
+   code (Escalation: the worksheet key; Reception: the join key). Logging in as lead again makes it a lead again. */
+function stepDown_(d) {
+  var form = askForm_(d.form), id = escId_(d.id), dev = rosterDev_(d.dev);
+  if (!form || form === 'sh' || !id || !dev) return { ok: false, error: 'Bad request.' };
+  var inOk = false;
+  if (form === 'esc') {
+    var sh = escTab_(), row = escFindRow_(sh, id);
+    inOk = !!row && escKeyOk_(escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]).meta, id, escKey_(d.key));
+  } else {
+    var c = recCenter_(id, escKey_(d.key), 'join');
+    inOk = !!(c && c.ok);
+  }
+  if (!inOk) return { ok: false, error: 'This phone is not on that event.' };
+  var me = null;
+  rosterRows_(form, id).forEach(function (x) { if (x.dev === dev) me = x; });
+  if (me && !me.removed && me.role) rosterTab_().getRange(me.row, 5).setValue('');
   rosterForget_(form, id);
   return { ok: true, roster: rosterPublic_(form, id) };
 }

@@ -17,7 +17,35 @@ var SEPAViewBar = (function () {
     chev: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>'
   };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  var bar = null, opts = null;
+  var bar = null, opts = null, who = null;
+  // v0.27.61 (Sean: he could not tell whether he was logged in as HQ or as Lead). Under the place name:
+  // "Logged in as HQ" (yellow) and/or "Logged in as Lead" (navy), each with its own Log out; a responder sees
+  // "On this worksheet as a responder". w = { hq, lead, what, onlyLead, onHQOut(), onLeadOut(fail) }.
+  function whoHtml() {
+    if (!who) return '';
+    var h = '';
+    if (who.hq) h += '<span class="who-pill who-hq">Logged in as HQ</span>';
+    if (who.lead) h += '<span class="who-pill who-lead">' + (who.hq ? 'and as Lead' : 'Logged in as Lead') + '</span>';
+    if (!who.hq && !who.lead) h += '<span class="who-pill who-resp">On this ' + esc(who.what || 'event') + ' as a responder</span>';
+    if (who.hq) h += '<button type="button" class="link-btn who-out-hq">Log out as HQ</button>';
+    if (who.lead) h += '<button type="button" class="link-btn who-out-lead">Log out as Lead</button>';
+    return '<div class="who-line">' + h + '</div><div class="who-ask" hidden><b>You are the only lead on this ' + esc(who.what || 'event') + '.</b>' +
+      ' Log out as Lead anyway? HQ can still manage it, and you can log in as lead again later.<span class="form-error who-err" hidden></span>' +
+      '<div class="vt-new-btns"><button type="button" class="who-yes">Yes, log out as Lead</button><button type="button" class="who-no">Cancel</button></div></div>';     // own classes: .vt-yes belongs to "Starting a new scene?"
+  }
+  function wireWho() {
+    if (!who || !bar) return;
+    var line = bar.querySelector('.who-line'), ask = bar.querySelector('.who-ask'), err = bar.querySelector('.who-err');
+    function fail(msg) { err.textContent = msg || 'That did not go through. Please try again.'; err.hidden = false; line.hidden = true; ask.hidden = false; bar.querySelector('.who-yes').disabled = false; }
+    var oh = bar.querySelector('.who-out-hq'); if (oh) oh.addEventListener('click', function () { this.disabled = true; who.onHQOut(); });
+    var ol = bar.querySelector('.who-out-lead'); if (ol) ol.addEventListener('click', function () {
+      if (who.onlyLead) { line.hidden = true; ask.hidden = false; err.hidden = true; return; }
+      this.disabled = true; who.onLeadOut(function (m) { ol.disabled = false; fail(m); });
+    });
+    bar.querySelector('.who-no').addEventListener('click', function () { ask.hidden = true; line.hidden = false; });
+    bar.querySelector('.who-yes').addEventListener('click', function () { this.disabled = true; who.onLeadOut(fail); });
+  }
+  function setWho(w) { who = w; if (opts) show(opts); }
 
   // o = { on: 'a' | 'b',                       which side of the switch this page is
   //       a: { label, href }, b: { label, href, disabled },   the two views (a = Intake / Worksheet, b = Summary);
@@ -46,9 +74,10 @@ var SEPAViewBar = (function () {
       (A.hqHref ? '<a class="vt-hq" href="' + esc(A.hqHref) + '">Switch to HQ view</a>' : '') + '</div>' +
       '<div class="vt-new-ask" hidden><b>' + esc(A.askTitle) + '</b>' + esc(A.askText) +
       '<div class="vt-new-btns"><button type="button" class="vt-yes">' + esc(A.yesLabel) + '</button><button type="button" class="vt-no">Cancel</button></div></div>' : '';
-    if (!sw && !ch && !acts) { bar.hidden = true; return; }
+    if (!sw && !ch && !acts && !who) { bar.hidden = true; return; }
     bar.hidden = false;
-    bar.innerHTML = sw + '<div class="vt-center"><b class="vt-name">' + esc(o.name || '') + '</b>' + ch + '</div>' + acts;
+    bar.innerHTML = sw + '<div class="vt-center"><b class="vt-name">' + esc(o.name || '') + '</b>' + ch + '</div>' + whoHtml() + acts;
+    wireWho();
     if (o.change) bar.querySelector('.vt-change').addEventListener('click', function () { openChange(o.change); });
     if (A) {
       var row = bar.querySelector('.vt-acts'), ask = bar.querySelector('.vt-new-ask');
@@ -83,5 +112,5 @@ var SEPAViewBar = (function () {
       }).join('');
     });
   }
-  return { show: show, setName: setName };
+  return { show: show, setName: setName, setWho: setWho };
 })();

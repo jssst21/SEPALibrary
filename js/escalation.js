@@ -396,19 +396,24 @@
     $('esc-myname').value = lsGet('sepaEscName') || lsGet('sepaAskName') || '';
     $('esc-myname').addEventListener('change', function () { lsSet('sepaEscName', this.value.trim()); sync(); });
     function removeOne(d, done) {
-      call({ action: 'rosterRemove', form: 'esc', id: id, key: key, dev: d, token: hq ? token() : '' }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
+      call({ action: 'rosterRemove', form: 'esc', id: id, key: key, dev: d, token: token() }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
     }
     // ---- ADD A LEAD (v0.27.24): a lead makes someone already on this worksheet a lead too.
     function makeLead(d, done) {
-      call({ action: 'makeLead', form: 'esc', id: id, key: key, dev: d, me: myDev(), token: hq ? token() : '' }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
+      call({ action: 'makeLead', form: 'esc', id: id, key: key, dev: d, me: myDev(), token: token() }).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
     }
-    function drawRoster(list) { SEPAAskLead.roster($('esc-roster'), list, removeOne, 'worksheet', { makeLead: makeLead }); }
+    var leadsNow = 0;     // v0.27.61: how many leads, for "You are the only lead" on Log out as Lead
+    function drawRoster(list) {
+      SEPAAskLead.roster($('esc-roster'), list, removeOne, 'worksheet', { makeLead: makeLead });
+      var n = (list || []).filter(function (x) { return x.role === 'lead' || x.role === 'co-lead'; }).length;
+      if (n !== leadsNow) { leadsNow = n; whoLine(); }
+    }
     // v0.27.59: Add a responder / Add a lead, under who is on this worksheet, for everyone on it (js/ask-lead.js addBox)
     var adds = typeof SEPAAskLead !== 'undefined' && SEPAAskLead.addBox ? SEPAAskLead.addBox($('esc-adds'), { form: 'esc', id: id, what: 'worksheet',
       place: function () { return cur('incident_addresses').split('\n')[0]; },
-      canAdd: function () { return lead || hq; },
+      canAdd: function () { return lead || hq || !!token(); },     // v0.27.61: any phone with the HQ login
       joinLink: function () { return (hq && !hqJoinKey) || (!hq && !key) ? '' : joinUrl(); },
-      pick: function () { SEPAAskLead.leadPicker(makeLead, drawRoster, hq ? { form: 'esc', id: id, go: function () { location.href = pageLink('id=' + id); } } : null); },
+      pick: function () { SEPAAskLead.leadPicker(makeLead, drawRoster, !lead && token() ? { form: 'esc', id: id, go: function () { location.href = pageLink('id=' + id); } } : null); },
       beforeSend: function () { claim = true; sync(); },       // make sure Google knows this worksheet before the link goes out
       becameLead: function () { becomeLead(); } }) : null;
     // A lead or HQ made THIS phone a lead: show the lead's buttons straight away (no reload needed here).
@@ -416,7 +421,7 @@
       lead = true; coLead = true;
       lsSet('sepaEscLead:' + id, '1'); lsSet('sepaEscCoLead:' + id, '1');
       if (adds) adds.refresh();
-      leadOnly(); addHow(); showBar();
+      leadOnly(); addHow(); showBar(); whoLine();
       var cn = $('esc-cleared-note');
       cn.textContent = 'You are now a lead on this worksheet. You can add responders and leads, and share the Scene Summary.';
       cn.className = 'esc-status esc-cleared-note esc-ok'; cn.hidden = false;
@@ -484,6 +489,21 @@
         actions: hq ? null : newSceneActions(lead) });
     }
     showBar();
+    // v0.27.61: "Logged in as HQ / Lead" with Log out, in the pinned bar
+    function whoLine() {
+      if (typeof SEPAViewBar === 'undefined' || !SEPAViewBar.setWho) return;
+      SEPAViewBar.setWho({ hq: !!token(), lead: lead, what: 'worksheet', onlyLead: lead && leadsNow <= 1,
+        onHQOut: function () { var t = token(); lsSet('sepaEscHQ', ''); call({ action: 'logout', token: t }).then(function () { if (hq) location.href = pageLink(''); else location.reload(); }); },
+        onLeadOut: function (fail) {
+          call({ action: 'stepDown', form: 'esc', id: id, key: key, dev: myDev() }).then(function (r) {
+            if (!(r && r.ok)) return fail(r && r.offline ? 'No connection. Please try again.' : /unknown request/i.test((r && r.error) || '') ? 'This is not switched on yet. The site admin needs to update the Google script.' : r && r.error);
+            lsSet('sepaEscLead:' + id, ''); lsSet('sepaEscCoLead:' + id, '');
+            lsSet('sepaEscNote', 'You logged out as Lead. You are still on this worksheet as a responder.'); lsSet('sepaEscNoteOk', '1');
+            location.reload();
+          });
+        } });
+    }
+    whoLine();
     if (hq) {      // HQ typing: no name box, no "start a new worksheet" (that would be HQ's own worksheet)
       $('esc-myname').closest('label').style.display = 'none';
     }
@@ -685,7 +705,7 @@
     var myKey = goodKey(lsGet('sepaEscKey:' + id)), leadHere = !!myKey && lsGet('sepaEscLead:' + id) === '1';
     function auth(o) { o.token = token(); if (leadHere) { o.key = myKey; o.me = typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('esc', id) : ''; } return o; }
     var barShown = false, logApi = null;     // logApi: the Running log (v0.27.57)
-    var viewAdds = null, viewJoinKey = '', viewIsHQ = false;     // v0.27.59: the add box
+    var viewAdds = null, viewJoinKey = '', viewIsHQ = false, whoKey = '';     // v0.27.59: the add box
     function changeWorksheet() {     // HQ: every recent worksheet, to jump between them (v0.27.27)
       return { label: 'Change scene', title: 'Change scene', note: 'Recent scenes, most recent change first.',
         allHref: pageLink('view=list'), allLabel: 'See all worksheets on one page',
@@ -745,6 +765,21 @@
           // v0.27.59: Add a responder / Add a lead here too (only a lead or HQ can open the Scene Summary)
           if (r.joinKey) viewJoinKey = r.joinKey;
           viewIsHQ = isHQ;
+          var nLeads = (r.roster || []).filter(function (x) { return x.role === 'lead' || x.role === 'co-lead'; }).length;
+          if (typeof SEPAViewBar !== 'undefined' && SEPAViewBar.setWho && (whoKey !== isHQ + '|' + leadHere + '|' + nLeads)) {
+            whoKey = isHQ + '|' + leadHere + '|' + nLeads;      // v0.27.61: "Logged in as HQ / Lead" with Log out
+            SEPAViewBar.setWho({ hq: isHQ, lead: leadHere, what: 'worksheet', onlyLead: leadHere && nLeads <= 1,
+              onHQOut: function () { var t = token(); lsSet('sepaEscHQ', ''); call({ action: 'logout', token: t }).then(function () { location.reload(); }); },
+              onLeadOut: function (fail) {
+                call({ action: 'stepDown', form: 'esc', id: id, key: myKey, dev: SEPAAskLead.device('esc', id) }).then(function (x) {
+                  if (!(x && x.ok)) return fail(x && x.offline ? 'No connection. Please try again.' : x && x.error);
+                  lsSet('sepaEscLead:' + id, ''); lsSet('sepaEscCoLead:' + id, '');
+                  lsSet('sepaEscNote', 'You logged out as Lead. You are still on this worksheet as a responder.'); lsSet('sepaEscNoteOk', '1');
+                  location.href = isHQ ? location.href : pageLink('id=' + id);      // a responder cannot open the Scene Summary
+                  if (isHQ) location.reload();
+                });
+              } });
+          }
           if (!viewAdds && typeof SEPAAskLead !== 'undefined' && SEPAAskLead.addBox) viewAdds = SEPAAskLead.addBox($('esc-view-adds'), { form: 'esc', id: id, what: 'worksheet',
             place: function () { return String((lastData && lastData.incident_addresses) || '').split('\n')[0]; },
             canAdd: function () { return true; },

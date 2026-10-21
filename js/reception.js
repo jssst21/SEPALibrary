@@ -232,6 +232,22 @@
         goNewCenter();
       }) });
     header();
+    // v0.27.61: "Logged in as HQ / Lead" (or "as a responder") with Log out, in the pinned bar
+    var leadsNow = 0;
+    function whoLine() {
+      if (typeof SEPAViewBar === 'undefined' || !SEPAViewBar.setWho) return;
+      SEPAViewBar.setWho({ hq: !!token(), lead: lead, what: 'reception center', onlyLead: lead && leadsNow <= 1,
+        onHQOut: function () { var t = token(); lsSet('sepaEscHQ', ''); call({ action: 'logout', token: t }).then(function () { location.reload(); }); },
+        onLeadOut: function (fail) {
+          call({ action: 'stepDown', form: 'rec', id: id, key: key, dev: dev() }).then(function (r) {
+            if (!(r && r.ok)) return fail(r && r.offline ? 'No connection. Please try again.' : /unknown request/i.test((r && r.error) || '') ? 'This is not switched on yet. The site admin needs to update the Google script.' : r && r.error);
+            lsSet('sepaRecLead:' + id, ''); lsSet('sepaRecCoLead:' + id, '');
+            lsSet('sepaRecNote', 'You logged out as Lead. You are still at this reception center as a responder.');
+            location.reload();
+          });
+        } });
+    }
+    whoLine();
     if (!lead) $('rec-joined-how').textContent = 'You joined this reception center. Your intakes go to your lead and HQ. Only a lead can see the summary.';
     function leadsLine(names) { return (names.indexOf(',') >= 0 ? 'Leads: ' : 'Lead: ') + names; }
 
@@ -421,7 +437,11 @@
       var makeLead = function (d, done) {     // v0.27.24
         call(auth({ action: 'makeLead', form: 'rec', id: id, dev: d })).then(function (r) { done(r && r.ok ? r.roster : null, r && r.error); });
       };
-      var drawRoster = function (list) { SEPAAskLead.roster($('rec-roster'), list, removeOne, 'reception center', { makeLead: makeLead }); };
+      var drawRoster = function (list) {
+        SEPAAskLead.roster($('rec-roster'), list, removeOne, 'reception center', { makeLead: makeLead });
+        var n = (list || []).filter(function (x) { return x.role === 'lead' || x.role === 'co-lead'; }).length;
+        if (n !== leadsNow) { leadsNow = n; whoLine(); }
+      };
       var pollAsks = function () {
         if (!document.hidden) call(auth({ action: 'recAsks', id: id })).then(function (r) {
           if (r && r.ok) { showAsks(r.asks || []); drawRoster(r.roster || []); }
@@ -521,6 +541,7 @@
     // v0.27.60: the lead who started the center also sends the join key (Let in / No on the Summary failed without it, Sean Oct 20)
     function auth(o) { o.leadKey = leadKey; o.key = coKey || (leadKey ? goodKey(lsGet('sepaRecKey:' + id)) : ''); o.me = coKey && typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('rec', id) : ''; o.token = token(); return o; }
     var barShown = false, logApi = null;     // logApi: the Running log (v0.27.57)
+    var whoKey = '';     // v0.27.61
     var viewAdds = null, viewJoinKey = '';     // v0.27.59: the add box
     function changeCenter() {        // HQ: every open reception center, to jump between them (v0.27.27)
       return { label: 'Change center', title: 'Change center', note: 'Open reception centers, most recent activity first.',
@@ -655,6 +676,21 @@
               goNewCenter();
             }) : null });
         } else if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.setName(r.center || 'Reception center');
+        // v0.27.61: "Logged in as HQ / Lead" with Log out
+        var nLeads = (r.roster || []).filter(function (x) { return x.role === 'lead' || x.role === 'co-lead'; }).length;
+        if (typeof SEPAViewBar !== 'undefined' && SEPAViewBar.setWho && whoKey !== isHQ + '|' + asLead + '|' + nLeads) {
+          whoKey = isHQ + '|' + asLead + '|' + nLeads;
+          SEPAViewBar.setWho({ hq: isHQ, lead: asLead, what: 'reception center', onlyLead: asLead && nLeads <= 1,
+            onHQOut: function () { var t = token(); lsSet('sepaEscHQ', ''); call({ action: 'logout', token: t }).then(function () { location.reload(); }); },
+            onLeadOut: function (fail) {
+              call({ action: 'stepDown', form: 'rec', id: id, key: goodKey(lsGet('sepaRecKey:' + id)), dev: SEPAAskLead.device('rec', id) }).then(function (x) {
+                if (!(x && x.ok)) return fail(x && x.offline ? 'No connection. Please try again.' : x && x.error);
+                lsSet('sepaRecLead:' + id, ''); lsSet('sepaRecCoLead:' + id, '');
+                lsSet('sepaRecNote', 'You logged out as Lead. You are still at this reception center as a responder.');
+                location.href = pageLink('id=' + id);      // a responder cannot open the Summary
+              });
+            } });
+        }
         s.className = 'esc-status esc-ok';
         s.textContent = 'Live. ' + r.items.length + ' intake' + (r.items.length === 1 ? '' : 's') + '. Last activity ' + ago((r.now || 0) - (r.ms || 0)) + '.';
       });

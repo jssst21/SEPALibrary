@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.27.61 (Oct 21, 2026)
+- "LOGGED IN AS HQ / LEAD" WITH LOG OUT (Sean: he could not tell whether he was logged in as HQ or as Lead, and moves between the two). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - Escalation and Reception, on both screens: under the place name in the pinned bar, "Logged in as HQ" (yellow) and/or "Logged in as Lead" (navy; "and as Lead" when both), each with its own Log out. A phone that is neither shows "On this worksheet / reception center as a responder".
+  - Log out as HQ: takes the HQ log in off this phone (it is one log in for all three forms). Leads stay leads.
+  - Log out as Lead (Sean: option A): the phone stays on the event as a responder (keeps typing and the Running log) but loses the lead's buttons. The script marks it a responder so it is not made a lead again by itself. Logging in as lead again (from "+ Add a responder" / "+ Add a lead", or Make me a lead for HQ) makes it a lead again. From a summary it goes to the Worksheet / Intake screen (responders cannot open the summary). If it is the only lead, it asks first.
+- "MAKE ME A LEAD" NOW SHOWS FOR ANY PHONE WITH THE HQ LOG IN (Sean did not see it: his phone was on the worksheet as a responder, so "+ Add a lead" asked for the password). That phone also gets the lead's add buttons without a password.
+- app/sw.js CACHE is now sepa-tools-29
+- Version number is now ?v=0.27.61 on every page and the homepage footer reads v0.27.61
+
 ## v0.27.60 (Oct 20, 2026)
 - REQUESTS TO JOIN: THE BOX NOW GOES AWAY (Sean: after Let in or No the yellow box would not disappear). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - Reception Summary: the lead who started the center could not answer from the Summary (the page did not send the center's join code, so the script refused, and the same request came back every few seconds). Fixed.

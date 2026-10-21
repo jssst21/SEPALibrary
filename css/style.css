@@ -1662,8 +1662,8 @@ a.f-page:hover { border-color: var(--red); color: var(--red); }
 .vt-new-ask b { display: block; font-size: 17px; margin-bottom: 4px; }
 .vt-new-btns { display: flex; gap: 10px; margin-top: 10px; }
 .vt-new-btns button { flex: 1; min-height: 44px; border-radius: 999px; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
-.vt-yes { border: 0; background: var(--red); color: #fff; }
-.vt-no { border: 1.5px solid var(--navy); background: #fff; color: var(--navy); }
+.vt-yes, .who-yes { border: 0; background: var(--red); color: #fff; }
+.vt-no, .who-no { border: 1.5px solid var(--navy); background: #fff; color: var(--navy); }
 @media (max-width: 380px) { .vt-new, .vt-hq { font-size: 14px; } }
 @media (max-width: 380px) { .vt a { gap: 5px; padding: 0 6px; font-size: 15px; text-align: center; } .vt svg { width: 17px; height: 17px; flex: none; } .vt-change { padding: 6px 10px; font-size: 14px; } }
 
@@ -2070,3 +2070,14 @@ a.f-chip:hover { background: var(--bt); }
 #add-login .al-ask { margin-top: 18px; padding-top: 14px; border-top: 1.5px solid var(--line); }
 #add-login .al-send { width: 100%; margin-top: 6px; }
 #add-login .al-note[hidden], #add-login .al-linkbox[hidden] { display: none; }
+/* "Logged in as HQ / Lead" in the pinned bar, with Log out (v0.27.61) */
+.who-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 8px 0 0; }
+.who-line[hidden], .who-ask[hidden], .who-err[hidden] { display: none; }
+.who-pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font: 700 13px 'Public Sans', Arial, sans-serif; }
+.who-hq { background: #ffd54a; color: #2a2420; }
+.who-lead { background: var(--navy); color: #fff; }
+.who-resp { background: #eef1f6; color: #3a4250; }
+.who-line .link-btn { font-size: 14px; }
+.who-ask { margin: 8px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff8e1; font-size: 14.5px; line-height: 1.45; }
+.who-ask b { display: block; }
+.who-ask .who-err { display: block; margin: 6px 0 0; }
