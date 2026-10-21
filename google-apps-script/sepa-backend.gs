@@ -1274,7 +1274,20 @@ function recCenter_(id, key, which) {
   if (!row) return null;
   var r = csh.getRange(row, 1, 1, REC_CENTER_HEADERS.length).getValues()[0];
   var mark = escText_(which === 'lead' ? r[8] : r[7]);
-  return { row: row, r: r, ok: !!key && mark === recMark_(which, id, key) };
+  // v0.27.64: the join code kept in column 10 also opens the center (see recShareKey_)
+  var ok = !!key && (mark === recMark_(which, id, key) || (which === 'join' && escKey_(r[9]) === key));
+  return { row: row, r: r, ok: ok };
+}
+/* THE JOIN CODE HANDED TO A LEAD / HQ LOGIN ON ANOTHER DEVICE, or to someone HQ lets in (v0.27.64, Sean Oct 20:
+   "This center needs one of its phones to check in first" blocked even HQ). Centers whose phones never checked in
+   since v0.27.49 (or whose phones were all removed) have no join code in column 10: make one, once. Phones already
+   on the center keep theirs. */
+function recShareKey_(csh, crow) {
+  var cell = csh.getRange(crow, 10, 1, 1), key = escKey_(cell.getValues()[0][0]);
+  if (key) return key;
+  key = Utilities.getUuid().replace(/-/g, '').slice(0, 24);
+  cell.setValues([[key]]);
+  return key;
 }
 
 /* IS THIS PHONE A LEAD of this center? (website v0.27.24) Either the phone that started it (it holds the
@@ -1423,7 +1436,7 @@ function recGet_(d) {
   }
   var res = { ok: true, found: true, hq: hq, id: id, center: escText_(c.r[3]), lead: recLeadNames_(id, c), started: iso_(c.r[1]),
     ms: Number(escText_(c.r[6])) || 0, keepDays: REC_KEEP_DAYS, now: now, items: items, roster: rosterPublic_('rec', id), asks: askWaiting_('rec', id) };
-  if (hq) res.joinKey = escKey_(c.r[9]);     // v0.27.59: HQ can send the join link from the Summary ("+ Add a responder")
+  if (hq) res.joinKey = escKey_(c.r[9]) || recShareKey_(recCenters_(), c.row);     // v0.27.59/64: HQ can send the join link from the Summary
   return res;
 }
 
@@ -1880,7 +1893,7 @@ function askAnswer_(d) {
   } else if (form === 'rec') {
     if (hqAns) {
       var csh = recCenters_(), crow = escFindRow_(csh, id);
-      give = crow ? escKey_(csh.getRange(crow, 10, 1, 1).getValues()[0][0]) : '';
+      give = crow ? recShareKey_(csh, crow) : '';     // v0.27.64: makes one if missing
       if (!give) return { ok: false, error: 'This center needs one of its phones to check in first.' };
     } else {
       var lead = recLeadAuth_(id, d), join = recCenter_(id, escKey_(d.key), 'join');
@@ -3171,7 +3184,7 @@ function coLogin_(d) {
   if (form === 'rec') {
     var csh = recCenters_(), crow = escFindRow_(csh, id);
     if (!crow || recIsCleared_(id)) return { ok: false, gone: true, error: 'That reception center is no longer open.' };
-    var jk = escKey_(csh.getRange(crow, 10, 1, 1).getValues()[0][0]);
+    var jk = recShareKey_(csh, crow);     // v0.27.64: makes one if missing (was: "needs one of its phones to check in first")
     if (!jk) return { ok: false, error: 'This center needs one of its phones to check in first. Ask the lead to let you in instead.' };
     rosterCheckIn_('rec', id, { dev: d.dev, who: who }, 'co-lead');
     return { ok: true, key: jk, center: escText_(csh.getRange(crow, 4, 1, 1).getValues()[0][0]) };

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.64 (Oct 21, 2026) - Google script only
+- HQ AND LEAD LOG IN WORK ON EVERY RECEPTION CENTER AGAIN (Sean: "This center needs one of its phones to check in first" blocked even the HQ log in). Some centers had no join code stored (started before v0.27.49, or all their phones removed), so Join > log in, Let in and the summary's join link had nothing to hand out. The script now makes a join code for such a center the first time it is needed; phones already on the center keep theirs.
+- No website change: paste the script and deploy a New version.
+
 ## v0.27.63 (Oct 21, 2026)
 - WARNING BEFORE HQ REMOVES THE ONLY LEAD (Sean: an event should have a lead, but it does not have to be the original; HQ can always add one). When HQ taps Remove on the last lead: "NAME is the only lead. Remove anyway? You can make someone else a lead, or yourself, any time." With two or more leads the usual question shows. No Google script change.
 - app/sw.js CACHE is now sepa-tools-31
