@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.68 (Oct 23, 2026)
+- SEPA TOOLS APP: third Sandboxes tile "Practice RC Respond/Noggin" (Sean). Pink, Practice tag, bell icon like the Noggin tile; opens the RC Respond training site https://ops-train-rcview-redcross.nogginapp.io/signin (the real address inside the Outlook safe link Sean sent).
+- app/sw.js CACHE is now sepa-tools-34
+- Version number is now ?v=0.27.68 on every page and the homepage footer reads v0.27.68
+
 ## v0.27.67 (Oct 21, 2026) - Google script only, during the stress test
 - "NO CONNECTION" UNDER LOAD FIXED (stress test, Oct 21). Every request waited in one line for the script lock (up to 20 s); with many phones checking in every few seconds the line passed 20 s and requests failed (Executions showed most doPost calls failing at ~20.5 s). Reads and plain check-ins (escGet, escList, recGet, recList, recAsks, recPing, evLogGet, evPhotoGet, coOpen, askList, askStatus, testStatus, testLog, and escSync with nothing typed) no longer wait in the line; saves still do (tryLock 25 s, then "The system is busy. Please try again").
 
