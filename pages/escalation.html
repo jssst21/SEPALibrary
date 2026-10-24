@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.72">
+<link rel="stylesheet" href="../css/style.css?v=0.27.73">
 </head>
 <body class="home" data-ask-form="escalation">
 
@@ -175,10 +175,11 @@
     </div>
     <!-- End of the event: HQ clears the worksheet. It asks first. -->
     <p class="esc-clear-line" id="esc-clear-line" hidden>
-      <button type="button" class="esc-btn esc-danger" id="esc-clear">Clear this worksheet (end of event)</button>
-      <span class="esc-clear-ask" id="esc-clear-ask" hidden>Clear this worksheet? It disappears from the Scene Summary and the list, and phones on it go back to the Start screen. A copy is kept in the Google Sheet.
+      <button type="button" class="esc-btn esc-danger" id="esc-clear">Clear Worksheet and Erase All Data (end of event)</button>
+      <!-- v0.27.73 (Sean, Oct 24): clearing ERASES everything for good, like the Reception Center. Was: a copy kept in the Google Sheet. -->
+      <span class="esc-clear-ask" id="esc-clear-ask" hidden><strong>This permanently erases this worksheet</strong>: every answer, every property entry (names included), the running log and the photos. It cannot be undone. Phones on it go back to the Start screen. Download it for Excel first if you need a copy.
         <span class="esc-clear-buttons">
-          <button type="button" class="esc-btn esc-danger" id="esc-clear-yes">Yes, clear it</button>
+          <button type="button" class="esc-btn esc-danger" id="esc-clear-yes">Yes, erase it all</button>
           <button type="button" class="esc-btn" id="esc-clear-no">Cancel</button>
           <button type="button" class="esc-btn rec-dl-solid" id="esc-clear-dl">Download for Excel first</button>
         </span>
@@ -229,14 +230,15 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.72"></script>
-<script src="../js/test-log.js?v=0.27.72"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
-<script src="../js/ask-lead.js?v=0.27.72"></script>
-<script src="../js/phone-format.js?v=0.27.72"></script>
-<script src="../js/view-bar.js?v=0.27.72"></script>
-<script src="../js/current-ops.js?v=0.27.72"></script>
-<script src="../js/event-log.js?v=0.27.72"></script>     <!-- v0.27.57: the Running log -->
-<script src="../js/escalation.js?v=0.27.72"></script>
-<script src="../js/close-tab.js?v=0.27.72"></script>
+<script src="../js/config.js?v=0.27.73"></script>
+<script src="../js/test-log.js?v=0.27.73"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
+<script src="../js/ask-lead.js?v=0.27.73"></script>
+<script src="../js/phone-format.js?v=0.27.73"></script>
+<script src="../js/view-bar.js?v=0.27.73"></script>
+<script src="../js/current-ops.js?v=0.27.73"></script>
+<script src="../js/event-log.js?v=0.27.73"></script>     <!-- v0.27.57: the Running log -->
+<script src="../js/properties.js?v=0.27.73"></script>     <!-- v0.27.73: Add Property / See Summary (Section 3) -->
+<script src="../js/escalation.js?v=0.27.73"></script>
+<script src="../js/close-tab.js?v=0.27.73"></script>
 </body>
 </html>

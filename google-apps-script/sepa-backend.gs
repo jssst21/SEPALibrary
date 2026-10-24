@@ -169,7 +169,7 @@ function doGet(e) {
 // many phones checking in every few seconds the line grew past 20 s and phones saw "No connection". Requests that
 // only READ (and the regular check-ins that send nothing new) now skip the line; anything that saves still waits.
 var NO_LOCK_ACTIONS = { escGet: 1, escList: 1, recGet: 1, recList: 1, recAsks: 1, recPing: 1, evLogGet: 1, evPhotoGet: 1,
-  coOpen: 1, askList: 1, askStatus: 1, testStatus: 1, testLog: 1,
+  coOpen: 1, askList: 1, askStatus: 1, testStatus: 1, testLog: 1, paGet: 1,
   evPhotoAdd: 1 };     // v0.27.69: a photo upload (slow, to Drive) never holds up saving data
 function needsLock_(d) {
   if (NO_LOCK_ACTIONS[d.action]) return false;
@@ -271,6 +271,10 @@ function doPost(e) {
       sciaSubmit: sciaSubmit_,
       coOpen: coOpen_,
       coLogin: coLogin_,
+      paGet: paGet_,           // v0.27.73: Add Property on the Escalation worksheet
+      paAdd: paAdd_,
+      paEdit: paEdit_,
+      paDelete: paDelete_,
       testStatus: testStatus_,
       testLog: testLog_,
       testSurvey: testSurvey_
@@ -1166,12 +1170,18 @@ function escClear_(d) {
   escClearRow_(sh, row, id, stamp_());
   return { ok: true, cleared: true };
 }
-// Moves one worksheet to "Escalations cleared" (how = what goes in the Cleared column).
+// v0.27.73 (Sean, Oct 24: same as the Reception Center): clearing a worksheet ERASES it for good: the worksheet,
+// its property entries (Add Property), its running log and photos. Only a one-line record (code, start time,
+// when cleared) stays in "Escalations cleared", so phones still on it know it was cleared. (Before v0.27.73 a full
+// copy of the worksheet was kept there; those older rows stay until someone deletes them.)
 function escClearRow_(sh, row, id, how) {
-  var r = sh.getRange(row, 1, 1, ESC_HEADERS.length).getValues()[0].map(function (v) { return v instanceof Date ? stamp_(v) : safe_(escText_(v)); });
-  escClearedTab_().appendRow(r.concat([how]));
+  var r = sh.getRange(row, 1, 1, 2).getValues()[0];
+  var blank = []; for (var i = 2; i < ESC_HEADERS.length; i++) blank.push('');
+  escClearedTab_().appendRow([safe_(escText_(r[0])), r[1] instanceof Date ? stamp_(r[1]) : safe_(escText_(r[1]))].concat(blank).concat([how]));
   sh.deleteRow(row);
   rosterDelete_('esc', id);
+  paDeleteAll_(id);
+  evLogDelete_('esc', id);
 }
 
 /* AUTOMATIC CLEAR AFTER 5 DAYS (website v0.27.32, Sean: in case HQ forgets). A worksheet with no change
@@ -3237,6 +3247,89 @@ function coLogin_(d) {
   var r = st.getRange(srow, 1, 1, SH_HEADERS.length).getValues()[0], code = escText_(r[7]);
   shAddSup_({ id: id, key: code, me: 'Lead login', name: who, self: false });     // also brings back someone who was removed
   return { ok: true, key: code, shelter: escText_(r[2]) };
+}
+
+
+/* =========================================================
+   ADD PROPERTY (website v0.27.73, Sean Oct 24, 2026). Section 3 of the Escalation worksheet: responders log
+   each property (address, unit, damage, if known: adults, children, pets, name of primary, place to go, would
+   consider a shelter). Nothing is required. One row per property in the tab "Properties". Replaces the two
+   "Initial Estimated #" grids. The page builds the dashboard (totals by damage, people, shelter) from the rows.
+   WHO: anyone on the worksheet adds and edits (each row keeps who logged / last edited it and when). Only a
+   lead (or added lead) or HQ may delete. The same address + unit twice is NOT blocked: the page flags it as a
+   possible duplicate so intake can keep going; deleting one removes the flag.
+   Erased with the worksheet when HQ clears it (escClearRow_).
+   ========================================================= */
+var PA_HEADERS = ['Worksheet ID', 'Entry ID', 'Saved', 'Logged by', 'Address', 'Unit', 'Damage', 'Adults', 'Children', 'Pets',
+  'Name of primary', 'Place to go', 'Would consider shelter', 'Edited', 'Edited by'];
+var PA_DAMAGE = ['Destroyed', 'Major', 'Uninhabitable', 'Minor', 'Affected', 'No Visible Damage'];
+var PA_YNU = ['Yes', 'No', 'Unknown'];
+function paTab_() { makeTab_('Properties', PA_HEADERS); return tab_('Properties'); }
+function paRevKey_(id) { return 'pa:' + id; }
+function paRev_(id) { var c = CacheService.getScriptCache(), v = c.get(paRevKey_(id)); if (!v) { v = String(Date.now()); c.put(paRevKey_(id), v, 21600); } return v; }
+function paTouch_(id) { var v = String(Date.now()); CacheService.getScriptCache().put(paRevKey_(id), v, 21600); return v; }
+function paAccess_(d) { d.form = 'esc'; return evAccess_(d); }
+function paNum_(v) { var n = String(v == null ? '' : v).replace(/[^0-9]/g, '').slice(0, 4); return n; }
+function paPick_(v, list) { v = String(v || ''); return list.indexOf(v) >= 0 ? v : ''; }
+function paFields_(p) {
+  p = (p && typeof p === 'object') ? p : {};
+  return [safe_(clean_(p.address, 200)), safe_(clean_(p.unit, 40)), paPick_(p.damage, PA_DAMAGE), paNum_(p.adults), paNum_(p.children),
+    paNum_(p.pets), safe_(clean_(p.primary, 120)), paPick_(p.place, PA_YNU), paPick_(p.shelter, PA_YNU)];
+}
+function paRows_(id) {
+  var sh = tab_('Properties'); if (!sh) return [];
+  var last = sh.getLastRow(); if (last < 2) return [];
+  var out = [];
+  sh.getRange(2, 1, last - 1, PA_HEADERS.length).getValues().forEach(function (r, i) {
+    if (String(r[0]) === id) out.push({ row: i + 2, r: r });
+  });
+  return out;
+}
+function paItem_(r) {
+  var t = function (v) { return v instanceof Date ? stamp_(v) : escText_(v); };
+  return { pid: t(r[1]), saved: t(r[2]), by: t(r[3]), address: t(r[4]), unit: t(r[5]), damage: t(r[6]), adults: t(r[7]), children: t(r[8]),
+    pets: t(r[9]), primary: t(r[10]), place: t(r[11]), shelter: t(r[12]), edited: t(r[13]), edited_by: t(r[14]) };
+}
+function paIsLead_(a, d) {
+  if (a.hq) return true;
+  var dev = rosterDev_(d.me || d.dev); if (!dev) return false;
+  return rosterGet_('esc', a.id).some(function (x) { return x.dev === dev && !x.removed && (x.role === 'lead' || x.role === 'co-lead'); });
+}
+function paGet_(d) {
+  var a = paAccess_(d); if (a.err) return a.err;
+  var rev = paRev_(a.id), lead = paIsLead_(a, d);
+  if (d.since && String(d.since) === rev) return { ok: true, same: true, rev: rev, canDelete: lead };
+  return { ok: true, rev: rev, canDelete: lead, items: paRows_(a.id).map(function (x) { return paItem_(x.r); }) };
+}
+function paAdd_(d) {
+  var a = paAccess_(d); if (a.err) return a.err;
+  var pid = String(d.pid || '');
+  if (!/^P[0-9a-z]{8,16}$/.test(pid)) return { ok: false, error: 'This entry could not be saved.' };
+  if (paRows_(a.id).some(function (x) { return String(x.r[1]) === pid; })) return { ok: true, dup: true, pid: pid, rev: paRev_(a.id) };
+  var now = new Date();
+  paTab_().appendRow([a.id, pid, stamp_(now), safe_(evWho_(a, d))].concat(paFields_(d.p)).concat(['', '']));
+  return { ok: true, pid: pid, rev: paTouch_(a.id) };
+}
+function paEdit_(d) {
+  var a = paAccess_(d); if (a.err) return a.err;
+  var hit = paRows_(a.id).filter(function (x) { return String(x.r[1]) === String(d.pid || ''); })[0];
+  if (!hit) return { ok: false, gone: true, error: 'That entry was deleted.' };
+  var row = paFields_(d.p).concat([stamp_(new Date()), safe_(evWho_(a, d))]);
+  tab_('Properties').getRange(hit.row, 5, 1, row.length).setValues([row]);
+  return { ok: true, rev: paTouch_(a.id) };
+}
+function paDelete_(d) {
+  var a = paAccess_(d); if (a.err) return a.err;
+  if (!paIsLead_(a, d)) return { ok: false, error: 'Only a lead or HQ can delete an entry.' };
+  var hit = paRows_(a.id).filter(function (x) { return String(x.r[1]) === String(d.pid || ''); })[0];
+  if (hit) tab_('Properties').deleteRow(hit.row);
+  return { ok: true, rev: paTouch_(a.id) };
+}
+function paDeleteAll_(id) {
+  var sh = tab_('Properties'); if (!sh) return;
+  var rows = paRows_(id);
+  for (var i = rows.length - 1; i >= 0; i--) sh.deleteRow(rows[i].row);
+  paTouch_(id);
 }
 
 

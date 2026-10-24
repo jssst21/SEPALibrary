@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.27.73 (Oct 24, 2026)
+- ESCALATION WORKSHEET REWORK, PUSH 3 OF 3 (Sean, Oct 24). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version). New file js/properties.js.
+  - SECTION 3 ADD PROPERTY / SEE SUMMARY replaces the two "Initial Estimated #" grids and their two Add'l Notes boxes. Section 3's gray box now ends with one "Damage Assessment Notes" box.
+  - "+ Add Property" opens a pop-up: Address, Unit, Damage Assessment (dropdown: Not assessed yet / Destroyed / Major / Uninhabitable / Minor / Affected / No Visible Damage), If known: Adults, Children, Pets, Name of Primary, Place to go? and Would consider a shelter? (Yes / No / Unknown; tap again to unselect). Nothing required; note at the top says so. Submit, then "Add another property" or "Return to the worksheet".
+  - New entries show at once, are kept on the phone and send by themselves when the signal is back (one-time codes, never twice). Edits need a connection.
+  - "See Summary (N properties)" opens the dashboard: tiles (properties, people, no place to go, would consider a shelter (+unknown), pets, possible duplicates), units by damage bars (Destroyed/Major/Uninhabitable in red, Not assessed yet in gray), then each entry newest first (10, then "Show all") with who logged it and when, and who last edited it.
+  - Anyone on the worksheet adds and edits. Only a lead (or added lead) or HQ sees Delete (asks first; the script checks too).
+  - Same address + unit (ignoring case, spaces, punctuation) = "Possible duplicate" on each, in yellow. Deleting one removes the flag.
+  - HQ's Scene Summary shows the same dashboard, open, and "Download for Excel" now includes the property list.
+  - Worksheets with numbers already in the old grids show them read-only under "Earlier estimates" (folded). New worksheets never show it.
+- CLEAR NOW ERASES (Sean: same as the Reception Center). HQ's button is now "Clear Worksheet and Erase All Data (end of event)" and warns it permanently erases every answer, every property entry (names included), the running log and photos, with "Download for Excel first". Only a one-line record (code, start time, when cleared) stays in "Escalations cleared"; older full copies already there stay until deleted by hand. Phones on it go back to the Start screen and drop any property entries still waiting to send. (Automatic clear after 5 days, now off for demos, would erase the same way.)
+- Google script: new tab "Properties"; paGet (no lock), paAdd, paEdit, paDelete; escClearRow_ erases instead of copying.
+- app/sw.js CACHE is now sepa-tools-39
+- Version number is now ?v=0.27.73 on every page and the homepage footer reads v0.27.73
+
 ## v0.27.72 (Oct 24, 2026)
 - ESCALATION WORKSHEET REWORK, PUSH 2 OF 3 (Sean, Oct 24). Website only, layout only: no field renamed, so worksheets already started keep everything typed (Scene Summary uses the same layout).
   - Four navy section labels, each section's questions in a gray box: Section 1 High Level Scene Overview (Date/Time, addresses, impact description, condition of residents, plus "# Still @ Recpt. Ctr. / On Scene" and "Committed to going to ARC Shelter" # People / # Families moved up from the residents grid, first column only). Section 2 Stakeholders (the table + manifest status + who provided initial damage assessment). Section 3 Damage Assessment ("Is a situation preventing ARC DDA?" then "Has ARC performed DDA..."; the two grids stay below until push 3). Section 4 Reception Center and Anticipated Needs (Reception Center Address(es), Directions/Staging, intake form status at the top; each need in its own light card, ARC Contact and Time Requested side by side, boxes shortened).

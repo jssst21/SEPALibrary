@@ -52,7 +52,12 @@
     { t: 'open' },
     { t: 'q', k: 'dda_blocked', label: 'Is a situation preventing ARC DDA?', bold: 1 },
     { t: 'q', k: 'dda_done', label: 'Has ARC performed Detailed Damage Assessment for each affected & possibly affected unit?', bold: 1 },
+    { t: 'q', k: 'dda_notes', label: 'Damage Assessment Notes', rows: 2, bold: 1 },
     { t: 'close' },
+    // v0.27.73: Add Property / See Summary (js/properties.js) replaces the two grids below. Worksheets started
+    // before then keep their grid numbers: shown read-only under "Earlier estimates", only when something is in them.
+    { t: 'props' },
+    { t: 'open', old: 1 },
     { t: 'grid', k: 'units', head: 'Initial Estimated # of Affected Units', colcap: 'Location Area', rows: [
       ['destroyed', '# Destroyed'], ['major', '# Major'], ['uninhabitable', '# Uninhabitable'], ['minor', '# Minor'],
       ['affected', '# Affected'], ['unaffected', '# No Visible Damage/ Unaffected'],
@@ -62,6 +67,7 @@
       ['adults', '# Adults'], ['children', '# Children'], ['animals', '# Household Animals'], ['total_residents', '# Total Residents'],
       ['families', '# Families/ Cases (maybe diff. than # units)']] },
     { t: 'q', k: 'residents_notes', label: "Add'l Notes", rows: 3, bold: 1 },
+    { t: 'close' },
     { t: 'sec', n: 4, label: 'Reception Center and Anticipated Needs' },
     { t: 'open' },
     { t: 'q', k: 'reception_addresses', label: 'Reception Center Address(es)', rows: 2, bold: 1 },
@@ -177,6 +183,12 @@
     }
     FORM.forEach(function (it) {
       var w, lab, i;
+      if (it.t === 'open' && it.old) {      // v0.27.73: the old grids, read-only, folded, shown only when filled in
+        var det = el('details', 'esc-old'); det.hidden = true; det.id = 'esc-old';
+        det.appendChild(el('summary', '', 'Earlier estimates (typed before Add Property, read only)'));
+        root.appendChild(det); host = det; return;
+      }
+      if (it.t === 'props') { root.appendChild(el('div', 'esc-props')).id = 'esc-props'; return; }
       if (it.t === 'open') { host = el('div', 'esc-gbox' + (it.cls ? ' ' + it.cls : '')); root.appendChild(host); return; }
       if (it.t === 'close') { host = root; return; }
       if (it.t === 'sec') {
@@ -256,7 +268,12 @@
         });
       }
       host.appendChild(w);
+      if (host.id === 'esc-old') Array.prototype.forEach.call(w.querySelectorAll('.esc-in'), function (x) { x.readOnly = true; x.tabIndex = -1; x.placeholder = ''; });
     });
+  }
+  function showOld() {     // v0.27.73: "Earlier estimates" only on worksheets that have something in the old grids
+    var det = $('esc-old'); if (!det) return;
+    det.hidden = !Array.prototype.some.call(det.querySelectorAll('.esc-in'), function (x) { return !!x.value; });
   }
 
   function fill(data, flash) {
@@ -266,6 +283,7 @@
       i.value = v;
       if (flash) { i.classList.remove('esc-flash'); void i.offsetWidth; i.classList.add('esc-flash'); }
     });
+    showOld();
   }
   function read() {
     var d = {};
@@ -370,6 +388,7 @@
     function store() { lsSet('sepaEsc:' + id, JSON.stringify(read())); lsSet('sepaEscSync:' + id, JSON.stringify(meta)); }
     function setBox(k, v) { var i = inputs[k]; i.value = v; i.classList.remove('esc-flash'); void i.offsetWidth; i.classList.add('esc-flash'); }
     function cleared() {            // HQ ended the event: forget this worksheet and start a blank one
+      if (typeof SEPAProps !== 'undefined') SEPAProps.forget(id);     // v0.27.73: and any property entries still waiting to send
       if (hq) { lsSet('sepaEsc:' + id, ''); lsSet('sepaEscSync:' + id, ''); location.href = pageLink('view=' + id); return; }
       lsSet('sepaEsc:' + id, ''); lsSet('sepaEscSync:' + id, ''); lsSet('sepaEscKey:' + id, ''); lsSet('sepaEscLead:' + id, ''); lsSet('sepaEscCoLead:' + id, '');
       var fresh = newId(); lsSet('sepaEscCurrent', fresh);
@@ -591,6 +610,9 @@
     // HQ typing into the worksheet uses the HQ login (entries marked HQ); everyone else the worksheet's code.
     if (typeof SEPAEventLog !== 'undefined') SEPAEventLog.mount({ host: $('esc-log'), photosHost: $('esc-photos'), form: 'esc', id: id, who: myName,
       auth: function (o) { if (hq) o.token = token(); else { o.key = key; o.me = myDev(); } return o; } });
+    // v0.27.73: Section 3 "Add Property" / "See Summary". Delete only for a lead or HQ (the Google script checks too).
+    if (typeof SEPAProps !== 'undefined' && $('esc-props')) SEPAProps.mount({ host: $('esc-props'), id: id, who: myName, canDelete: hq || lead || coLead,
+      auth: function (o) { if (hq) o.token = token(); else { o.key = key; o.me = myDev(); } return o; } });
 
     // ---- sharing: the live view (for HQ) and the join link (for teammates on scene)
     var viewUrl = pageLink('view=' + id);
@@ -752,7 +774,7 @@
     // (escLeadAuth_ in the Google script); HQ with the HQ login, as before.
     var myKey = goodKey(lsGet('sepaEscKey:' + id)), leadHere = !!myKey && lsGet('sepaEscLead:' + id) === '1';
     function auth(o) { o.token = token(); if (leadHere) { o.key = myKey; o.me = typeof SEPAAskLead !== 'undefined' ? SEPAAskLead.device('esc', id) : ''; } return o; }
-    var barShown = false, logApi = null;     // logApi: the Running log (v0.27.57)
+    var barShown = false, logApi = null, propsApi = null;     // logApi: the Running log (v0.27.57); propsApi: Add Property (v0.27.73)
     var viewAdds = null, viewJoinKey = '', viewIsHQ = false, whoKey = '';     // v0.27.59: the add box
     function changeWorksheet() {     // HQ: every recent worksheet, to jump between them (v0.27.27)
       return { label: 'Change scene', title: 'Change scene', note: 'Recent scenes, most recent change first.',
@@ -781,7 +803,7 @@
         if (r && r.ok) { if (isHQ) loggedIn(true); else { $('esc-login').hidden = true; root.hidden = false; } }
         if (r && r.ok && r.cleared) {
           done = true; base = null; fill({}); root.hidden = true; $('esc-clear-line').hidden = true;
-          s.className = 'esc-status'; s.textContent = 'This worksheet was cleared at the end of the event. A copy is kept in the Google Sheet.';
+          s.className = 'esc-status'; s.textContent = 'This worksheet was cleared at the end of the event. Its information was erased.';
           return;
         }
         if (r && r.ok && r.found) {
@@ -790,6 +812,8 @@
           lastData = r.data || {};
           if (!logApi && typeof SEPAEventLog !== 'undefined') logApi = SEPAEventLog.mount({ host: $('esc-view-log'), photosHost: $('esc-photos'), form: 'esc', id: id, auth: auth,
             who: function () { return lsGet('sepaEscName') || lsGet('sepaAskName') || ''; } });
+          if (!propsApi && typeof SEPAProps !== 'undefined' && $('esc-props')) propsApi = SEPAProps.mount({ host: $('esc-props'), id: id, auth: auth, open: true,
+            canDelete: isHQ || leadHere, who: function () { return isHQ && !leadHere ? '' : (lsGet('sepaEscName') || lsGet('sepaAskName') || ''); } });
           var place = String((r.data && r.data.incident_addresses) || '').split('\n')[0] || 'Escalation worksheet';
           if (!barShown && typeof SEPAViewBar !== 'undefined') {
             barShown = true;
@@ -857,6 +881,7 @@
       var place = String(lastData.incident_addresses || '').split('\n')[0];
       var lines = [q('DAT Response Lead Incident Reporting Worksheet'), q('Downloaded ' + day + ' ' + d.toTimeString().slice(0, 5)), '', 'Box,Entry'];
       Object.keys(inputs).forEach(function (k) { lines.push(q(inputs[k].getAttribute('aria-label')) + ',' + q(lastData[k] || '')); });
+      if (propsApi) lines = lines.concat(SEPAProps.csv(propsApi.rows(), q));     // v0.27.73: the properties (Section 3)
       if (logApi) lines = lines.concat(SEPAEventLog.csv(logApi.rows(), q));     // v0.27.57: the Running log below the boxes
       var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
       var a = document.createElement('a');
