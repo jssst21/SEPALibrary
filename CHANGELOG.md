@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.27.70 (Oct 24, 2026)
+- "LOOKING FOR CURRENT EVENTS" FASTER (stress test: median 4 s, sometimes 15 s). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - The Current Operations box shows the list this phone saw last time AT ONCE, with a small "Checking for changes... You can tap Open now." line. The fresh list replaces it 1 to 3 seconds later (closed events drop off, new ones appear). A Join pop-up opened in the meantime stays open.
+  - No signal: the saved list stays, with "Could not check for changes (no connection?). This is the list from your last visit."
+  - A phone that has never opened the form (or saw no events last time) still shows "Looking for current events..." as before. The saved list is kept a day at most; HQ rows only show while still logged in as HQ.
+  - Google script: the open-events list (coOpen) is kept ready for 15 seconds, so many phones opening at once read the sheet once. Starting or closing a worksheet, reception center or shelter throws the saved list away at once, so new events show right away; a changed name or lead can take up to 15 seconds.
+  - Sean's call: tapping Join on an event closed in those 1 to 3 seconds just gets the "no longer open" message; not worth guarding against.
+- app/sw.js CACHE is now sepa-tools-36
+- Version number is now ?v=0.27.70 on every page and the homepage footer reads v0.27.70
+
 ## v0.27.69 (Oct 24, 2026)
 - RUNNING LOG AFTER THE STRESS TEST (Sean: slower refresh made people think an entry had not gone through, so they sent it twice). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - Your entry shows in the log the moment you tap Add, marked "Sending...", then "Saved". With no signal it says "Not sent yet (no signal). It will send by itself." and keeps trying every 10 seconds; it is kept on the phone, so even closing the page does not lose it.

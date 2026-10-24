@@ -277,7 +277,9 @@ function doPost(e) {
     };
     var fn = actions[d.action || 'shiftSignup'];
     if (!fn) return json_({ ok: false, error: 'Unknown request.' });
-    return json_(fn(d));
+    var res = fn(d);
+    if (CO_LIST_CHANGERS[d.action]) coOpenForget_(CO_LIST_CHANGERS[d.action]);     // v0.27.70
+    return json_(res);
   } catch (err) {
     return json_({ ok: false, error: 'Something went wrong. Please try again.' });
   } finally {
@@ -3163,8 +3165,24 @@ function coTown_(addr) {
   return clean_(parts.slice(0, 2).join(', '), 60);
 }
 // PUBLIC: the open events of one form (names only).
+// v0.27.70 (Sean, Oct 24: make "Looking for current events" faster): the list is kept ready for 15 seconds, so
+// when many phones open a form at once the sheet is read once, not once per phone. Starting or closing an event
+// throws the saved list away at once (CO_LIST_CHANGERS), so a new event shows up on other phones right away.
+// Name or lead changes can take up to 15 seconds to show.
+var CO_LIST_CHANGERS = { escStart: 'esc', escClear: 'esc', recStart: 'rec', recClear: 'rec', shOpen: 'sh', shClose: 'sh' };
+function coOpenForget_(form) { try { CacheService.getScriptCache().remove('coOpen:' + form); } catch (e) {} }
 function coOpen_(d) {
-  var form = askForm_(d.form), out = [];
+  var form = askForm_(d.form);
+  if (!form) return { ok: false, error: 'Unknown form.' };
+  var c = CacheService.getScriptCache(), hit = null;
+  try { hit = c.get('coOpen:' + form); } catch (e) {}
+  if (hit) { try { var o = JSON.parse(hit); o.now = Date.now(); return o; } catch (e) {} }
+  var res = coOpenRead_(form);
+  if (res.ok) { try { c.put('coOpen:' + form, JSON.stringify(res), 15); } catch (e) {} }
+  return res;
+}
+function coOpenRead_(form) {
+  var out = [];
   if (form === 'esc') {
     var sh = escTab_(), last = sh.getLastRow();
     if (last >= 2) sh.getRange(2, 1, last - 1, 7).getValues().forEach(function (r) {

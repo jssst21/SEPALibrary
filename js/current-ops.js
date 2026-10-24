@@ -247,35 +247,34 @@ var SEPACurrentOps = (function () {
     else setTimeout(function () { if (!q('.co-j-name').value) q('.co-j-name').focus(); }, 50);     // v0.27.65: no jump to the log in
   }
 
+  // v0.27.70 (Sean, Oct 24: "Looking for current events" took 4 to 15 seconds): the list this phone saw last time
+  // shows AT ONCE, with a small "Checking for changes…" line, and the fresh list replaces it when it arrives.
+  // A phone that has never opened the form still sees the "Looking for current events…" box (shorter now: the
+  // Google script keeps the open list ready for 15 seconds). Kept a day at most; HQ rows only while logged in as HQ.
+  var CACHE_MS = 24 * 3600 * 1000;
+  function cacheGet(form) {
+    try {
+      var c = JSON.parse(lsGet('sepaCoCache:' + form) || 'null');
+      if (!c || !c.at || Date.now() - c.at > CACHE_MS) return null;
+      return { mine: c.mine || [], hq: token() ? (c.hq || []) : [], join: c.join || [] };
+    } catch (e) { return null; }
+  }
+  function cachePut(form, mine, hq, join) {
+    try { localStorage.setItem('sepaCoCache:' + form, JSON.stringify({ at: Date.now(), mine: mine, hq: hq, join: join })); } catch (e) {}
+  }
   function show(form, before, orText) {
     var W = WORDS[form]; if (!W || !before || !before.parentNode) return;
     // v0.27.49: ALWAYS shown, on every device, with the loading message first (Sean: people pushed buttons
     // during the wait). Every device asks for the open events, so there is always something to wait for.
     var box = document.createElement('section'); box.className = 'co-box'; box.setAttribute('aria-label', 'Current Operations'); box.setAttribute('aria-live', 'polite');
     var or = document.createElement('p'); or.className = 'co-or'; or.textContent = orText || 'Or start a new one'; or.hidden = true;
-    box.innerHTML = '<h2 class="co-h">Current Operations</h2><div class="co-load"><span class="co-spin" aria-hidden="true"></span>' +
-      '<span>Looking for current events…<small>This takes a few seconds.</small></span></div>';
     before.parentNode.insertBefore(box, before); before.parentNode.insertBefore(or, before);
-    function safe(p) { return Promise.resolve(p).then(function (r) { return r || []; }, function () { return []; }); }
-    Promise.all([safe(W.load[0]()), token() ? safe(W.load[1]()) : Promise.resolve([]), publicList(form)]).then(function (res) {
-      var mine = (res[0] || []).filter(Boolean), seen = {};
-      mine.forEach(function (m) { seen[m.id] = 1; });
-      var hq = (res[1] || []).filter(function (h) { return !seen[h.id]; });
-      hq.forEach(function (h) { seen[h.id] = 1; });
+    var H = '<h2 class="co-h">Current Operations</h2>';
+    function draw(mine, hq, join, checking) {
       var p0 = pending(form);
-      var join = (res[2] || []).filter(function (x) { return !seen[x.id]; }).map(function (x) {
-        if (p0 && p0.id === x.id && p0.rid) { x.waiting = true; x.sub = 'You asked to join · waiting to be let in'; }
-        return x;
-      });
-      if (res[2] === null && !mine.length && !hq.length) {
-        box.innerHTML = '<h2 class="co-h">Current Operations</h2><p class="co-how co-none">Could not check for current events (no connection?). Reload the page to try again.</p>';
-        return;
-      }
-      if (!mine.length && !hq.length && !join.length) {
-        box.innerHTML = '<h2 class="co-h">Current Operations</h2><p class="co-how co-none">No current events. Start a new one below.</p>';
-        return;
-      }
-      box.innerHTML = '<h2 class="co-h">Current Operations</h2><p class="co-how">' + esc(W.how) + '</p>' +
+      join.forEach(function (x) { if (p0 && p0.id === x.id && p0.rid) { x.waiting = true; x.sub = 'You asked to join · waiting to be let in'; } });
+      box.innerHTML = H + (checking ? '<p class="co-check"><span class="co-spin" aria-hidden="true"></span>Checking for changes… You can tap Open now.</p>' :
+        '<p class="co-how">' + esc(W.how) + '</p>') +
         mine.map(function (m) { return item(m, 'mine'); }).join('') +
         hq.map(function (h) { return item(h, 'hq'); }).join('') +
         join.map(function (j) { return item(j, 'join'); }).join('');
@@ -286,11 +285,41 @@ var SEPACurrentOps = (function () {
         });
       });
       or.hidden = false;
+    }
+    var cached = cacheGet(form), shown = !!(cached && (cached.mine.length || cached.hq.length || cached.join.length));
+    if (shown) draw(cached.mine, cached.hq, cached.join, true);
+    else box.innerHTML = H + '<div class="co-load"><span class="co-spin" aria-hidden="true"></span>' +
+      '<span>Looking for current events…<small>This takes a few seconds.</small></span></div>';
+    function safe(p) { return Promise.resolve(p).then(function (r) { return r || []; }, function () { return []; }); }
+    Promise.all([safe(W.load[0]()), token() ? safe(W.load[1]()) : Promise.resolve([]), publicList(form)]).then(function (res) {
+      var mine = (res[0] || []).filter(Boolean), seen = {};
+      mine.forEach(function (m) { seen[m.id] = 1; });
+      var hq = (res[1] || []).filter(function (h) { return !seen[h.id]; });
+      hq.forEach(function (h) { seen[h.id] = 1; });
+      var join = (res[2] || []).filter(function (x) { return !seen[x.id]; });
+      if (res[2] === null && !mine.length && !hq.length) {
+        if (shown) {      // keep the saved list; just say it could not be checked
+          var ck = box.querySelector('.co-check'); if (ck) { ck.className = 'co-how'; ck.textContent = 'Could not check for changes (no connection?). This is the list from your last visit.'; }
+          return;
+        }
+        box.innerHTML = H + '<p class="co-how co-none">Could not check for current events (no connection?). Reload the page to try again.</p>';
+        return;
+      }
+      if (res[2] !== null) cachePut(form, mine, hq, join.map(function (x) { return { id: x.id, title: x.title, sub: x.sub, lead: x.lead }; }));
+      if (!mine.length && !hq.length && !join.length) {
+        box.innerHTML = H + '<p class="co-how co-none">No current events. Start a new one below.</p>';
+        or.hidden = true;
+        return;
+      }
+      var m0 = document.getElementById('co-join');     // a Join pop-up opened from the saved list stays open
+      draw(mine, hq, join, false);
+      if (m0 && !document.getElementById('co-join')) document.body.appendChild(m0);
+      var p0 = pending(form);
       if (p0 && p0.rid && join.some(function (x) { return x.id === p0.id; })) watch(form, p0);    // opens by itself once let in
       // v0.27.59: a "request to join" link (?ask=ID, sent from "+ Add a responder" by someone without the password)
       // opens that event's Join pop-up straight away, with the cursor in "Your name" (Sean: bring things to them).
       var askId = ASK_ID;
-      var askIt = askId && join.filter(function (x) { return x.id === askId; })[0];
+      var askIt = askId && !m0 && join.filter(function (x) { return x.id === askId; })[0];
       if (askIt) { joinModal(form, askIt); var nm = document.querySelector('#co-join .co-j-name'); if (nm && !nm.value) nm.focus(); }
     });
   }
