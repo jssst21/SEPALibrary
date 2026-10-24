@@ -103,7 +103,7 @@ var SEPAAskLead = (function () {
   // remove(dev, done) must call done(newList) when removed, or done(null, 'error message').
   // opt (v0.27.24, optional): opt.makeLead(dev, done) works like remove and adds a "Make lead" button;
   // opt.hq = true when HQ is looking, which also shows Remove for added leads (only HQ may remove them).
-  var lastList = [], lastOpt = null, lastWhat = '';
+  var lastList = [], lastOpt = null, lastWhat = '', openBoxes = {};
   function isLead(x) { return x.role === 'lead' || x.role === 'co-lead'; }
   function roster(box, list, remove, what, opt) {
     if (!box) return;
@@ -113,7 +113,11 @@ var SEPAAskLead = (function () {
     if (!list.length) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false;
     var nLeads = list.filter(isLead).length;     // v0.27.63: warn HQ before removing the only lead
-    box.innerHTML = '<p class="rost-head">Who is on this ' + what + ' (' + list.length + ')</p>' + list.map(function (x) {
+    // v0.27.71 (Sean, Oct 24: there may be many names): the list folds up under its heading, which keeps the count.
+    // It starts CLOSED with an eye-catching Show button, and stays the way the person left it while the page is open.
+    var shut = !openBoxes[box.id];
+    box.innerHTML = '<button type="button" class="rost-head rost-toggle" aria-expanded="' + !shut + '"><span>Who is on this ' + what + ' (' + list.length + ')</span>' +
+      '<span class="rost-tg' + (shut ? ' rost-tg-show' : '') + '">' + (shut ? 'Show names' : 'Hide') + '</span></button><div class="rost-body"' + (shut ? ' hidden' : '') + '>' + list.map(function (x) {
       var nm = x.name || 'Name not given', canRm = !isLead(x) || opt.hq, canLead = !isLead(x) && opt.makeLead;
       return '<div class="rost-row" data-dev="' + esc(x.dev) + '"><p class="rost-who"><strong>' + esc(nm) + '</strong>' + (isLead(x) ? ' (lead)' : '') +
         (x.lastMs ? ' <span class="ask-req-when">seen ' + ago(x.lastMs) + '</span>' : '') + '</p>' +
@@ -128,7 +132,13 @@ var SEPAAskLead = (function () {
     }).join('') + '<p class="rost-err form-error" hidden></p><p class="esc-group-how">' +
       (opt.makeLead ? 'Make lead gives someone the lead\'s buttons too, for example when you are leaving the scene. ' : '') +
       'Remove takes someone off this ' + what + ', for example to free them to start a second one. What they already entered stays here. Their phone leaves within about a minute.' +
-      (opt.hq ? '' : ' Only HQ can remove a lead.') + '</p>';
+      (opt.hq ? '' : ' Only HQ can remove a lead.') + '</p></div>';
+    box.querySelector('.rost-toggle').addEventListener('click', function () {
+      openBoxes[box.id] = !openBoxes[box.id];
+      var sh = !openBoxes[box.id], tg = this.querySelector('.rost-tg');
+      this.setAttribute('aria-expanded', String(!sh)); box.querySelector('.rost-body').hidden = sh;
+      tg.textContent = sh ? 'Show names' : 'Hide'; tg.classList.toggle('rost-tg-show', sh);
+    });
     Array.prototype.forEach.call(box.querySelectorAll('.rost-row'), function (row) {
       var acts = row.querySelector('.rost-acts');
       if (!acts) return;

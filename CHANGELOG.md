@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.27.71 (Oct 24, 2026)
+- ESCALATION WORKSHEET REWORK, PUSH 1 OF 3 (Sean, Oct 24). Website only, no Google script change. Same on the Reception Center form (shared code).
+  - "Who is on this worksheet / reception center (N)" folds up. It starts CLOSED showing the count and a navy "Show names" button; "Hide" folds it again. Stays the way the person left it while the page is open.
+  - Running log box shows the flagged issues plus the 2 newest entries (was 3, with older ones scrolling inside the box). Everything older is only under "See all entries (N)".
+- Coming next: push 2 (Sections 1 to 4 labels and layout), push 3 (Add Property / See Summary replacing the two grids; needs the Google script).
+- app/sw.js CACHE is now sepa-tools-37
+- Version number is now ?v=0.27.71 on every page and the homepage footer reads v0.27.71
+
 ## v0.27.70 (Oct 24, 2026)
 - "LOOKING FOR CURRENT EVENTS" FASTER (stress test: median 4 s, sometimes 15 s). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - The Current Operations box shows the list this phone saw last time AT ONCE, with a small "Checking for changes... You can tap Open now." line. The fresh list replaces it 1 to 3 seconds later (closed events drop off, new ones appear). A Join pop-up opened in the meantime stays open.

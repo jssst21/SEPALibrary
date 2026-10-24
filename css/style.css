@@ -2100,3 +2100,9 @@ a.f-chip:hover { background: var(--bt); }
 /* v0.27.70: the saved list shows at once while the fresh one loads */
 .co-check { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 13.5px; color: var(--ink-soft); }
 .co-check .co-spin { width: 14px; height: 14px; border-width: 2px; }
+/* v0.27.71: "Who is on this ..." folds up (starts open) */
+.rost-toggle { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; padding: 0; border: 0; background: none; font: inherit; font-weight: 700; color: var(--navy); text-align: left; cursor: pointer; }
+.rost-tg { flex: none; padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.rost-body[hidden], .sr-log li[hidden] { display: none; }
+.rost-body { margin-top: 4px; }
+.rost-tg.rost-tg-show { padding: 5px 14px; border-color: var(--navy); background: var(--navy); color: #fff; font-size: 14px; }

@@ -169,18 +169,20 @@
         ul.appendChild(li);
       });
     }
-    // The box shows the flagged issues and the 3 newest entries; older ones scroll inside the box.
+    // v0.27.71 (Sean, Oct 24): the box shows the flagged issues and the 2 newest entries. Everything older is
+    // only under "See all entries" (was: 3 newest, older ones scrolled inside the box).
     function fit() {
-      var wrap = $('wrap'), ul = $('list'), lis = ul.children, more = $('more');
-      var show = ul.querySelectorAll('li.sr-flagged').length + 3;
+      var wrap = $('wrap'), ul = $('list'), more = $('more');
+      wrap.style.maxHeight = ''; wrap.classList.remove('sr-scrolls');
+      var plain = Array.prototype.filter.call(ul.children, function (li) { return !/\bsr-flagged\b|\bev-pending\b|\bsr-log-none\b/.test(li.className); });
+      // your own entries still sending count as newest
+      var keep = Math.max(0, 2 - ul.querySelectorAll('li.ev-pending:not(.sr-flagged)').length);
+      plain.forEach(function (li, i) { li.hidden = i >= keep; });
+      var rest = Math.max(0, plain.length - keep);
       $('all').hidden = !S.log.length;
-      if (lis.length <= show) { wrap.style.maxHeight = ''; wrap.classList.remove('sr-scrolls'); more.hidden = true; return; }
-      var last = lis[show - 1];
-      wrap.style.maxHeight = (last.offsetTop + last.offsetHeight + 2) + 'px';
-      wrap.classList.add('sr-scrolls');
-      var rest = lis.length - show;
-      more.textContent = rest + (rest === 1 ? ' earlier entry' : ' earlier entries') + ': scroll inside the box, or see them all below.';
-      more.hidden = false;
+      $('all').textContent = rest ? 'See all entries (' + S.log.length + ')' : 'See all entries';
+      more.textContent = rest + (rest === 1 ? ' earlier entry' : ' earlier entries') + ' under See all entries.';
+      more.hidden = !rest;
     }
     function render() {
       if (box.querySelector('.sr-log-edit')) return;      // HQ is editing an entry: do not redraw under them
