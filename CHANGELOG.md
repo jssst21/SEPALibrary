@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.74 (Oct 24, 2026)
+- ESCALATION WORKSHEET: removed the whole "For HQ" group (Share the Scene Summary, Copy the link and the explanation under them) (Sean: redundant, HQ logs in on their own). Website only. The Reception Center's "Send HQ the summary link" is unchanged.
+- app/sw.js CACHE is now sepa-tools-40
+- Version number is now ?v=0.27.74 on every page and the homepage footer reads v0.27.74
+
 ## v0.27.73 (Oct 24, 2026)
 - ESCALATION WORKSHEET REWORK, PUSH 3 OF 3 (Sean, Oct 24). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version). New file js/properties.js.
   - SECTION 3 ADD PROPERTY / SEE SUMMARY replaces the two "Initial Estimated #" grids and their two Add'l Notes boxes. Section 3's gray box now ends with one "Damage Assessment Notes" box.

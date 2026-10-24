@@ -545,7 +545,8 @@
     // v0.27.3: buttons a responder cannot use are not shown to them (Scene Summary, the HQ list).
     function leadOnly() {
       Array.prototype.forEach.call(document.querySelectorAll('[data-esc="share"]'), function (b) { b.hidden = !lead; });
-      $('esc-hq-tools').hidden = !lead; $('esc-recent-link').hidden = !lead;
+      if ($('esc-hq-tools')) $('esc-hq-tools').hidden = !lead;     // v0.27.74: the group is gone from the page
+      $('esc-recent-link').hidden = !lead;
     }
     leadOnly();
     // The pinned Worksheet | Scene Summary switch (v0.27.27): for leads, and for HQ whose phone is on this worksheet.
@@ -635,7 +636,7 @@
       else copy(viewUrl, function () { showLink(); note('The Scene Summary link was copied. Paste it into a message or email.'); });
     }
     Array.prototype.forEach.call(document.querySelectorAll('[data-esc="share"]'), function (b) { b.addEventListener('click', share); });
-    $('esc-copy').addEventListener('click', function () { claim = true; sync(); copy(viewUrl, function () { showLink(); note('Link copied.'); }); });
+    if ($('esc-copy')) $('esc-copy').addEventListener('click', function () { claim = true; sync(); copy(viewUrl, function () { showLink(); note('Link copied.'); }); });
 
     // ---- "Starting a new scene?" (v0.27.29: the red button in the bar replaces the old link at the bottom)
     function newSceneActions(isLead) {

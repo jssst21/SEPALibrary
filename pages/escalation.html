@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.73">
+<link rel="stylesheet" href="../css/style.css?v=0.27.74">
 </head>
 <body class="home" data-ask-form="escalation">
 
@@ -136,18 +136,7 @@
          Since v0.27.3 the "For HQ" group shows only on the lead's phone: responders cannot use it. -->
     <!-- v0.27.59: "For your team on scene" (Add a responder / Add a lead) moved up, under who is on this worksheet (#esc-adds). -->
     <p class="esc-group-how" id="esc-joined-how" hidden></p>
-    <div id="esc-hq-tools">
-    <p class="esc-group">For HQ</p>
-    <div class="esc-buttons">
-      <button type="button" class="primary-btn esc-share" data-esc="share">Share the Scene Summary</button>
-      <button type="button" class="esc-btn" id="esc-copy">Copy the link</button>
-    </div>
-    <p class="esc-group-how">The Scene Summary is the whole worksheet, read only, updating by itself. Leads open it with the Scene Summary switch at the top of the page. HQ opens the link with the HQ log in.</p>
-    <p class="esc-note" id="esc-share-note" role="status" hidden></p>
-    <label class="esc-link-box" id="esc-link-box" hidden><span id="esc-link-label">Scene Summary link</span>
-      <input id="esc-link" readonly>
-    </label>
-    </div>
+    <!-- v0.27.74 (Sean, Oct 24): the "For HQ" group (Share the Scene Summary / Copy the link) was removed: HQ logs in on their own. -->
   </section>
 
   <!-- Shown when a join link is opened on a phone that already has its own worksheet with entries -->
@@ -230,15 +219,15 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.73"></script>
-<script src="../js/test-log.js?v=0.27.73"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
-<script src="../js/ask-lead.js?v=0.27.73"></script>
-<script src="../js/phone-format.js?v=0.27.73"></script>
-<script src="../js/view-bar.js?v=0.27.73"></script>
-<script src="../js/current-ops.js?v=0.27.73"></script>
-<script src="../js/event-log.js?v=0.27.73"></script>     <!-- v0.27.57: the Running log -->
-<script src="../js/properties.js?v=0.27.73"></script>     <!-- v0.27.73: Add Property / See Summary (Section 3) -->
-<script src="../js/escalation.js?v=0.27.73"></script>
-<script src="../js/close-tab.js?v=0.27.73"></script>
+<script src="../js/config.js?v=0.27.74"></script>
+<script src="../js/test-log.js?v=0.27.74"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
+<script src="../js/ask-lead.js?v=0.27.74"></script>
+<script src="../js/phone-format.js?v=0.27.74"></script>
+<script src="../js/view-bar.js?v=0.27.74"></script>
+<script src="../js/current-ops.js?v=0.27.74"></script>
+<script src="../js/event-log.js?v=0.27.74"></script>     <!-- v0.27.57: the Running log -->
+<script src="../js/properties.js?v=0.27.74"></script>     <!-- v0.27.73: Add Property / See Summary (Section 3) -->
+<script src="../js/escalation.js?v=0.27.74"></script>
+<script src="../js/close-tab.js?v=0.27.74"></script>
 </body>
 </html>
