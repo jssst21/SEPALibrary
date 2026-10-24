@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.27.72 (Oct 24, 2026)
+- ESCALATION WORKSHEET REWORK, PUSH 2 OF 3 (Sean, Oct 24). Website only, layout only: no field renamed, so worksheets already started keep everything typed (Scene Summary uses the same layout).
+  - Four navy section labels, each section's questions in a gray box: Section 1 High Level Scene Overview (Date/Time, addresses, impact description, condition of residents, plus "# Still @ Recpt. Ctr. / On Scene" and "Committed to going to ARC Shelter" # People / # Families moved up from the residents grid, first column only). Section 2 Stakeholders (the table + manifest status + who provided initial damage assessment). Section 3 Damage Assessment ("Is a situation preventing ARC DDA?" then "Has ARC performed DDA..."; the two grids stay below until push 3). Section 4 Reception Center and Anticipated Needs (Reception Center Address(es), Directions/Staging, intake form status at the top; each need in its own light card, ARC Contact and Time Requested side by side, boxes shortened).
+  - Removed from the page (values stay saved in the sheet): "Who did DDA?" and "# Signed In @ Recpt. Ctr.". Columns 2 and 3 of "still on scene" / "committed to shelter" no longer show (Sean OK'd; grids go in push 3).
+- app/sw.js CACHE is now sepa-tools-38
+- Version number is now ?v=0.27.72 on every page and the homepage footer reads v0.27.72
+
 ## v0.27.71 (Oct 24, 2026)
 - ESCALATION WORKSHEET REWORK, PUSH 1 OF 3 (Sean, Oct 24). Website only, no Google script change. Same on the Reception Center form (shared code).
   - "Who is on this worksheet / reception center (N)" folds up. It starts CLOSED showing the count and a navy "Show names" button; "Hide" folds it again. Stays the way the person left it while the page is open.

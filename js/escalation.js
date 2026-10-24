@@ -24,22 +24,35 @@
 
   // ---------------------------------------------------------------- the worksheet, top to bottom
   var NEED = 'ARC Contact Name / Number', SPEC = 'Specific Need (situational Awareness)', TIME = 'Time Requested/ Expected';
+  // v0.27.72 (Sean, Oct 24): four numbered sections, each with its questions in a gray box. Field names are
+  // unchanged, so worksheets already started keep everything typed. Moved: "# still on scene" and "committed
+  // to ARC shelter" (first column of the old residents grid) up to Section 1; manifest status and who did the
+  // initial damage assessment into Section 2; reception center address, directions and intake form status to the
+  // top of Section 4. Removed from the page: "Who did DDA?" and "# Signed In @ Recpt. Ctr." (Sean). The two grids
+  // stay for now; push 3 replaces them with Add Property / See Summary.
   var FORM = [
+    { t: 'sec', n: 1, label: 'High Level Scene Overview' },
+    { t: 'open' },
     { t: 'q', k: 'date_time', label: 'Date/ Time', bold: 1 },
-    { t: 'q', k: 'incident_addresses', label: 'Disaster Incident Address(es)', rows: 2 },
+    { t: 'q', k: 'incident_addresses', label: 'Disaster Incident Address(es)', rows: 2, bold: 1 },
     { t: 'q', k: 'impact_description', label: 'High level description of impacted area and disruption of utilities', hint: '(# of bldgs, type of damage)', rows: 3, bold: 1 },
-    { t: 'q', k: 'resident_condition', label: 'High Level concern for condition of residents?', hint: '(known Injuries/ fatalities, general location)', rows: 4, bold: 1 },
+    { t: 'q', k: 'resident_condition', label: 'High Level concern for condition of residents?', hint: '(known Injuries/ fatalities, general location)', rows: 3, bold: 1 },
+    { t: 'nums', items: [['residents_still_there_1', '# Still @ Recpt. Ctr. / On Scene']] },
+    { t: 'nums', label: 'Committed to going to ARC Shelter', items: [['residents_shelter_people_1', '# People'], ['residents_shelter_families_1', '# Families']] },
+    { t: 'close' },
+    { t: 'sec', n: 2, label: 'Stakeholders' },
+    { t: 'open' },
     { t: 'people', k: 'leaders', head: 'Stakeholders on Scene', cols: ['Name/ Title', 'Phone Number'], rows: [
       ['arc_lead', 'ARC DAT Event Lead'], ['oem', 'OEM/ Emergency'], ['property', 'Property Name/ Mgr.'],
       ['municipality', 'Municipality Rep.'], ['politician', 'Politician/Community'], ['arc_other', 'ARC/ Other']] },
-    { t: 'q', k: 'reception_addresses', label: 'Reception Center Address(es)', rows: 3 },
-    { t: 'q', k: 'directions', label: 'Directions/ Staging info.', rows: 2 },
     { t: 'q', k: 'manifest_status', label: 'What is status of obtaining property manifest(s)?', hint: 'Address, Unit #, Resident names, Contact #, Animals', rows: 2, bold: 1 },
-    { t: 'q', k: 'intake_status', label: 'What is status of collecting resident info on SEPA Reception on-line Intake Form?', rows: 2, bold: 1 },
-    { t: 'q', k: 'initial_da_by', label: 'Who provided initial damage assessment? (ARC/ OEM/ Property Mgr.?)' },
-    { t: 'q', k: 'dda_done', label: 'Has ARC performed Detailed Damage Assessment for each affected & possibly affected unit?' },
-    { t: 'q', k: 'dda_blocked', label: 'Is a situation preventing ARC DDA?' },
-    { t: 'q', k: 'dda_by', label: 'Who did DDA?' },
+    { t: 'q', k: 'initial_da_by', label: 'Who provided initial damage assessment? (ARC/ OEM/ Property Mgr.?)', bold: 1 },
+    { t: 'close' },
+    { t: 'sec', n: 3, label: 'Damage Assessment' },
+    { t: 'open' },
+    { t: 'q', k: 'dda_blocked', label: 'Is a situation preventing ARC DDA?', bold: 1 },
+    { t: 'q', k: 'dda_done', label: 'Has ARC performed Detailed Damage Assessment for each affected & possibly affected unit?', bold: 1 },
+    { t: 'close' },
     { t: 'grid', k: 'units', head: 'Initial Estimated # of Affected Units', colcap: 'Location Area', rows: [
       ['destroyed', '# Destroyed'], ['major', '# Major'], ['uninhabitable', '# Uninhabitable'], ['minor', '# Minor'],
       ['affected', '# Affected'], ['unaffected', '# No Visible Damage/ Unaffected'],
@@ -47,34 +60,44 @@
     { t: 'q', k: 'units_notes', label: "Add'l Notes", rows: 3, bold: 1 },
     { t: 'grid', k: 'residents', head: 'Initial Estimate # Affected Residents', colcap: '', rows: [
       ['adults', '# Adults'], ['children', '# Children'], ['animals', '# Household Animals'], ['total_residents', '# Total Residents'],
-      ['families', '# Families/ Cases (maybe diff. than # units)'], ['signed_in', '# Signed In @ Recpt. Ctr.'],
-      ['still_there', '# Still @ Recpt. Ctr. / Still On Scene?'], ['shelter', 'Committed to going to ARC Shelter', 'split']] },
+      ['families', '# Families/ Cases (maybe diff. than # units)']] },
     { t: 'q', k: 'residents_notes', label: "Add'l Notes", rows: 3, bold: 1 },
-    { t: 'band', label: 'Response/ Reception Center/ Anticipated Shelter Event Needs' },
+    { t: 'sec', n: 4, label: 'Reception Center and Anticipated Needs' },
+    { t: 'open' },
+    { t: 'q', k: 'reception_addresses', label: 'Reception Center Address(es)', rows: 2, bold: 1 },
+    { t: 'q', k: 'directions', label: 'Directions/ Staging info.', rows: 2, bold: 1 },
+    { t: 'q', k: 'intake_status', label: 'What is status of collecting resident info on SEPA Reception on-line Intake Form?', rows: 2, bold: 1 },
+    { t: 'close' },
+    { t: 'open', cls: 'esc-need' },
     { t: 'h', label: 'Feeding (water, meals, snacks)' },
-    { t: 'q', k: 'feed_contact', label: NEED, sub: 1 },
-    { t: 'q', k: 'feed_servings', label: 'Estimated # of Servings Needed (consider client work/ school schedule)', sub: 1 },
+    { t: 'pair', items: [{ k: 'feed_contact', label: NEED }, { k: 'feed_time', label: TIME }] },
+    { t: 'q', k: 'feed_servings', label: 'Estimated # of Servings Needed (consider client work/ school schedule)' },
     { t: 'meals', items: [['feed_breakfast', 'Breakfast'], ['feed_lunch', 'Lunch'], ['feed_dinner', 'Dinner'], ['feed_snacks', 'Snacks']] },
-    { t: 'q', k: 'feed_specific', label: 'Specific Need (Adults vs Children vs Babies, Dietary Needs, Cultural Awareness)', rows: 3, sub: 1 },
-    { t: 'q', k: 'feed_time', label: TIME, sub: 1 },
-    { t: 'q', k: 'feed_delivery', label: 'On Scene Actions: Will food be delivered, or does it need to be pick up?', sub: 1 },
-    { t: 'q', k: 'feed_payment', label: 'Payment by whom and how?', sub: 1 },
-    { t: 'h', label: 'Individual Disaster Care (IDC) and Translation (DHS, DMH, DSC, ICCT, EMT to be present, Translator)' },
-    { t: 'q', k: 'idc_contact', label: NEED, sub: 1 },
-    { t: 'q', k: 'idc_specific', label: SPEC, rows: 2, sub: 1 },
-    { t: 'q', k: 'idc_time', label: TIME, rows: 2, sub: 1 },
-    { t: 'h', label: 'Other Immediate Client Needs (Translator, etc.' },
-    { t: 'q', k: 'other_contact', label: NEED, sub: 1 },
-    { t: 'q', k: 'other_specific', label: SPEC, rows: 3, sub: 1 },
+    { t: 'q', k: 'feed_specific', label: 'Specific Need (Adults vs Children vs Babies, Dietary Needs, Cultural Awareness)', rows: 2 },
+    { t: 'q', k: 'feed_delivery', label: 'On Scene Actions: Will food be delivered, or does it need to be pick up?' },
+    { t: 'q', k: 'feed_payment', label: 'Payment by whom and how?' },
+    { t: 'close' },
+    { t: 'open', cls: 'esc-need' },
+    { t: 'h', label: 'Individual Disaster Care (IDC) and Translation', hint: 'DHS, DMH, DSC, ICCT, EMT to be present, Translator' },
+    { t: 'pair', items: [{ k: 'idc_contact', label: NEED }, { k: 'idc_time', label: TIME }] },
+    { t: 'q', k: 'idc_specific', label: SPEC, rows: 2 },
+    { t: 'close' },
+    { t: 'open', cls: 'esc-need' },
+    { t: 'h', label: 'Other Immediate Client Needs (Translator, etc.)' },
+    { t: 'q', k: 'other_contact', label: NEED },
+    { t: 'q', k: 'other_specific', label: SPEC, rows: 2 },
+    { t: 'close' },
+    { t: 'open', cls: 'esc-need' },
     { t: 'h', label: 'Logistics: Supplies' },
-    { t: 'q', k: 'log_contact', label: NEED, sub: 1 },
-    { t: 'q', k: 'log_specific', label: SPEC, rows: 3, sub: 1 },
-    { t: 'q', k: 'log_time', label: TIME, sub: 1 },
+    { t: 'pair', items: [{ k: 'log_contact', label: NEED }, { k: 'log_time', label: TIME }] },
+    { t: 'q', k: 'log_specific', label: SPEC, rows: 2 },
+    { t: 'close' },
+    { t: 'open', cls: 'esc-need' },
     { t: 'h', label: 'Pet Liaison' },
-    { t: 'q', k: 'pet_contact', label: NEED, sub: 1 },
-    { t: 'q', k: 'pet_specific', label: SPEC, rows: 2, sub: 1 },
-    { t: 'q', k: 'pet_time', label: TIME, sub: 1 },
-    { t: 'q', k: 'additional_notes', label: 'Additional Notes', rows: 6, bold: 1 }
+    { t: 'pair', items: [{ k: 'pet_contact', label: NEED }, { k: 'pet_time', label: TIME }] },
+    { t: 'q', k: 'pet_specific', label: SPEC, rows: 2 },
+    { t: 'close' },
+    { t: 'q', k: 'additional_notes', label: 'Additional Notes', rows: 4, bold: 1 }
   ];
 
   // ---------------------------------------------------------------- small helpers
@@ -146,9 +169,33 @@
 
   function draw() {
     root.innerHTML = ''; inputs = {};
+    var host = root;     // v0.27.72: 'open' starts a gray box, 'close' ends it
+    function qBox(k, label, rows, aria) {
+      var q = el('div', 'esc-q');
+      var l = el('label', 'esc-label', label); l.htmlFor = 'f_' + k; q.appendChild(l);
+      q.appendChild(box(k, aria || label, { rows: rows })); return q;
+    }
     FORM.forEach(function (it) {
       var w, lab, i;
-      if (it.t === 'q') {
+      if (it.t === 'open') { host = el('div', 'esc-gbox' + (it.cls ? ' ' + it.cls : '')); root.appendChild(host); return; }
+      if (it.t === 'close') { host = root; return; }
+      if (it.t === 'sec') {
+        w = el('h2', 'esc-sec'); w.appendChild(el('span', 'esc-sec-n', 'Section ' + it.n)); w.appendChild(document.createTextNode(it.label));
+      } else if (it.t === 'pair') {
+        w = el('div', 'esc-pair');
+        it.items.forEach(function (x) { w.appendChild(qBox(x.k, x.label, x.rows, x.aria)); });
+      } else if (it.t === 'nums') {
+        w = el('div', 'esc-nums');
+        if (it.label) w.appendChild(el('span', 'esc-label esc-bold', it.label));
+        var row = el('div', 'esc-nums-row');
+        it.items.forEach(function (m) {
+          var c = el('label', 'esc-num');
+          c.appendChild(box(m[0], (it.label ? it.label + ': ' : '') + m[1], { mode: 'numeric' }));
+          c.appendChild(el('span', it.label ? '' : 'esc-bold', m[1]));
+          row.appendChild(c);
+        });
+        w.appendChild(row);
+      } else if (it.t === 'q') {
         w = el('div', 'esc-q' + (it.sub ? ' esc-sub' : ''));
         lab = el('label', 'esc-label' + (it.bold ? ' esc-bold' : ''), it.label); lab.htmlFor = 'f_' + it.k; w.appendChild(lab);
         if (it.hint) w.appendChild(el('span', 'esc-hint', it.hint));
@@ -157,6 +204,7 @@
         w = el('h2', 'esc-band', it.label);
       } else if (it.t === 'h') {
         w = el('h3', 'esc-h', it.label);
+        if (it.hint) w.appendChild(el('span', 'esc-hint', it.hint));
       } else if (it.t === 'meals') {
         w = el('div', 'esc-meals esc-sub');
         it.items.forEach(function (m) {
@@ -207,7 +255,7 @@
           w.appendChild(row);
         });
       }
-      root.appendChild(w);
+      host.appendChild(w);
     });
   }
 
