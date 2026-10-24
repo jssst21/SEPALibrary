@@ -2092,3 +2092,8 @@ a.f-chip:hover { background: var(--bt); }
 :is(body[data-ask-form], body.sr-page) .page-wrap .add-box { align-items: center; }
 :is(body[data-ask-form], body.sr-page) .page-wrap .add-box > :not(button) { align-self: stretch; }
 :is(body[data-ask-form], body.sr-page) .page-wrap .ev-photos .esc-btn { flex: 0 0 auto; }
+/* Running log: your own entry while it is being sent (v0.27.69) */
+.sr-log li.ev-pending { opacity: .85; border-left-style: dashed; }
+.sr-log li > small.ev-state { display: block; margin: 4px 0 0; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.sr-log li > small.ev-state.ev-ok { color: #1f5c38; }
+.sr-log li > small.ev-state.ev-wait { color: #8a5a00; }

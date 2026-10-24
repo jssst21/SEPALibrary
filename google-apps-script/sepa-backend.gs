@@ -169,7 +169,8 @@ function doGet(e) {
 // many phones checking in every few seconds the line grew past 20 s and phones saw "No connection". Requests that
 // only READ (and the regular check-ins that send nothing new) now skip the line; anything that saves still waits.
 var NO_LOCK_ACTIONS = { escGet: 1, escList: 1, recGet: 1, recList: 1, recAsks: 1, recPing: 1, evLogGet: 1, evPhotoGet: 1,
-  coOpen: 1, askList: 1, askStatus: 1, testStatus: 1, testLog: 1 };
+  coOpen: 1, askList: 1, askStatus: 1, testStatus: 1, testLog: 1,
+  evPhotoAdd: 1 };     // v0.27.69: a photo upload (slow, to Drive) never holds up saving data
 function needsLock_(d) {
   if (NO_LOCK_ACTIONS[d.action]) return false;
   // an Escalation check-in with nothing typed and no claim only reads (writes, if any, are tiny and rare)
@@ -2034,9 +2035,15 @@ function evLog_(d) {
   var text = clean_(d.text, 3000);
   if (!text) return { ok: false, error: 'Please type something first.' };
   var now = new Date(), who = evWho_(a, d), eid = 'L' + now.getTime().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+  // v0.27.69: the phone sends its own one-time code (cid) and resends until it hears back. Same code again = already saved.
+  var cid = String(d.cid || '');
+  if (/^L[0-9a-z]{8,16}$/.test(cid)) {
+    if (evFindRow_(a.form, a.id, cid)) return { ok: true, dup: true, id: cid, rev: evTouch_(a.form, a.id) };
+    eid = cid;
+  }
   var flag = d.flag ? safe_('Flagged by ' + who + ' ' + stamp_(now)) : '';
   evLogTab_().appendRow([a.form, a.id, eid, stamp_(now), safe_(who), safe_(text), '', flag]);
-  return { ok: true, rev: evTouch_(a.form, a.id) };
+  return { ok: true, id: eid, rev: evTouch_(a.form, a.id) };
 }
 // Flag or unflag an entry. Anyone on the event may.
 function evLogFlag_(d) {
@@ -2106,6 +2113,11 @@ function evPhotoAdd_(d) {
   var bytes = Utilities.base64Decode(data);
   if (bytes.length > FORUM_PHOTO_MAX_BYTES) return { ok: false, error: 'That photo is too large.' };
   var now = new Date(), who = evWho_(a, d), pid = 'P' + now.getTime().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+  // v0.27.69: one-time code from the phone, so a resend after a lost reply never stores the photo twice
+  if (/^P[0-9a-z]{8,16}$/.test(String(d.pid || ''))) {
+    if (evPhotoRows_(a.form, a.id).some(function (p) { return p.id === String(d.pid); })) return { ok: true, dup: true, photo: String(d.pid), rev: evTouch_(a.form, a.id) };
+    pid = String(d.pid);
+  }
   var file = evPhotoFolder_().createFile(Utilities.newBlob(bytes, 'image/jpeg', a.form + '-' + a.id + '-' + stamp_(now).replace(/\D/g, '') + '.jpg'));
   evPhotoTab_().appendRow([a.form, a.id, pid, stamp_(now), safe_(who), file.getId(), '']);
   return { ok: true, rev: evTouch_(a.form, a.id), photo: pid };

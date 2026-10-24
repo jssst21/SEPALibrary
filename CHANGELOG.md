@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.27.69 (Oct 24, 2026)
+- RUNNING LOG AFTER THE STRESS TEST (Sean: slower refresh made people think an entry had not gone through, so they sent it twice). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - Your entry shows in the log the moment you tap Add, marked "Sending...", then "Saved". With no signal it says "Not sent yet (no signal). It will send by itself." and keeps trying every 10 seconds; it is kept on the phone, so even closing the page does not lose it.
+  - Each entry carries a one-time code; the Google script ignores a repeat of the same code, so a double tap or a resend can never post twice.
+  - Other people's entries are checked every 20 seconds (was 8; the log was 43% of all traffic in the stress test). Your own entries never wait on that.
+- PHOTOS WAIT THEIR TURN (Sean: data first, photos whenever they get a chance). Add photo puts the photo in a line on the phone ("1 photo waiting to send. They send by themselves; you can keep working.") and it goes after any log entries waiting, retrying every 30 seconds until sent. One-time codes stop a resend from storing it twice. On the Google side a photo upload no longer holds the one-at-a-time lock, so it never holds up saving data. (Photos are only on the open page until sent: leaving the page while one is waiting asks first.)
+- app/sw.js CACHE bumped
+- Version number is now ?v=0.27.69 on every page and the homepage footer reads v0.27.69
+
 ## v0.27.68 (Oct 23, 2026)
 - SEPA TOOLS APP: third Sandboxes tile "Practice RC Respond/Noggin" (Sean). Pink, Practice tag, bell icon like the Noggin tile; opens the RC Respond training site https://ops-train-rcview-redcross.nogginapp.io/signin (the real address inside the Outlook safe link Sean sent).
 - app/sw.js CACHE is now sepa-tools-34

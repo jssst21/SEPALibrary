@@ -97,23 +97,54 @@
     // ---- add an entry
     function setFlag(on) { var f = $('flag'); f.setAttribute('aria-pressed', on ? 'true' : 'false'); f.classList.toggle('on', on); $('btn').textContent = on ? 'Add flagged issue to the log' : 'Add to the log'; }
     $('flag').onclick = function () { setFlag(this.getAttribute('aria-pressed') !== 'true'); };
+    // v0.27.69 (stress test, Sean Oct 24): your entry shows in the log straight away ("Sending..." then "Saved"),
+    // and is sent in the background until the Google script has it. Each entry carries a one-time code (its id),
+    // so a second tap or a resend after a weak signal can never post it twice. Kept on the phone until saved.
+    var QK = 'sepaLogQ:' + o.form + ':' + o.id, pend = [];
+    try { pend = JSON.parse(localStorage.getItem(QK) || '[]') || []; } catch (x) { pend = []; }
+    function keep() { try { var q = pend.filter(function (x) { return x.st !== 'saved'; }); if (q.length) localStorage.setItem(QK, JSON.stringify(q)); else localStorage.removeItem(QK); } catch (x) {} }
+    function newId() { return 'L' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+    function stamp() { var d = new Date(), z = function (v) { return ('0' + v).slice(-2); }; return today() + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()) + ':' + z(d.getSeconds()); }
+    var sending = false;
+    function sendNext() {
+      if (sending || S.gone) return;
+      var x = pend.filter(function (y) { return y.st !== 'saved'; })[0];
+      if (!x) return;
+      sending = true; x.st = 'sending'; render();
+      call(auth({ action: 'evLog', text: x.text, flag: x.flag, cid: x.id })).then(function (r) {
+        sending = false;
+        if (r && r.ok) { x.st = 'saved'; keep(); render(); load(true); sendNext(); return; }
+        if (r && r.cleared) { pend = []; keep(); return; }
+        x.st = 'wait'; x.err = r && !r.offline && r.error ? r.error : ''; keep(); render();      // tries again by itself (below)
+      });
+    }
+    setInterval(function () { if (!document.hidden) sendNext(); }, 10000);
+    window.addEventListener('online', sendNext);
     $('form').onsubmit = function (e) {
       e.preventDefault();
-      var t = $('in').value.trim(), err = $('error'), btn = $('btn');
+      var t = $('in').value.trim(), err = $('error');
       err.hidden = true; if (!t) return;
-      btn.disabled = true;
-      call(auth({ action: 'evLog', text: t, flag: $('flag').getAttribute('aria-pressed') === 'true' })).then(function (x) {
-        btn.disabled = false;
-        if (!(x && x.ok)) { err.textContent = (x && x.error) || 'Not saved: no connection. Please try again.'; err.hidden = false; return; }
-        $('in').value = ''; setFlag(false); load(true);
-      });
+      pend.push({ id: newId(), text: t, flag: $('flag').getAttribute('aria-pressed') === 'true', at: stamp(), by: (o.who && o.who()) || 'You', st: 'new' });
+      keep(); $('in').value = ''; setFlag(false); render(); sendNext();
     };
 
     // ---- the list
     function draw(ul, tools) {
       ul.innerHTML = '';
+      var have = {}; S.log.forEach(function (e) { have[e.id] = 1; });
+      pend = pend.filter(function (x) { return !(x.st === 'saved' && have[x.id]); });     // saved and now in the log: shown from the log
+      var mine = pend.filter(function (x) { return !have[x.id]; });
+      mine.slice().reverse().forEach(function (x) {
+        var li = el('li', 'ev-pending' + (x.flag ? ' sr-flagged' : '')), head = el('small');
+        if (x.flag) li.appendChild(el('span', 'sr-flag-label', 'Flagged issue'));
+        head.appendChild(el('b', '', x.by)); head.appendChild(document.createTextNode(' · ' + when(x.at)));
+        li.appendChild(head); li.appendChild(el('span', 'sr-log-text', x.text));
+        li.appendChild(el('small', 'ev-state' + (x.st === 'saved' ? ' ev-ok' : x.st === 'wait' ? ' ev-wait' : ''),
+          x.st === 'saved' ? '\u2713 Saved' : x.st === 'wait' ? (x.err ? 'Not saved yet: ' + x.err + ' Trying again...' : 'Not sent yet (no signal). It will send by itself.') : 'Sending...'));
+        ul.appendChild(li);
+      });
       var list = S.log;
-      if (!list.length) { ul.appendChild(el('li', 'sr-log-none', 'No entries yet.')); return; }
+      if (!list.length) { if (!mine.length) ul.appendChild(el('li', 'sr-log-none', 'No entries yet.')); return; }
       list.slice().sort(function (x, y) { return (!!y.flag - !!x.flag) || (x.at < y.at ? 1 : x.at > y.at ? -1 : 0) || (entryMs(y) - entryMs(x)); }).forEach(function (e) {
         var li = el('li', e.flag ? 'sr-flagged' : ''), head = el('small');
         if (e.flag) li.appendChild(el('span', 'sr-flag-label', 'Flagged issue'));
@@ -196,7 +227,7 @@
       cc.addEventListener('click', function () { f.remove(); render(); });
     }
 
-    // ---- checking for new entries (every 8 seconds while the page is in front)
+    // ---- checking for new entries (every 20 seconds while the page is in front; v0.27.69)
     var busy = false;
     function load(force) {
       if (S.gone || busy) return;
@@ -214,8 +245,8 @@
         render(); showPhotos();
       });
     }
-    render(); load(true);
-    setInterval(function () { if (!document.hidden) load(false); }, 8000);
+    render(); load(true); sendNext();
+    setInterval(function () { if (!document.hidden) load(false); }, 20000);     // v0.27.69: was 8 s (stress test: 43% of all traffic)
     document.addEventListener('visibilitychange', function () { if (!document.hidden) load(false); });
     // ---- PHOTOS (v0.27.57)
     S.photos = [];
@@ -242,18 +273,33 @@
       document.body.appendChild(pm);
       var pmsg = function (t, bad) { var m = $('pmsg'); m.textContent = t || ''; m.hidden = !t; m.className = 'esc-status' + (bad ? ' esc-warn' : (t ? ' esc-ok' : '')); };
       $('padd').onclick = function () { $('pfile').click(); };
+      // v0.27.69 (Sean, Oct 24): photos wait in line on the phone and go AFTER the data (log entries), one at a
+      // time, retrying until sent. Each has a one-time code so a resend never makes a second copy.
+      var photoQ = [], pSending = false;
+      function pStatus() { var n = photoQ.length; if (n) pmsg(n + (n === 1 ? ' photo' : ' photos') + ' waiting to send. They send by themselves; you can keep working.'); }
+      function sendPhoto() {
+        if (pSending || !photoQ.length || S.gone) return;
+        if (pend.some(function (x) { return x.st !== 'saved'; })) return;      // the log goes first
+        var x = photoQ[0]; pSending = true;
+        call(auth({ action: 'evPhotoAdd', data: x.data, pid: x.pid })).then(function (r) {
+          pSending = false;
+          if (r && r.ok) { photoQ.shift(); if (photoQ.length) pStatus(); else { pmsg('Photo added.'); setTimeout(function () { if (!photoQ.length) pmsg(''); }, 5000); } load(true); sendPhoto(); return; }
+          if (r && r.cleared) { photoQ = []; pmsg(''); return; }
+          if (r && r.error && /most it can hold|too large|could not be read/i.test(r.error)) { photoQ.shift(); pmsg(r.error, true); sendPhoto(); return; }    // will never work: do not retry
+          pStatus();
+        });
+      }
+      setInterval(function () { if (!document.hidden) sendPhoto(); }, 30000);
+      window.addEventListener('online', sendPhoto);
       $('pfile').onchange = function () {
         var f = this.files && this.files[0]; this.value = '';
         if (!f) return;
-        var btn = $('padd'); btn.disabled = true; pmsg('Sending the photo...');
         shrink(f).then(function (data) {
-          return call(auth({ action: 'evPhotoAdd', data: data }));
-        }, function () { return { ok: false, error: 'That photo could not be read. Please try another.' }; }).then(function (r) {
-          btn.disabled = false;
-          if (!(r && r.ok)) { pmsg((r && r.error) || 'Not sent: no connection. Please try again.', true); return; }
-          pmsg('Photo added.'); setTimeout(function () { pmsg(''); }, 5000); load(true);
-        });
+          photoQ.push({ pid: 'P' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), data: data });
+          pStatus(); setTimeout(sendPhoto, 1500);
+        }, function () { pmsg('That photo could not be read. Please try another.', true); });
       };
+      window.addEventListener('beforeunload', function (e) { if (photoQ.length) { e.preventDefault(); e.returnValue = ''; } });     // photos are only on this page until sent
       $('psee').onclick = function () {
         drawPhotos(); pm.hidden = false;
         function shut() { pm.hidden = true; }
