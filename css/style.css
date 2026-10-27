@@ -1469,6 +1469,9 @@ a.f-page:hover { border-color: var(--red); color: var(--red); }
 .mc-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 @media (max-width: 640px) { .mc-btn { min-height: 104px; font-size: 16px; } .mc-btn svg { width: 32px; height: 32px; } }
 @media (prefers-reduced-motion: reduce) { .mc-btn, .mc-btn:hover { transition: none; transform: none; } }
+/* v0.27.76: parked Mass Care buttons are hidden (not deleted); with four left the row is four across */
+.mc-btn.parked { display: none; }
+@media (min-width: 900px) { .mc-launch.mc-four { grid-template-columns: repeat(4, 1fr); } }
 
 .mc-resources { margin-top: 30px; }
 .mc-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }

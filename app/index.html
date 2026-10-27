@@ -18,7 +18,7 @@
      nothing and stores nothing. To change a button, edit its line in the grid below (the address is in
      href="..."). The buttons appear in the order they are listed.
      The yellow "To put the SEPA Tools Launcher on your phone:" card shows only in a browser, not once the
-     app is on the home screen. Its QR code (qr.svg, for sepalibrary.org/app) shows only on computers.
+     app is on the home screen. Its QR code (qr.svg, for sepalibrary.org/launcher, which forwards here) shows only on computers.
      RULE (Sean, Oct 16, 2026): whenever buttons here are moved, added or changed, the "Share SEPA Tools
      with someone" button must still be on screen without scrolling. Check on a 390 x 844 phone. -->
 <style>
@@ -111,7 +111,7 @@
   @media (min-width: 700px) { .inst-cols { grid-template-columns: 1fr 1fr; } .inst-col + .inst-col { border-top: 0; border-left: 1px solid #eee3d0; } .inst-qr { display: flex; } }
   @media (display-mode: standalone) { .inst { display: none; } }
   /* SHARE (v0.27.23): the "Share SEPA Tools with someone" bar under the buttons opens a full screen with a
-     big QR code (qr.svg, for sepalibrary.org/app) that the other person scans with their camera, plus a
+     big QR code (qr.svg, for sepalibrary.org/launcher) that the other person scans with their camera, plus a
      "Send the link" button that opens the phone's own share menu (text, AirDrop, email...). */
   .share-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; margin: 26px 0 0; padding: 8px 14px;
     border: 2px solid #fff; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #fff; font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; }
@@ -186,8 +186,8 @@
     </div>
     <p class="inst-done">Then tap the red <strong>SEPA Tools</strong> icon on your home screen any time.</p>
     <div class="inst-qr">
-      <img src="qr.svg" alt="QR code for sepalibrary.org/app" width="132" height="132">
-      <p><strong>On a computer?</strong> Point your phone's camera at this code to open SEPA Tools on your phone, or go to <strong>sepalibrary.org/app</strong>.</p>
+      <img src="qr.svg" alt="QR code for sepalibrary.org/launcher" width="132" height="132">
+      <p><strong>On a computer?</strong> Point your phone's camera at this code to open SEPA Tools on your phone, or go to <strong>sepalibrary.org/launcher</strong>.</p>
     </div>
   </section>
 
@@ -259,8 +259,8 @@
   <div class="sh" id="sh" role="dialog" aria-modal="true" aria-labelledby="sh-title" hidden>
     <h2 id="sh-title">Get SEPA Tools</h2>
     <p class="lead">Have them point their phone's <strong>camera</strong> at this code.</p>
-    <img class="qr" src="qr.svg" alt="QR code for sepalibrary.org/app" width="270" height="270">
-    <p class="url">sepalibrary.org/app</p>
+    <img class="qr" src="qr.svg" alt="QR code for sepalibrary.org/launcher" width="270" height="270">
+    <p class="url">sepalibrary.org/launcher</p>
     <p class="or">or</p>
     <button class="send" id="sh-send" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg>Send the link</button>
     <p class="hint" id="sh-hint">Text, AirDrop, email or WhatsApp</p>
@@ -273,7 +273,7 @@
 
   <p class="foot"><a href="/index.html">SEPA Resource Library website</a></p>
 </div>
-<script src="../js/config.js?v=0.27.75"></script>
+<script src="../js/config.js?v=0.27.76"></script>
 <script>
   /* ANNOUNCEMENTS (v0.27.19). Read from the Google Sheet's Announcements tab (see sepa-backend.gs,
      ANNOUNCEMENTS). The last list is kept on the phone so the bar still works with a weak signal.
@@ -311,7 +311,7 @@
   /* SHARE (v0.27.23). Opens the QR screen; "Send the link" uses the phone's share menu, or copies the
      link where there is none (most computers). */
   (function () {
-    var LINK = 'https://sepalibrary.org/app/';
+    var LINK = 'https://sepalibrary.org/launcher/';   // v0.27.76: forwards to /app/ (launcher/index.html)
     var sh = document.getElementById('sh'), hint = document.getElementById('sh-hint'), btn = document.getElementById('share-btn');
     var HINT = hint.textContent;
     function close() { sh.hidden = true; document.body.style.overflow = ''; btn.focus(); }

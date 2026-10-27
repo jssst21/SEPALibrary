@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.75">
+<link rel="stylesheet" href="../css/style.css?v=0.27.76">
 </head>
 <body class="home page-red">
 
@@ -29,7 +29,9 @@
   <h1 class="page-title">Mass Care</h1>
 
   <!-- The big buttons (six since v0.27.46; since v0.27.52 the sixth is Beta Tests, like the app: 6409 Requisition, Feeding, Offline SCIA; five since v0.27.39: Daily Shelter Report added). "Launch SCIA" goes to the same address as SCIA in the homepage's Quick launch bar. -->
-  <nav class="mc-launch" aria-label="Mass Care tools">
+  <!-- v0.27.76 (Sean, Oct 26): Daily Shelter Report and Beta Tests are PARKED (hidden, not deleted) until leadership
+       clears them. To bring one back, delete "parked" from its class; with six buttons again, also delete "mc-four". -->
+  <nav class="mc-launch mc-four" aria-label="Mass Care tools">
     <a class="mc-btn mc-btn-main" href="https://www.redcross.org/scia" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14V3zM5 5h6v2H5v12h12v-6h2v8H3V5h2z"/></svg>
       <span>Launch SCIA</span></a>
@@ -39,10 +41,10 @@
     <a class="mc-btn" href="reception.html" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10v2h3v18H4V4h3V2zm2 2v2h6V4H9zM6 6v14h12V6h-1v2H7V6H6zm2 5h8v2H8v-2zm0 4h6v2H8v-2z"/></svg>
       <span>Reception Center Form</span></a>
-    <a class="mc-btn" href="shelter.html" target="_blank" rel="noopener">
+    <a class="mc-btn parked" href="shelter.html" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l10 8h-3v10h-5v-6h-4v6H5V11H2l10-8zm0 2.6L7 9.6V19h1v-6h8v6h1V9.6l-5-4z"/></svg>
       <span>Daily Shelter Report</span></a>
-    <a class="mc-btn" href="beta.html">
+    <a class="mc-btn parked" href="beta.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2h6v2h-1v5.2l5.6 9.7A2 2 0 0 1 17.9 22H6.1a2 2 0 0 1-1.7-3.1L10 9.2V4H9V2zm3 9L8.6 17h6.8L12 11z"/></svg>
       <span>Beta Tests <em class="beta-tag">Beta</em></span></a>
     <a class="mc-btn" href="contacts.html" target="_blank" rel="noopener">
@@ -65,10 +67,10 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.75"></script>
-<script src="../js/library.js?v=0.27.75"></script>
-<script src="../js/search-data.js?v=0.27.75"></script>
-<script src="../js/search.js?v=0.27.75"></script>
+<script src="../js/config.js?v=0.27.76"></script>
+<script src="../js/library.js?v=0.27.76"></script>
+<script src="../js/search-data.js?v=0.27.76"></script>
+<script src="../js/search.js?v=0.27.76"></script>
 <script>
 (function () {
   var FOLDER = 'Mass Care Resources';
@@ -99,6 +101,6 @@
   SEPASearch.attach(document.getElementById('site-q'), document.getElementById('ss-panel'), [document.getElementById('mc-browse')], '../');
 })();
 </script>
-<script src="../js/close-tab.js?v=0.27.75"></script>
+<script src="../js/close-tab.js?v=0.27.76"></script>
 </body>
 </html>

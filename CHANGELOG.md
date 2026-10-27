@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.27.76 (Oct 26, 2026)
+- NEW ADDRESS sepalibrary.org/launcher (Sean: "app" showed right under the QR code). launcher/index.html forwards at once to /app/, which stays put so launchers already on phones keep working. The Share screen's address and sent link, both QR codes (app/qr.svg, regenerated and checked) and the install pages now say sepalibrary.org/launcher. Old /app links still work. Only the browser address bar shows /app/ after the forward.
+- MASS CARE PAGE: Daily Shelter Report and Beta Tests buttons PARKED (hidden, not deleted) until leadership clears them; the four left sit four across on computers, two by two on phones. Daily Shelter Report also parked in the site search (line commented out in js/search.js). Direct links to those pages still work.
+- app/sw.js CACHE is now sepa-tools-42
+- Version number is now ?v=0.27.76 on every page and the homepage footer reads v0.27.76
+
 ## v0.27.75 (Oct 26, 2026)
 - ESCALATION FORM RENAMED "LARGE SCENE REPORTING TOOL" (Sean). Website only, no Google script change; the page address (pages/escalation.html) and all saved worksheets are unchanged.
   - Quick launch strip: RC Reserve removed to make room (still in the site search); the link reads "Large Scene Reporting Tool". Same text size and spacing (measured narrower than before at every width).
