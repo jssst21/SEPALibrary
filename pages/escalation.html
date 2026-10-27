@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css?v=0.27.76">
+<link rel="stylesheet" href="../css/style.css?v=0.27.77">
 </head>
 <body class="home" data-ask-form="escalation">
 
@@ -51,6 +51,13 @@
     <p class="esc-status esc-warn" id="esc-start-note" role="status" hidden></p>
     <h2 class="esc-login-title">Start a worksheet</h2>
     <p class="esc-how">The person who starts it is the <strong>lead</strong>. You can then add responders, who type into the same worksheet, and share the Scene Summary with HQ. Starting one needs the lead user name and password.</p>
+    <!-- v0.27.77 (Sean, Oct 26): the first thing a new worksheet asks for is the scene's name. Required. It does not
+         have to match the address. It names the worksheet everywhere (Current Operations, the top bar, Scene Summary,
+         HQ list, join messages, Excel file). Afterwards only HQ can change it (Section 1, "Scene name"). -->
+    <label class="field esc-scene-field">1. Name the scene
+      <input id="esc-scene" autocomplete="off" maxlength="80" placeholder="e.g. Johnson Street apartment fire">
+      <span class="esc-hint">Any name your team will recognize. It doesn't have to match the address. HQ can change it later.</span>
+    </label>
     <p class="form-error" id="esc-start-error" hidden></p>
     <button type="button" class="primary-btn role-lead-btn" id="esc-start-btn">Leads: Click Here to Start a Report</button>
     <!-- Waiting for a link from the lead? (v0.27.2, js/ask-lead.js) -->
@@ -219,15 +226,15 @@
 
 </div>
 
-<script src="../js/config.js?v=0.27.76"></script>
-<script src="../js/test-log.js?v=0.27.76"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
-<script src="../js/ask-lead.js?v=0.27.76"></script>
-<script src="../js/phone-format.js?v=0.27.76"></script>
-<script src="../js/view-bar.js?v=0.27.76"></script>
-<script src="../js/current-ops.js?v=0.27.76"></script>
-<script src="../js/event-log.js?v=0.27.76"></script>     <!-- v0.27.57: the Running log -->
-<script src="../js/properties.js?v=0.27.76"></script>     <!-- v0.27.73: Add Property / See Summary (Section 3) -->
-<script src="../js/escalation.js?v=0.27.76"></script>
-<script src="../js/close-tab.js?v=0.27.76"></script>
+<script src="../js/config.js?v=0.27.77"></script>
+<script src="../js/test-log.js?v=0.27.77"></script>     <!-- v0.27.52: stress test logging, OFF unless the Sheet says ON -->
+<script src="../js/ask-lead.js?v=0.27.77"></script>
+<script src="../js/phone-format.js?v=0.27.77"></script>
+<script src="../js/view-bar.js?v=0.27.77"></script>
+<script src="../js/current-ops.js?v=0.27.77"></script>
+<script src="../js/event-log.js?v=0.27.77"></script>     <!-- v0.27.57: the Running log -->
+<script src="../js/properties.js?v=0.27.77"></script>     <!-- v0.27.73: Add Property / See Summary (Section 3) -->
+<script src="../js/escalation.js?v=0.27.77"></script>
+<script src="../js/close-tab.js?v=0.27.77"></script>
 </body>
 </html>

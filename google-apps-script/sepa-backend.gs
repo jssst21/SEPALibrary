@@ -1053,6 +1053,7 @@ function escSync_(d) {
   if (keyNew) w.meta.e = key;
   var touched = false;
   names.forEach(function (k) {
+    if (k === 'scene_name' && !hq) return;      // v0.27.77: only HQ can change the scene name
     var v = clean_(changes[k], 4000);
     if ((w.data[k] || '') === v) return;       // already what is saved: not a change
     if (!touched) { touched = true; w.meta.r++; }
@@ -1084,7 +1085,7 @@ function escSync_(d) {
   }
   var me = rosterCheckIn_('esc', id, d, d.lead ? 'lead' : '');
   if (me && !me.removed && me.role === 'co-lead') res.coLead = true;     // made a lead by a lead or HQ (website v0.27.24)
-  if (me && me.removed) { res.removed = true; res.where = clean_(String(w.data.incident_addresses || '').split('\n')[0], 80); }
+  if (me && me.removed) { res.removed = true; res.where = clean_(String(w.data.scene_name || w.data.incident_addresses || '').split('\n')[0], 80); }
   if (d.asks) { res.asks = askWaiting_('esc', id); res.roster = rosterPublic_('esc', id); }
   return res;
 }
@@ -1101,10 +1102,14 @@ function escStart_(d) {
     var w = escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]);
     return w.meta.k === mark ? { ok: true } : { ok: false, nokey: true, error: 'This worksheet could not be started.' };
   }
+  // v0.27.77 (Sean, Oct 26): a new worksheet must be named first ("Name the scene"); it need not match the address.
+  var scene = clean_(String(d.scene || '').replace(/\s+/g, ' '), 80);
+  if (!scene) return { ok: false, needScene: true, error: 'Please name the scene first.' };
   var denied = leadDenied_(d);
   if (denied) return denied;
   var store = {}, now = new Date(), nowText = stamp_(now);
-  store[ESC_META] = { r: 0, k: mark, f: {}, e: key };
+  store.scene_name = scene;
+  store[ESC_META] = { r: 1, k: mark, f: { scene_name: 1 }, e: key };
   sh.appendRow([id, nowText, nowText, '', '', String(now.getTime()), JSON.stringify(store)]);
   return { ok: true };
 }
@@ -1146,9 +1151,10 @@ function escList_(d) {
   escPurge_();
   var sh = escTab_(), last = sh.getLastRow(), now = new Date().getTime(), items = [];
   if (last >= 2) {
-    sh.getRange(2, 1, last - 1, 6).getValues().forEach(function (r, i) {
+    sh.getRange(2, 1, last - 1, 7).getValues().forEach(function (r, i) {
       if (!r[0]) return;
-      items.push({ id: String(r[0]), started: iso_(r[1]), updated: iso_(r[2]), address: escText_(r[3]), when: escText_(r[4]), ms: Number(escText_(r[5])) || 0, row: i });
+      items.push({ id: String(r[0]), started: iso_(r[1]), updated: iso_(r[2]), address: escText_(r[3]), when: escText_(r[4]), ms: Number(escText_(r[5])) || 0, row: i,
+        scene: clean_(escOpen_(r[6]).data.scene_name || '', 80) });     // v0.27.77
     });
   }
   // Newest first. Two saved in the very same instant: the one lower down the tab counts as newer.
@@ -3199,6 +3205,7 @@ function coOpenRead_(form) {
       var id = escId_(r[0]); if (!id || escIsCleared_(id)) return;
       var w = escOpen_(r[6]); if (!w.meta.k) return;
       out.push({ id: id, started: iso_(r[1]), ms: Number(escText_(r[5])) || 0, town: coTown_(w.data.incident_addresses),
+        name: clean_(w.data.scene_name || '', 80),     // v0.27.77: the scene name the lead gave it (shown first)
         lead: clean_(String(w.data.leaders_arc_lead_1 || '').split('\n')[0], 60) });
     });
   } else if (form === 'rec') {

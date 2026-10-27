@@ -1,10 +1,20 @@
 # Changelog
 
+## v0.27.77 (Oct 26, 2026)
+- NAME THE SCENE FIRST (Sean). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - Large Scene Reporting Tool: the Start screen asks "1. Name the scene" (required, any name, need not match the address) before "Leads: Click Here to Start a Report". The name is stored with the worksheet and names it everywhere: Current Operations (with the town under it for people not on it yet), the top bar, Scene Summary, HQ list, join and share messages, Excel file name.
+  - "Scene name" is the first box in Section 1. Only HQ can change it; everyone else sees it read only ("Only HQ can change the scene name."). The Google script ignores a change from anyone but HQ.
+  - Worksheets started before this have no scene name and keep the address naming (Oct 17 rule).
+  - Reception Center: the first box now reads "Name this Reception Center" (was "Reception center name or location").
+- Google script: escStart needs a scene name (needScene); escSync ignores scene_name unless HQ; escList and coOpen send the scene name; a removed phone is told the scene name.
+- app/sw.js CACHE is now sepa-tools-43
+- Version number is now ?v=0.27.77 on every page and the homepage footer reads v0.27.77
+
 ## v0.27.76 (Oct 26, 2026)
 - NEW ADDRESS sepalibrary.org/launcher (Sean: "app" showed right under the QR code). launcher/index.html forwards at once to /app/, which stays put so launchers already on phones keep working. The Share screen's address and sent link, both QR codes (app/qr.svg, regenerated and checked) and the install pages now say sepalibrary.org/launcher. Old /app links still work. Only the browser address bar shows /app/ after the forward.
 - MASS CARE PAGE: Daily Shelter Report and Beta Tests buttons PARKED (hidden, not deleted) until leadership clears them; the four left sit four across on computers, two by two on phones. Daily Shelter Report also parked in the site search (line commented out in js/search.js). Direct links to those pages still work.
 - app/sw.js CACHE is now sepa-tools-42
-- Version number is now ?v=0.27.76 on every page and the homepage footer reads v0.27.76
+- Version number is now ?v=0.27.77 on every page and the homepage footer reads v0.27.76
 
 ## v0.27.75 (Oct 26, 2026)
 - ESCALATION FORM RENAMED "LARGE SCENE REPORTING TOOL" (Sean). Website only, no Google script change; the page address (pages/escalation.html) and all saved worksheets are unchanged.

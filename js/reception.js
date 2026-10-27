@@ -145,7 +145,7 @@
     $('rec-start-form').addEventListener('submit', function (e) {
       e.preventDefault();
       var center = $('rec-center').value.trim(), name = $('rec-lead-name').value.trim(), err = $('rec-start-error');
-      if (!center) { err.textContent = 'Please enter the reception center name or location.'; err.hidden = false; return; }
+      if (!center) { err.textContent = 'Please name this reception center.'; err.hidden = false; return; }
       if (!name) { err.textContent = 'Please enter your name.'; err.hidden = false; return; }
       err.hidden = true;
       var id = newId(), key = newKey(), lead = newKey(), btn = $('rec-start-btn');

@@ -33,6 +33,8 @@
   var FORM = [
     { t: 'sec', n: 1, label: 'High Level Scene Overview' },
     { t: 'open' },
+    // v0.27.77: named on the Start screen; only HQ can change it (the Google script ignores anyone else's change)
+    { t: 'q', k: 'scene_name', label: 'Scene name', bold: 1, hqOnly: 1 },
     { t: 'q', k: 'date_time', label: 'Date/ Time', bold: 1 },
     { t: 'q', k: 'incident_addresses', label: 'Disaster Incident Address(es)', rows: 2, bold: 1 },
     { t: 'q', k: 'impact_description', label: 'High level description of impacted area and disruption of utilities', hint: '(# of bldgs, type of damage)', rows: 3, bold: 1 },
@@ -212,6 +214,7 @@
         lab = el('label', 'esc-label' + (it.bold ? ' esc-bold' : ''), it.label); lab.htmlFor = 'f_' + it.k; w.appendChild(lab);
         if (it.hint) w.appendChild(el('span', 'esc-hint', it.hint));
         w.appendChild(box(it.k, it.label + (it.hint ? ' ' + it.hint : ''), { rows: it.rows }));
+        if (it.hqOnly) { w.id = 'esc-q-' + it.k; w.appendChild(el('span', 'esc-hint esc-hq-only', 'Only HQ can change the scene name.')); }
       } else if (it.t === 'band') {
         w = el('h2', 'esc-band', it.label);
       } else if (it.t === 'h') {
@@ -371,6 +374,11 @@
     $('esc-edit-tools').hidden = false; $('esc-bottom').hidden = false;
     leaveLink();
     draw();
+    // v0.27.77: the scene name is HQ's to change. Everyone else sees it, read only.
+    if (inputs.scene_name) {
+      if (hq) { var hn = document.querySelector('#esc-q-scene_name .esc-hq-only'); if (hn) hn.style.display = 'none'; }
+      else { inputs.scene_name.readOnly = true; inputs.scene_name.tabIndex = -1; inputs.scene_name.classList.add('esc-locked'); }
+    }
 
     var saved = null, meta = null;
     try { saved = JSON.parse(lsGet('sepaEsc:' + id) || 'null'); } catch (e) {}
@@ -442,7 +450,8 @@
           // A worksheet begun on this phone before v0.27.1 that Google never received: it needs the
           // HQ log in to be started. What is typed stays on this phone meanwhile.
           live = 'nostart';
-          startAsLead(id, key, function (bad) { if (bad === null) { lead = true; live = 'unknown'; $('esc-joined-how').hidden = true; if (adds) adds.refresh(); leadOnly(); sync(); } });
+          // v0.27.77: pre-v0.27.1 worksheets get a name from the address
+          startAsLead(id, key, placeName(), function (bad) { if (bad === null) { lead = true; live = 'unknown'; $('esc-joined-how').hidden = true; if (adds) adds.refresh(); leadOnly(); sync(); } });
         }
         else if (r && r.toolong) { live = 'on'; problem = r.error || 'This worksheet is too long to save.'; }
         else if (r && !r.offline && /unknown request/i.test(r.error || '')) live = 'off';
@@ -477,7 +486,7 @@
     }
     // v0.27.59: Add a responder / Add a lead, under who is on this worksheet, for everyone on it (js/ask-lead.js addBox)
     var adds = typeof SEPAAskLead !== 'undefined' && SEPAAskLead.addBox ? SEPAAskLead.addBox($('esc-adds'), { form: 'esc', id: id, what: 'worksheet',
-      place: function () { return cur('incident_addresses').split('\n')[0]; },
+      place: function () { return cur('scene_name') || cur('incident_addresses').split('\n')[0]; },
       canAdd: function () { return lead || hq || !!token(); },     // v0.27.61: any phone with the HQ login
       joinLink: function () { return (hq && !hqJoinKey) || (!hq && !key) ? '' : joinUrl(); },
       pick: function () { SEPAAskLead.leadPicker(makeLead, drawRoster, !lead && token() ? { form: 'esc', id: id, go: function () { location.href = pageLink('id=' + id); } } : null); },
@@ -550,7 +559,7 @@
     }
     leadOnly();
     // The pinned Worksheet | Scene Summary switch (v0.27.27): for leads, and for HQ whose phone is on this worksheet.
-    function placeName() { return cur('incident_addresses').split('\n')[0] || 'Large Scene worksheet'; }
+    function placeName() { return cur('scene_name') || cur('incident_addresses').split('\n')[0] || 'Large Scene worksheet'; }     // v0.27.77: scene name first
     function showBar() {
       if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.show({ on: 'a', showSwitch: lead || !!token(), name: placeName(),
         a: { label: 'Worksheet', href: pageLink('id=' + id + (hq ? '&as=hq' : '')) }, b: { label: 'Scene Summary', href: pageLink('view=' + id) },
@@ -625,7 +634,7 @@
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, hold);
       else hold();
     }
-    function where() { var a = cur('incident_addresses'); return a ? ' for ' + a.split('\n')[0] : ''; }
+    function where() { var a = cur('scene_name') || cur('incident_addresses'); return a ? ' for ' + a.split('\n')[0] : ''; }
     function share() {
       // v0.27.26: leads never export the worksheet's contents (HQ only). With no live view to link to,
       // there is nothing to send, so say so instead of sharing the words as text (as before).
@@ -676,13 +685,17 @@
     if (notice) { var n = $('esc-start-note'); n.textContent = notice; n.hidden = false; }
     try { history.replaceState(null, '', pageLink('')); } catch (e) {}
     btn.onclick = function () {
-      err.hidden = true; btn.disabled = true; btn.textContent = 'Starting...';
+      err.hidden = true;
+      var scene = ($('esc-scene').value || '').replace(/\s+/g, ' ').trim();     // v0.27.77: required
+      if (!scene) { err.textContent = 'Please name the scene first.'; err.hidden = false; $('esc-scene').focus(); return; }
+      btn.disabled = true; btn.textContent = 'Starting...';
       var key = newKey();
-      startAsLead(id, key, function (problem) {
+      startAsLead(id, key, scene, function (problem) {
         btn.disabled = false; btn.textContent = 'Leads: Click Here to Start a Report';
         if (problem === '') return;                                   // closed the pop-up
         if (problem) { err.textContent = problem; err.hidden = false; return; }
         lsSet('sepaEscKey:' + id, key); lsSet('sepaEscCurrent', id); lsSet('sepaEscSeen:' + id, '1');
+        lsSet('sepaEsc:' + id, JSON.stringify({ scene_name: scene }));     // shows at once; Google sends it too
         location.replace(pageLink('id=' + id));
       });
     };
@@ -690,10 +703,10 @@
   // Asks Google to start worksheet "id" with this key. A device logged in as HQ goes straight through;
   // otherwise the pop-up asks for the HQ user name and password (they are NOT kept on the device).
   // done(null) = started (this device is the lead); done('') = pop-up closed; done('...') = a problem.
-  function startAsLead(id, key, done) {
+  function startAsLead(id, key, scene, done) {
     var m = $('esc-lead-modal'), lerr = $('esc-lead-error'), lbtn = $('esc-lead-btn');
     function begin(extra) {
-      var data = { action: 'escStart', id: id, key: key };
+      var data = { action: 'escStart', id: id, key: key, scene: scene };
       Object.keys(extra).forEach(function (k) { data[k] = extra[k]; });
       call(data).then(function (r) {
         lbtn.disabled = false;
@@ -702,6 +715,7 @@
         m.hidden = true;
         if (r && r.offline) return done('No connection. Starting a worksheet needs a signal once; after that you can type with no signal.');
         if (r && /unknown request/i.test(r.error || '')) return done('The Large Scene Reporting Tool is not switched on yet. The site admin needs to update the Google script.');
+        if (r && r.needScene) return done(r.error);
         done((r && r.error) || 'Could not start. Please try again.');
       });
     }
@@ -815,7 +829,7 @@
             who: function () { return lsGet('sepaEscName') || lsGet('sepaAskName') || ''; } });
           if (!propsApi && typeof SEPAProps !== 'undefined' && $('esc-props')) propsApi = SEPAProps.mount({ host: $('esc-props'), id: id, auth: auth, open: true,
             canDelete: isHQ || leadHere, who: function () { return isHQ && !leadHere ? '' : (lsGet('sepaEscName') || lsGet('sepaAskName') || ''); } });
-          var place = String((r.data && r.data.incident_addresses) || '').split('\n')[0] || 'Large Scene worksheet';
+          var place = String((r.data && (r.data.scene_name || r.data.incident_addresses)) || '').split('\n')[0] || 'Large Scene worksheet';
           if (!barShown && typeof SEPAViewBar !== 'undefined') {
             barShown = true;
             SEPAViewBar.show({ on: 'b', showSwitch: !!myKey || isHQ, name: place,     // v0.27.28: HQ can type into the worksheet
@@ -854,7 +868,7 @@
               } });
           }
           if (!viewAdds && typeof SEPAAskLead !== 'undefined' && SEPAAskLead.addBox) viewAdds = SEPAAskLead.addBox($('esc-view-adds'), { form: 'esc', id: id, what: 'worksheet',
-            place: function () { return String((lastData && lastData.incident_addresses) || '').split('\n')[0]; },
+            place: function () { return String((lastData && (lastData.scene_name || lastData.incident_addresses)) || '').split('\n')[0]; },
             canAdd: function () { return true; },
             joinLink: function () { var k = myKey || viewJoinKey; return k ? pageLink('id=' + id) + '#k=' + k : ''; },
             pick: function () { SEPAAskLead.leadPicker(vMake, function () { load(); }, viewIsHQ && !leadHere ? { form: 'esc', id: id, go: function () { location.reload(); } } : null); },
@@ -879,7 +893,7 @@
       if (!lastData) return;
       var q = function (v) { v = String(v == null ? '' : v); return /[",\n\r]/.test(v) || /^[=+\-@]/.test(v) ? '"' + (/^[=+\-@]/.test(v) ? "'" : '') + v.replace(/"/g, '""') + '"' : v; };
       var d = new Date(), day = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
-      var place = String(lastData.incident_addresses || '').split('\n')[0];
+      var place = String(lastData.scene_name || lastData.incident_addresses || '').split('\n')[0];
       var lines = [q('DAT Response Lead Incident Reporting Worksheet'), q('Downloaded ' + day + ' ' + d.toTimeString().slice(0, 5)), '', 'Box,Entry'];
       Object.keys(inputs).forEach(function (k) { lines.push(q(inputs[k].getAttribute('aria-label')) + ',' + q(lastData[k] || '')); });
       if (propsApi) lines = lines.concat(SEPAProps.csv(propsApi.rows(), q));     // v0.27.73: the properties (Section 3)

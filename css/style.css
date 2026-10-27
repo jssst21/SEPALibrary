@@ -920,6 +920,11 @@ body.page-red { background: var(--red); }
 .esc-label { display: block; font-size: 16px; line-height: 1.35; }
 .esc-bold { font-weight: 700; }
 .esc-hint { display: block; font-size: 14px; color: var(--ink-soft); }
+/* v0.27.77: scene name (Start screen box; read only on the worksheet except for HQ) */
+.esc-scene-field { margin: 14px 0 10px; }
+.esc-scene-field .esc-hint { margin-top: 4px; font-weight: 400; }
+.esc-in.esc-locked { background: #f1ece7; color: var(--ink); }
+.esc-hq-only { font-size: 13px; margin-top: 4px; }
 .esc-in {
   display: block; width: 100%; min-height: 46px; margin-top: 6px; padding: 10px 12px;
   font: inherit; font-size: 16px; line-height: 1.35; color: var(--ink);

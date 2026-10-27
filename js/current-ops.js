@@ -46,7 +46,7 @@ var SEPACurrentOps = (function () {
       return post({ action: 'escPing', id: id }).then(function (r) {
         if (r && r.cleared) return null;
         var w = {}; try { w = JSON.parse(lsGet('sepaEsc:' + id) || '{}') || {}; } catch (e) {}
-        var addr = String(w.incident_addresses || '').split('\n')[0].trim();
+        var addr = String(w.scene_name || w.incident_addresses || '').split('\n')[0].trim();     // v0.27.77: scene name first
         return { id: id, href: 'escalation.html?id=' + id, title: addr || 'Worksheet (no address typed yet)',
           sub: lsGet('sepaEscLead:' + id) === '1' ? 'You are the lead' : 'You are on this worksheet' };
       });
@@ -80,7 +80,7 @@ var SEPACurrentOps = (function () {
     return post({ action: 'escList', token: token() }).then(function (r) {
       if (!(r && r.ok)) return [];
       return r.items.map(function (it) {
-        return { id: it.id, href: 'escalation.html?view=' + it.id, title: (it.address || '(no address typed yet)').split('\n')[0],
+        return { id: it.id, href: 'escalation.html?view=' + it.id, title: (it.scene || it.address || '(no address typed yet)').split('\n')[0],
           sub: 'Started ' + clock(it.started) + ' · last change ' + ago((r.now || Date.now()) - (it.ms || 0)) + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '') };
       });
     });
@@ -127,9 +127,9 @@ var SEPACurrentOps = (function () {
     return post({ action: 'coOpen', form: form }).then(function (r) {
       if (!(r && r.ok)) return null;
       return r.items.map(function (it) {
-        var title = form === 'esc' ? (it.town || 'Incomplete address') :     // v0.27.51
+        var title = form === 'esc' ? (it.name || it.town || 'Incomplete address') :     // v0.27.51; v0.27.77 scene name first, town under it
           (it.name || (form === 'rec' ? 'Reception center' : 'Shelter'));
-        var sub = 'Started ' + when(it.started) + (it.lead ? ' · Lead: ' + it.lead : '') + ' · not on this phone yet';
+        var sub = (form === 'esc' && it.name && it.town ? it.town + ' · ' : '') + 'Started ' + when(it.started) + (it.lead ? ' · Lead: ' + it.lead : '') + ' · not on this phone yet';
         return { id: it.id, title: title, sub: sub, lead: it.lead || '' };
       });
     });
