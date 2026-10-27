@@ -15,6 +15,12 @@
 .scr-grid div.p { background: #fdf3f4; }
 .scr-grid svg { width: 22px; height: 22px; fill: none; stroke: #ae273a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .scr-grid div.p svg { stroke: #1f3556; }
+/* v0.27.75: the phone picture matches the seven-button launcher (two across, Call for Help full width) */
+.scr-grid.scr-two { grid-template-columns: repeat(2, 1fr); }
+.scr-two div { aspect-ratio: auto; height: 62px; position: relative; font-size: 9.5px; }
+.scr-two div.help { grid-column: 1 / -1; height: 34px; flex-direction: row; gap: 6px; font-size: 10px; }
+.scr-two div.help svg { width: 16px; height: 16px; stroke: #1e8e3e; }
+.scr-two em { position: absolute; top: 4px; right: 4px; padding: 0 4px; border-radius: 99px; background: #1f3556; color: #fff; font-size: 6px; font-style: normal; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .homebar { width: 90px; height: 4px; margin: 10px auto 0; border-radius: 4px; background: #fff; opacity: .7; }
 .ga-points { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 22px; margin: 10px auto 26px; padding: 0; list-style: none; color: #fff; font-size: 16px; font-weight: 600; }
 .ga-points li::before { content: "\2713  "; color: #ffd54a; font-weight: 800; }

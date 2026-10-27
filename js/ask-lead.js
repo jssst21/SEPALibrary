@@ -14,7 +14,7 @@
 // SEPAAskLead.render() draws the requests on the LEAD's phone (used by js/escalation.js and js/reception.js).
 var SEPAAskLead = (function () {
   var FORMS = {
-    escalation: { code: 'esc', name: 'Escalation Form' },
+    escalation: { code: 'esc', name: 'Large Scene Reporting Tool' },
     reception: { code: 'rec', name: 'Reception Center Form' }
   };
   var formName = document.body.getAttribute('data-ask-form'), F = FORMS[formName];
@@ -380,8 +380,8 @@ var SEPAAskLead = (function () {
       var link = opt.joinLink ? opt.joinLink() : '';
       if (!link) { note('The join link is not ready yet. Try again in a few seconds.'); return; }
       if (opt.beforeSend) opt.beforeSend();
-      send(link, opt.form === 'esc' ? 'Join the DAT escalation form' : 'Join the reception center',
-        (opt.form === 'esc' ? 'Join the DAT escalation worksheet' + where() + '. Open this link to type into the same worksheet.'
+      send(link, opt.form === 'esc' ? 'Join the DAT Large Scene Reporting Tool' : 'Join the reception center',
+        (opt.form === 'esc' ? 'Join the DAT Large Scene Reporting Tool worksheet' + where() + '. Open this link to type into the same worksheet.'
                             : 'Join the reception center' + where() + '. Open this link to do intakes.'), 'Join link for a responder');
     }
     function askLink() { return page + '?ask=' + encodeURIComponent(opt.id); }
@@ -415,7 +415,7 @@ var SEPAAskLead = (function () {
       function err(t) { g('.al-err').textContent = t || ''; g('.al-err').hidden = !t; }
       g('.f-modal-x').onclick = close; m.onclick = function (e) { if (e.target === m) close(); };
       g('.al-send').onclick = function () {
-        var url = askLink(), text = (opt.form === 'esc' ? 'Join the DAT escalation worksheet' : 'Join the reception center') + where() +
+        var url = askLink(), text = (opt.form === 'esc' ? 'Join the DAT Large Scene Reporting Tool worksheet' : 'Join the reception center') + where() +
           '. Open this link, type your name and tap Request access. The lead or HQ will let you in.';
         if (navigator.share) { navigator.share({ title: 'Ask to join', text: text, url: url }).catch(function () {}); return; }
         var shown = function (t) { g('.al-linkbox').hidden = false; g('.al-link').value = url; g('.al-note').textContent = t; g('.al-note').hidden = false; };

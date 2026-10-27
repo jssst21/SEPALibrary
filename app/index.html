@@ -17,7 +17,7 @@
      (sepalibrary.org/app). It is only a set of buttons: each opens that tool's own site. It logs in to
      nothing and stores nothing. To change a button, edit its line in the grid below (the address is in
      href="..."). The buttons appear in the order they are listed.
-     The yellow "To put the SEPA Tools App on your phone:" card shows only in a browser, not once the
+     The yellow "To put the SEPA Tools Launcher on your phone:" card shows only in a browser, not once the
      app is on the home screen. Its QR code (qr.svg, for sepalibrary.org/app) shows only on computers.
      RULE (Sean, Oct 16, 2026): whenever buttons here are moved, added or changed, the "Share SEPA Tools
      with someone" button must still be on screen without scrolling. Check on a 390 x 844 phone. -->
@@ -138,6 +138,23 @@
   .subhead h2 { flex: 1; margin: 0; font-size: 22px; text-align: center; padding-right: 74px; }
   .sub-back { flex: none; display: inline-flex; align-items: center; min-height: 40px; padding: 6px 14px; border: 2px solid #fff; border-radius: 999px; color: #fff; font-size: 16px; font-weight: 700; text-decoration: none; }
   .tile.beta em { position: absolute; top: 7px; right: 7px; padding: 1px 6px; border-radius: 999px; background: #ffd54a; color: #2a2420; font-size: 10px; font-style: normal; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+  /* v0.27.75 (Sean, Oct 26, 2026): LAUNCHER WITH SEVEN BUTTONS. Leadership has not cleared Shift Sign Up,
+     Mass Care or Community yet, so those three tiles are PARKED: still in the grid below, just hidden.
+     TO BRING ONE BACK: delete the word "parked" from its class="tile parked". Nothing else is needed,
+     but with ten tiles go back to three across: delete the "#g-main" lines just below.
+     The main grid is two across with wider, shorter tiles and bigger words (same total height as the old
+     three-across grid, so "Share SEPA Tools with someone" stays on screen), and Call for Help is a full
+     width bar at the bottom. The Mass Care, Beta and Sandboxes screens are unchanged (three across).
+     People are to call it the "launcher", not the "app" (Sean). */
+  .tile.parked { display: none; }
+  #g-main { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #g-main .tile { aspect-ratio: auto; height: 111px; }
+  #g-main .tile span { font-size: 16.5px; }
+  #g-main .tile svg { width: 40px; height: 40px; }
+  #g-main .tile.wide { grid-column: 1 / -1; height: 64px; flex-direction: row; gap: 10px; }
+  #g-main .tile.wide span { font-size: 17px; }
+  #g-main .tile.wide svg { width: 30px; height: 30px; }
+  @media (max-width: 340px) { #g-main .tile span { font-size: 15px; } }
 </style>
 </head>
 <body>
@@ -146,7 +163,7 @@
   <p class="sub">Red Cross SEPA Disaster Action Team</p>
 
   <section class="inst">
-    <h2 class="inst-head">To put the SEPA Tools App on your phone:</h2>
+    <h2 class="inst-head">To put the SEPA Tools Launcher on your phone:</h2>
     <div class="inst-cols">
       <div class="inst-col">
         <p class="inst-os">iPhone</p>
@@ -189,21 +206,21 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 14h7M8.5 18h4"/></svg><span>RC Care</span></a>
     <a class="tile" href="https://ops-rcview-redcross.nogginapp.io/signin">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2zM10 20a2 2 0 0 0 4 0"/></svg><span>Noggin</span></a>
-    <a class="tile" href="/pages/shifts.html">
+    <a class="tile parked" href="/pages/shifts.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8.5 14.5l2 2 4-4"/></svg><span>Shift Sign Up</span></a>
-    <a class="tile" id="shel-btn" href="#mass-care">
+    <a class="tile parked" id="shel-btn" href="#mass-care">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path d="M8 20v-5h8v5M8 15h8"/></svg><span>Mass Care</span></a>
     <a class="tile" href="/pages/escalation.html">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9.5 17h-19L12 3z"/><path d="M12 10v4.5M12 17.5v.01"/></svg><span>Escalation</span></a>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9.5 17h-19L12 3z"/><path d="M12 10v4.5M12 17.5v.01"/></svg><span>Large Scene<br>Reporting Tool</span></a>
     <a class="tile" href="/pages/reception.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3.5 19c.5-3.5 3-5.5 5.5-5.5s5 2 5.5 5.5M14.5 14.5c.8-.6 1.6-.9 2.5-.9 2 0 3.6 1.5 4 5.4"/></svg><span>Reception Center</span></a>
     <a class="tile practice" href="#sandboxes"><em>Practice</em>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 14h19l-1.5 6h-16z"/><path d="M5.5 14c1-2.6 3.2-3.8 5.5-3.8s3.7 1.2 4.5 3.8"/><path d="M17.5 3.5L15 11.5M13.6 11l2.6 1"/></svg><span>Sandboxes</span></a>
-    <a class="tile" href="/pages/forums.html?b=photos">
+    <a class="tile parked" href="/pages/forums.html?b=photos">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Community</span></a>
     <a class="tile" href="/pages/new.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9L12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11v4.5c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3V11M21.5 9v5"/></svg><span>Onboarding</span></a>
-    <a class="tile help" style="grid-column: 2" href="help.html">
+    <a class="tile help wide" href="help.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span>Call for Help</span></a>
   </nav>
 
@@ -256,7 +273,7 @@
 
   <p class="foot"><a href="/index.html">SEPA Resource Library website</a></p>
 </div>
-<script src="../js/config.js?v=0.27.74"></script>
+<script src="../js/config.js?v=0.27.75"></script>
 <script>
   /* ANNOUNCEMENTS (v0.27.19). Read from the Google Sheet's Announcements tab (see sepa-backend.gs,
      ANNOUNCEMENTS). The last list is kept on the phone so the bar still works with a weak signal.
@@ -302,7 +319,7 @@
     document.getElementById('sh-done').addEventListener('click', close);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !sh.hidden) close(); });
     document.getElementById('sh-send').addEventListener('click', function () {
-      var msg = 'Get the Red Cross SEPA Tools app: open this link, then add it to your home screen.';
+      var msg = 'Get the Red Cross SEPA Tools launcher: open this link, then add it to your home screen.';
       if (navigator.share) { navigator.share({ title: 'SEPA Tools', text: msg, url: LINK }).catch(function () {}); return; }
       function copied() { hint.textContent = 'Link copied. Paste it into a text or email.'; }
       if (navigator.clipboard) navigator.clipboard.writeText(LINK).then(copied, function () { hint.textContent = LINK; });

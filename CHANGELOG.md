@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.27.75 (Oct 26, 2026)
+- ESCALATION FORM RENAMED "LARGE SCENE REPORTING TOOL" (Sean). Website only, no Google script change; the page address (pages/escalation.html) and all saved worksheets are unchanged.
+  - Quick launch strip: RC Reserve removed to make room (still in the site search); the link reads "Large Scene Reporting Tool". Same text size and spacing (measured narrower than before at every width).
+  - Mass Care page button, page title, Scene Summary and recent-worksheets titles, the join and share messages, the "not switched on" message and the Excel file name use the new name. Start button reads "Leads: Click Here to Start a Report" (Sean). Site search finds it by the new name or "escalation".
+- LAUNCHER (was "the app"; Sean: leadership prefers "launcher"): Shift Sign Up, Mass Care and Community tiles are PARKED (hidden, not deleted) until leadership clears them; they stay on the website. To bring one back, delete "parked" from its class. The seven left are two across with wider tiles and bigger words (same height as before, so Share stays on screen); Call for Help is a full-width bar at the bottom; the tile reads "Large Scene Reporting Tool".
+  - "App" changed to "Launcher" on the install card, the shared text message, the homepage promo and the Get the Launcher pages (headline now "Launch any tool from one place"). Android's own menu wording "Install app" left as is. Manifest description updated.
+  - The phone picture on the Get the Launcher page now shows the seven-button launcher.
+- app/sw.js CACHE is now sepa-tools-41
+- Version number is now ?v=0.27.75 on every page and the homepage footer reads v0.27.75
+
 ## v0.27.74 (Oct 24, 2026)
 - ESCALATION WORKSHEET: removed the whole "For HQ" group (Share the Scene Summary, Copy the link and the explanation under them) (Sean: redundant, HQ logs in on their own). Website only. The Reception Center's "Send HQ the summary link" is unchanged.
 - app/sw.js CACHE is now sepa-tools-40

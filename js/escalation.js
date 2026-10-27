@@ -545,12 +545,12 @@
     // v0.27.3: buttons a responder cannot use are not shown to them (Scene Summary, the HQ list).
     function leadOnly() {
       Array.prototype.forEach.call(document.querySelectorAll('[data-esc="share"]'), function (b) { b.hidden = !lead; });
-      if ($('esc-hq-tools')) $('esc-hq-tools').hidden = !lead;     // v0.27.74: the group is gone from the page
+      if ($('esc-hq-tools')) $('esc-hq-tools').hidden = !lead;     // v0.27.75: the group is gone from the page
       $('esc-recent-link').hidden = !lead;
     }
     leadOnly();
     // The pinned Worksheet | Scene Summary switch (v0.27.27): for leads, and for HQ whose phone is on this worksheet.
-    function placeName() { return cur('incident_addresses').split('\n')[0] || 'Escalation worksheet'; }
+    function placeName() { return cur('incident_addresses').split('\n')[0] || 'Large Scene worksheet'; }
     function showBar() {
       if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.show({ on: 'a', showSwitch: lead || !!token(), name: placeName(),
         a: { label: 'Worksheet', href: pageLink('id=' + id + (hq ? '&as=hq' : '')) }, b: { label: 'Scene Summary', href: pageLink('view=' + id) },
@@ -631,7 +631,7 @@
       // there is nothing to send, so say so instead of sharing the words as text (as before).
       if (live === 'off' || !URL) { note('The Scene Summary cannot be sent right now: live sharing is not switched on. HQ sees the worksheet once it is.'); return; }
       claim = true; sync();              // make sure Google knows this worksheet before the link goes out
-      var msg = { title: 'DAT Scene Summary', text: 'Scene Summary of the DAT escalation form' + where() + '. It updates as it is filled in. HQ log in needed.', url: viewUrl };
+      var msg = { title: 'DAT Scene Summary', text: 'Scene Summary of the DAT Large Scene Reporting Tool worksheet' + where() + '. It updates as it is filled in. HQ log in needed.', url: viewUrl };
       if (navigator.share) navigator.share(msg).catch(function () {});
       else copy(viewUrl, function () { showLink(); note('The Scene Summary link was copied. Paste it into a message or email.'); });
     }
@@ -679,7 +679,7 @@
       err.hidden = true; btn.disabled = true; btn.textContent = 'Starting...';
       var key = newKey();
       startAsLead(id, key, function (problem) {
-        btn.disabled = false; btn.textContent = 'Leads: Click Here to Start an Escalation Worksheet';
+        btn.disabled = false; btn.textContent = 'Leads: Click Here to Start a Report';
         if (problem === '') return;                                   // closed the pop-up
         if (problem) { err.textContent = problem; err.hidden = false; return; }
         lsSet('sepaEscKey:' + id, key); lsSet('sepaEscCurrent', id); lsSet('sepaEscSeen:' + id, '1');
@@ -701,7 +701,7 @@
         if (r && r.leadLogin) return ask(r);
         m.hidden = true;
         if (r && r.offline) return done('No connection. Starting a worksheet needs a signal once; after that you can type with no signal.');
-        if (r && /unknown request/i.test(r.error || '')) return done('The Escalation Form is not switched on yet. The site admin needs to update the Google script.');
+        if (r && /unknown request/i.test(r.error || '')) return done('The Large Scene Reporting Tool is not switched on yet. The site admin needs to update the Google script.');
         done((r && r.error) || 'Could not start. Please try again.');
       });
     }
@@ -768,7 +768,7 @@
     readOnly = true;
     document.body.classList.add('esc-viewing');
     $('esc-view-tools').hidden = false;
-    $('esc-title').textContent = 'Escalation Form: Scene Summary';
+    $('esc-title').textContent = 'Large Scene Reporting Tool: Scene Summary';
     draw(); root.hidden = true;      // nothing is shown until the HQ login has been checked
     var s = $('esc-view-status'), base = null, at = 0, first = true, lastText = '', waiting = false, done = false;
     // v0.27.27: a LEAD's phone opens the Scene Summary with the worksheet's key plus its own phone code
@@ -815,7 +815,7 @@
             who: function () { return lsGet('sepaEscName') || lsGet('sepaAskName') || ''; } });
           if (!propsApi && typeof SEPAProps !== 'undefined' && $('esc-props')) propsApi = SEPAProps.mount({ host: $('esc-props'), id: id, auth: auth, open: true,
             canDelete: isHQ || leadHere, who: function () { return isHQ && !leadHere ? '' : (lsGet('sepaEscName') || lsGet('sepaAskName') || ''); } });
-          var place = String((r.data && r.data.incident_addresses) || '').split('\n')[0] || 'Escalation worksheet';
+          var place = String((r.data && r.data.incident_addresses) || '').split('\n')[0] || 'Large Scene worksheet';
           if (!barShown && typeof SEPAViewBar !== 'undefined') {
             barShown = true;
             SEPAViewBar.show({ on: 'b', showSwitch: !!myKey || isHQ, name: place,     // v0.27.28: HQ can type into the worksheet
@@ -887,7 +887,7 @@
       var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
       var a = document.createElement('a');
       a.href = window.URL.createObjectURL(blob);
-      a.download = 'Escalation worksheet ' + place.replace(/[\\\/:*?"<>|]+/g, ' ').trim().slice(0, 60) + ' ' + day + '.csv';
+      a.download = 'Large Scene worksheet ' + place.replace(/[\\\/:*?"<>|]+/g, ' ').trim().slice(0, 60) + ' ' + day + '.csv';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { window.URL.revokeObjectURL(a.href); }, 2000);
     }
@@ -914,7 +914,7 @@
   // ================================================================ LIST OF RECENT WORKSHEETS
   function listMode() {
     document.body.classList.add('esc-viewing');
-    $('esc-title').textContent = 'Escalation Forms: recent';
+    $('esc-title').textContent = 'Large Scene Reporting Tool: recent worksheets';
     $('esc-list-tools').hidden = false;
     root.hidden = true; $('esc-foot').hidden = true;
     var box = $('esc-list'), s = $('esc-list-status'), waiting = false;

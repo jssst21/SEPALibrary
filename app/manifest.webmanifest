@@ -1,7 +1,7 @@
 {
   "name": "SEPA Tools",
   "short_name": "SEPA Tools",
-  "description": "One place for the Red Cross SEPA DAT tools: RC Care, Noggin, shift sign-up, SCIA, the Escalation and Reception Center forms, practice sites and Onboarding.",
+  "description": "A launcher for the Red Cross SEPA DAT tools: RC Care, Noggin, the Large Scene Reporting Tool, the Reception Center form, practice sites, Onboarding and Call for Help.",
   "start_url": "/app/",
   "scope": "/app/",
   "display": "standalone",
