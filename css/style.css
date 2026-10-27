@@ -2184,3 +2184,6 @@ a.f-chip:hover { background: var(--bt); }
 .pa-more { display: block; width: 100%; margin-top: 10px; }
 .esc-old { margin-top: 16px; padding: 8px 12px; border: 1px dashed #b9bfc9; border-radius: 10px; background: #fafbfc; }
 .esc-old summary { cursor: pointer; font-weight: 700; color: var(--navy); }
+/* v0.27.78 (Sean, Oct 27): "The link was copied" under Add a responder / Add a lead: bigger, centered, in a green box, two lines */
+.add-box .add-note { margin: 6px 0 0; padding: 9px 12px; border-radius: 10px; background: #e8f4ec; border: 1.5px solid #9cc9ad; font-size: 17px; line-height: 1.35; text-align: center; white-space: pre-line; }
+.al-note { white-space: pre-line; }

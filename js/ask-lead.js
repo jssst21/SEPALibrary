@@ -371,8 +371,8 @@ var SEPAAskLead = (function () {
     function showLink(url, label) { q('.add-linkbox').hidden = false; q('.add-linklabel').textContent = label; q('.add-link').value = url; }
     function send(url, title, text, label) {
       if (navigator.share) { navigator.share({ title: title, text: text, url: url }).catch(function () {}); return; }
-      var hold = function () { showLink(url, label); note('Press and hold the link below to copy it, then paste it into a text.'); };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { showLink(url, label); note('The link was copied. Paste it into a text.'); }, hold);
+      var hold = function () { showLink(url, label); note('Press and hold the link below to copy it,\nthen paste it into a text or email.'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { showLink(url, label); note('The link was copied.\nPaste it into a text or email.'); }, hold);
       else hold();
     }
     function where() { var p = opt.place ? opt.place() : ''; return p ? ' at ' + p : ''; }
@@ -419,7 +419,7 @@ var SEPAAskLead = (function () {
           '. Open this link, type your name and tap Request access. The lead or HQ will let you in.';
         if (navigator.share) { navigator.share({ title: 'Ask to join', text: text, url: url }).catch(function () {}); return; }
         var shown = function (t) { g('.al-linkbox').hidden = false; g('.al-link').value = url; g('.al-note').textContent = t; g('.al-note').hidden = false; };
-        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { shown('The link was copied. Paste it into a text to the new person.'); }, function () { shown('Press and hold the link below to copy it.'); });
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { shown('The link was copied.\nPaste it into a text or email to the new person.'); }, function () { shown('Press and hold the link below to copy it.'); });
         else shown('Press and hold the link below to copy it.');
       };
       g('.al-go').onclick = function () {

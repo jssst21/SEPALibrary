@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.78 (Oct 27, 2026)
+- "THE LINK WAS COPIED" BIGGER (Sean). Under "+ Add a responder" / "+ Add a lead" on the Reception Center form and the Large Scene Reporting Tool: now centered in a light green box, a bit larger, on two lines: "The link was copied." / "Paste it into a text or email." The press-and-hold fallback and the ask-to-join link pop-up also say "text or email". Website only.
+- app/sw.js CACHE is now sepa-tools-44
+- Version number is now ?v=0.27.78 on every page and the homepage footer reads v0.27.78
+
 ## v0.27.77 (Oct 26, 2026)
 - NAME THE SCENE FIRST (Sean). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - Large Scene Reporting Tool: the Start screen asks "1. Name the scene" (required, any name, need not match the address) before "Leads: Click Here to Start a Report". The name is stored with the worksheet and names it everywhere: Current Operations (with the town under it for people not on it yet), the top bar, Scene Summary, HQ list, join and share messages, Excel file name.
