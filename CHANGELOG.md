@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.84 (Oct 28, 2026)
+- LARGE SCENE WORKSHEET (Sean): "Add photo" (and "See photos (n)" once there are photos) now sits at the end of Section 1, right above the Section 2 Stakeholders heading. Was: at the very bottom of the page. Same on the HQ Scene Summary (Sean: people rarely scroll to the bottom). Website only.
+- app/sw.js CACHE is now sepa-tools-50
+- Version number is now ?v=0.27.84 on every page and the homepage footer reads v0.27.84
+
 ## v0.27.83 (Oct 28, 2026)
 - TOP BAR, both forms and their Summary pages (Sean): the buttons sit together at the top (Intake / Summary or Worksheet / Scene Summary, then "Starting a new ..." / "Switch to HQ view"), with the event's name and "Logged in as ..." plus the log-out links under them. Was: name and logged-in line between the two rows of buttons. Website only.
 - app/sw.js CACHE is now sepa-tools-49

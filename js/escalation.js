@@ -633,6 +633,9 @@
     sync();
     // v0.27.57: the Running log (js/event-log.js), near the top like the Daily Shelter Report's.
     // HQ typing into the worksheet uses the HQ login (entries marked HQ); everyone else the worksheet's code.
+    // v0.27.84 (Sean, Oct 28): Add photo / See photos sit at the end of Section 1, right above Section 2 Stakeholders (were at the very bottom).
+    var s2h = $('esc-form').querySelectorAll('h2.esc-sec')[1];
+    if (s2h && $('esc-photos')) { $('esc-photos').classList.add('ev-photos-mid'); s2h.parentNode.insertBefore($('esc-photos'), s2h); }
     if (typeof SEPAEventLog !== 'undefined') SEPAEventLog.mount({ host: $('esc-log'), photosHost: $('esc-photos'), form: 'esc', id: id, who: myName,
       auth: function (o) { if (hq) o.token = token(); else { o.key = key; o.me = myDev(); } return o; } });
     // v0.27.73: Section 3 "Add Property" / "See Summary". Delete only for a lead or HQ (the Google script checks too).
@@ -840,6 +843,8 @@
           $('esc-clear-line').hidden = !isHQ;
           $('esc-dl-line').style.display = isHQ ? '' : 'none';     // HQ only: leads never export (v0.27.32)
           lastData = r.data || {};
+          // v0.27.84 (Sean): the HQ Scene Summary too: Add photo / See photos just above Section 2 (people rarely scroll to the bottom).
+          if (!logApi) { var s2v = $('esc-form').querySelectorAll('h2.esc-sec')[1]; if (s2v && $('esc-photos')) { $('esc-photos').classList.add('ev-photos-mid'); s2v.parentNode.insertBefore($('esc-photos'), s2v); } }
           if (!logApi && typeof SEPAEventLog !== 'undefined') logApi = SEPAEventLog.mount({ host: $('esc-view-log'), photosHost: $('esc-photos'), form: 'esc', id: id, auth: auth,
             who: function () { return lsGet('sepaEscName') || lsGet('sepaAskName') || ''; } });
           if (!propsApi && typeof SEPAProps !== 'undefined' && $('esc-props')) propsApi = SEPAProps.mount({ host: $('esc-props'), id: id, auth: auth, open: true,

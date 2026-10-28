@@ -2054,6 +2054,7 @@ a.f-chip:hover { background: var(--bt); }
 .ev-log { margin-top: 14px; }
 .ev-photos-host { margin: 18px 0 8px; }
 .ev-photos-host[hidden] { display: none; }
+.ev-photos-host.ev-photos-mid { margin: 8px 0 22px; }   /* v0.27.84: above Section 2 on the Large Scene worksheet */
 .ev-photos { padding: 14px 16px; border: 1.5px dashed var(--line); border-radius: var(--radius); background: #fff; }
 .ev-photos .esc-buttons { margin: 0; }
 .ev-photos .esc-btn { flex: 1 1 160px; min-height: 44px; }
