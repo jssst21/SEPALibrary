@@ -1,6 +1,6 @@
 /* ADD PROPERTY for the Escalation worksheet, Section 3 (website v0.27.73, Sean Oct 24, 2026).
    Replaces the two "Initial Estimated #" grids. Responders log each property as they learn about it:
-   Address, Unit, Damage Assessment, and if known Adults, Children, Pets, Name of Primary, Place to go?,
+   Address, Unit, Damage Assessment, and if known Adults, Children, Pets, Notes (was Name of Primary until v0.27.80), Place to go?,
    Would consider a shelter? Nothing is required (information is spotty). "See Summary" opens a dashboard
    built from the entries (totals, units by damage, each entry with who logged it and when).
      - Anyone on the worksheet adds and edits. Only a lead (or added lead) or HQ sees Delete.
@@ -57,7 +57,7 @@ var SEPAProps = (function () {
 
   // CSV lines for Download for Excel (q quotes one value)
   function csv(rows, q) {
-    var out = ['', q('Properties (Section 3: Add Property)'), ['Logged', 'Logged by', 'Address', 'Unit', 'Damage', 'Adults', 'Children', 'Pets', 'Name of primary', 'Place to go', 'Would consider shelter', 'Edited', 'Edited by', 'Possible duplicate'].map(q).join(',')];
+    var out = ['', q('Properties (Section 3: Add Property)'), ['Logged', 'Logged by', 'Address', 'Unit', 'Damage', 'Adults', 'Children', 'Pets', 'Notes', 'Place to go', 'Would consider shelter', 'Edited', 'Edited by', 'Possible duplicate'].map(q).join(',')];
     var d = dupes(rows);
     rows.forEach(function (i) {
       out.push([i.saved, i.by, i.address, i.unit, i.damage, i.adults, i.children, i.pets, i.primary, i.place, i.shelter, i.edited, i.edited_by, d[i.pid] ? 'Yes' : ''].map(q).join(','));
@@ -97,7 +97,7 @@ var SEPAProps = (function () {
       DAMAGE.map(function (d) { return '<option>' + d + '</option>'; }).join('') + '</select></label>' +
       '<p class="pa-if">If known</p><div class="pa-row3">' +
       ['adults', 'children', 'pets'].map(function (k) { return '<label><span class="esc-cap">' + k.charAt(0).toUpperCase() + k.slice(1) + '</span><input class="esc-in" data-f="' + k + '" inputmode="numeric" maxlength="4" autocomplete="off"></label>'; }).join('') +
-      '</div><label class="pa-q"><span class="esc-label">Name of Primary</span><input class="esc-in" data-f="primary" maxlength="120" autocomplete="off" autocapitalize="words"></label>' +
+      '</div><label class="pa-q"><span class="esc-label">Notes</span><input class="esc-in" data-f="primary" maxlength="120" autocomplete="off" autocapitalize="sentences"></label>' +     // v0.27.80 (Sean): was "Name of Primary"; same field, so entries already saved show here
       '<div class="pa-q"><span class="esc-label" id="pa-lp-' + id + '">Place to go?</span><div class="rc-choice" role="radiogroup" aria-labelledby="pa-lp-' + id + '" data-f="place">' + YNU.map(function (v) { return '<button type="button" data-v="' + v + '">' + v + '</button>'; }).join('') + '</div></div>' +
       '<div class="pa-q"><span class="esc-label" id="pa-ls-' + id + '">Would consider a shelter?</span><div class="rc-choice" role="radiogroup" aria-labelledby="pa-ls-' + id + '" data-f="shelter">' + YNU.map(function (v) { return '<button type="button" data-v="' + v + '">' + v + '</button>'; }).join('') + '</div></div>' +
       '<p class="form-error pa-err" hidden></p>' +
@@ -243,8 +243,8 @@ var SEPAProps = (function () {
         h.appendChild(el('span', 'pa-tag' + (HOT[i.damage] ? ' hot' : ''), i.damage || 'Not assessed'));
         c.appendChild(h);
         if (d[i.pid]) c.appendChild(el('span', 'pa-dupe', 'Possible duplicate'));
-        var who = [i.primary, people(i)].filter(Boolean).join(' · ');
-        if (who) c.appendChild(el('p', '', who));
+        if (people(i)) c.appendChild(el('p', '', people(i)));
+        if (i.primary) c.appendChild(el('p', '', 'Notes: ' + i.primary));     // v0.27.80: was the name of the primary
         if (i.place || i.shelter) c.appendChild(el('p', '', 'Place to go: ' + (i.place || 'not asked') + ' · Shelter: ' + (i.shelter || 'not asked')));
         c.appendChild(el('small', '', 'Logged by ' + (i.by || 'a responder') + ' ' + clock(i.saved) + (i.edited ? ' · Edited by ' + (i.edited_by || '') + ' ' + clock(i.edited) : '')));
         if (i.pending) c.appendChild(el('small', 'ev-state' + (/^Not/.test(i.pending) ? ' ev-wait' : ''), i.pending));

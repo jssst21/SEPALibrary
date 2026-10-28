@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.80 (Oct 27, 2026)
+- ADD PROPERTY: "Name of Primary" is now "Notes" (Sean). Same saved field, so entries already logged show under Notes; on the property cards it reads "Notes: ..." on its own line, and the Excel column is "Notes". Still up to 120 characters (a longer limit needs the Google script). The sheet's column header stays "Name of primary". Website only.
+- app/sw.js CACHE is now sepa-tools-46
+- Version number is now ?v=0.27.80 on every page and the homepage footer reads v0.27.80
+
 ## v0.27.79 (Oct 27, 2026)
 - NAME POP-UP (Sean: people missed "Your name" up above). Website only. A "What's your name?" pop-up (Continue needs a name; remembered on the phone after that):
   - Large Scene Reporting Tool: shows straight away when a worksheet opens on a phone with no name yet (the link the lead sends, a new lead, any way in). The name fills "Your name" and who is on this worksheet. Not for HQ typing (marked HQ).
