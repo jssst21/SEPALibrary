@@ -2187,3 +2187,6 @@ a.f-chip:hover { background: var(--bt); }
 /* v0.27.78 (Sean, Oct 27): "The link was copied" under Add a responder / Add a lead: bigger, centered, in a green box, two lines */
 .add-box .add-note { margin: 6px 0 0; padding: 9px 12px; border-radius: 10px; background: #e8f4ec; border: 1.5px solid #9cc9ad; font-size: 17px; line-height: 1.35; text-align: center; white-space: pre-line; }
 .al-note { white-space: pre-line; }
+/* v0.27.79: "What's your name?" pop-up (js/current-ops.js askName), above every other pop-up */
+.f-modal.co-name-modal { z-index: 70; }
+.co-name-modal .primary-btn { display: block; width: 100%; margin-top: 14px; }

@@ -583,6 +583,10 @@
     whoLine();
     if (hq) {      // HQ typing: no name box, no "start a new worksheet" (that would be HQ's own worksheet)
       $('esc-myname').closest('label').style.display = 'none';
+    } else if (!myName() && typeof SEPACurrentOps !== 'undefined' && SEPACurrentOps.askName) {
+      // v0.27.79 (Sean, Oct 27): everyone on a worksheet must give a name. Opening a join link (or any way in)
+      // without one shows the name pop-up first; the name goes into "Your name" and to who is on this worksheet.
+      SEPACurrentOps.askName(function (v) { $('esc-myname').value = v; lsSet('sepaEscName', v); sync(); if (typeof whoLine === 'function') whoLine(); });
     }
     function addHow() {
       $('esc-joined-how').hidden = lead;
@@ -798,8 +802,8 @@
           call({ action: 'escList', token: token() }).then(function (r) {
             if (!(r && r.ok)) return done(null, r && r.login ? 'Please log in again as HQ.' : 'Could not load the worksheets. Please try again.');
             done(r.items.map(function (it) {
-              return { href: pageLink('view=' + it.id), title: (it.address || '(no address typed yet)').split('\n')[0], current: it.id === id,
-                sub: (it.when ? it.when + ' · ' : '') + 'last change ' + ago((r.now || 0) - (it.ms || 0)) };
+              return { href: pageLink('view=' + it.id), title: listTitle(it), current: it.id === id,      // v0.27.79: the scene name, like Current Operations
+                sub: listSub(it, r.now) };
             }));
           });
         } };
@@ -926,6 +930,17 @@
   }
 
   // ================================================================ LIST OF RECENT WORKSHEETS
+  // v0.27.79: how HQ's lists name a worksheet: its scene name (v0.27.77), else the address
+  function listTitle(it) { return String(it.scene || it.address || '(no name or address yet)').split('\n')[0]; }
+  function listSub(it, now) {
+    var m = /(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{2})/.exec(it.started || ''), st = '';
+    if (m) {
+      var d = new Date(+m[1], +m[2] - 1, +m[3]), h = +m[4];
+      st = 'Started ' + (d.toDateString() === new Date().toDateString() ? 'today' : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()] + ' ' + d.getDate()) +
+        ' ' + ((h % 12) || 12) + ':' + m[5] + (h < 12 ? ' AM' : ' PM') + ' · ';
+    }
+    return st + 'last change ' + ago((now || 0) - (it.ms || 0));
+  }
   function listMode() {
     document.body.classList.add('esc-viewing');
     $('esc-title').textContent = 'Large Scene Reporting Tool: recent worksheets';
@@ -942,8 +957,12 @@
         box.innerHTML = '';
         r.items.forEach(function (it) {
           var a = el('a', 'esc-item'); a.href = pageLink('view=' + it.id);
-          a.appendChild(el('strong', '', it.address || '(no address typed yet)'));
-          a.appendChild(el('span', '', (it.when ? 'Date/ Time: ' + it.when + '   ' : '') + 'Last change ' + ago((r.now || 0) - (it.ms || 0)) + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '')));
+          // v0.27.79 (Sean, Oct 27): named by the scene name and start time, the same as Current Operations (was: the
+          // incident address and the typed Date/Time, so HQ could not match it to the worksheets people were on)
+          a.appendChild(el('strong', '', listTitle(it)));
+          var addr = it.scene ? String(it.address || '').split('\n')[0] : '';
+          if (addr) a.appendChild(el('span', '', addr));
+          a.appendChild(el('span', '', listSub(it, r.now) + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '')));
           box.appendChild(a);
         });
       });

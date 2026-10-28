@@ -64,6 +64,13 @@
     var h = +m[1];
     return ((h % 12) || 12) + ':' + m[2] + (h < 12 ? ' AM' : ' PM');
   }
+  // v0.27.79: "Started today 8:24 PM · ", the same start time Current Operations shows, so HQ sees it is the same center
+  function started(t) {
+    var m = /(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{2})/.exec(t || ''); if (!m) return '';
+    var d = new Date(+m[1], +m[2] - 1, +m[3]), h = +m[4];
+    return 'Started ' + (d.toDateString() === new Date().toDateString() ? 'today' : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()] + ' ' + d.getDate()) +
+      ' ' + ((h % 12) || 12) + ':' + m[5] + (h < 12 ? ' AM' : ' PM') + ' · ';
+  }
   function ago(ms) {
     var s = Math.max(0, Math.round(ms / 1000));
     if (s < 5) return 'just now';
@@ -188,6 +195,10 @@
   }
 
   function namePanel(then) {
+    // v0.27.79 (Sean, Oct 27): the same "What's your name?" pop-up as the Large Scene Reporting Tool (was a separate screen)
+    if (typeof SEPACurrentOps !== 'undefined' && SEPACurrentOps.askName) {
+      return SEPACurrentOps.askName(function (v) { lsSet('sepaRecName', v); then(); }, { note: 'Each intake you do is marked with your name, so your lead knows who to ask.', value: lsGet('sepaAskName') || '' });
+    }
     $('rec-name-ask').hidden = false;
     $('rec-name-form').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -551,7 +562,7 @@
             if (!(r && r.ok)) return done(null, r && r.login ? 'Please log in again as HQ.' : 'Could not load the centers. Please try again.');
             done(r.items.map(function (it) {
               return { href: pageLink('view=' + it.id), title: it.center || '(no name)', current: it.id === id,
-                sub: 'Lead: ' + (it.lead || '-') + ' · ' + it.count + ' intake' + (it.count === 1 ? '' : 's') + ' · last activity ' + ago((r.now || 0) - (it.ms || 0)) };
+                sub: started(it.started) + 'Lead: ' + (it.lead || '-') + ' · ' + it.count + ' intake' + (it.count === 1 ? '' : 's') + ' · last activity ' + ago((r.now || 0) - (it.ms || 0)) };
             }));
           });
         } };
@@ -875,7 +886,7 @@
         r.items.forEach(function (it) {
           var a = el('a', 'esc-item'); a.href = pageLink('view=' + it.id);
           a.appendChild(el('strong', '', it.center || '(no name)'));
-          a.appendChild(el('span', '', 'Lead: ' + (it.lead || '-') + '   ' + it.count + ' intake' + (it.count === 1 ? '' : 's') + '   Last activity ' + ago((r.now || 0) - (it.ms || 0)) + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '')));
+          a.appendChild(el('span', '', started(it.started) + 'Lead: ' + (it.lead || '-') + ' · ' + it.count + ' intake' + (it.count === 1 ? '' : 's') + ' · last activity ' + ago((r.now || 0) - (it.ms || 0)) + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '')));
           box.appendChild(a);
         });
       });

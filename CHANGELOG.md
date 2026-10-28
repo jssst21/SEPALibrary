@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.27.79 (Oct 27, 2026)
+- NAME POP-UP (Sean: people missed "Your name" up above). Website only. A "What's your name?" pop-up (Continue needs a name; remembered on the phone after that):
+  - Large Scene Reporting Tool: shows straight away when a worksheet opens on a phone with no name yet (the link the lead sends, a new lead, any way in). The name fills "Your name" and who is on this worksheet. Not for HQ typing (marked HQ).
+  - Reception Center: the same pop-up replaces the separate "Your name" screen after a join link.
+  - Join pop-up (all three forms): "Request access" or "Log in and open" with the name blank opens the name pop-up, then carries on by itself (was a red "Please type your name" far above the log in).
+- HQ LISTS NAME THINGS THE SAME WAY AS CURRENT OPERATIONS (Sean: HQ's list looked out of date). HQ's "recent worksheets" list and the Scene Summary's "Change scene" menu now show the scene name, then the address, then "Started today 8:24 PM · last change ..." (were: the incident address and the typed Date/Time). Reception Center list, "Change center" and Current Operations (HQ) add the same "Started ..." time.
+- app/sw.js CACHE is now sepa-tools-45
+- Version number is now ?v=0.27.79 on every page and the homepage footer reads v0.27.79
+
 ## v0.27.78 (Oct 27, 2026)
 - "THE LINK WAS COPIED" BIGGER (Sean). Under "+ Add a responder" / "+ Add a lead" on the Reception Center form and the Large Scene Reporting Tool: now centered in a light green box, a bit larger, on two lines: "The link was copied." / "Paste it into a text or email." The press-and-hold fallback and the ask-to-join link pop-up also say "text or email". Website only.
 - app/sw.js CACHE is now sepa-tools-44

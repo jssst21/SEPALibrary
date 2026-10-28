@@ -90,7 +90,7 @@ var SEPACurrentOps = (function () {
       if (!(r && r.ok)) return [];
       return r.items.map(function (it) {
         return { id: it.id, href: 'reception.html?view=' + it.id, title: it.center || 'Reception center',
-          sub: (it.lead ? 'Lead: ' + it.lead + ' · ' : '') + it.count + (it.count === 1 ? ' intake' : ' intakes') + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '') };
+          sub: (it.started ? 'Started ' + clock(it.started) + ' · ' : '') + (it.lead ? 'Lead: ' + it.lead + ' · ' : '') + it.count + (it.count === 1 ? ' intake' : ' intakes') + (it.asking ? ' · ' + it.asking + (it.asking === 1 ? ' person' : ' people') + ' asking to join' : '') };
       });
     });
   }
@@ -220,7 +220,8 @@ var SEPACurrentOps = (function () {
     q('.co-j-cancel').onclick = function () { clearTimeout(waitTimer); lsSet('sepaAsk:' + form, ''); close(); };
     q('.co-j-login').onclick = function () {
       var b = this, who = q('.co-j-name').value.trim();
-      if (!who) return err('Please type your name.');
+      // v0.27.79: no name yet? ask for it in a pop-up, then carry on logging in
+      if (!who) return askName(function (v) { q('.co-j-name').value = v; q('.co-j-login').click(); });
       if (!q('.co-j-user').value.trim() || !q('.co-j-pass').value) return err('Please type the user name and password.');
       b.disabled = true; err('');
       post({ action: 'coLogin', form: form, id: it.id, who: who, user: q('.co-j-user').value, password: q('.co-j-pass').value, dev: form === 'sh' ? '' : device(form, it.id) }).then(function (r) {
@@ -232,7 +233,7 @@ var SEPACurrentOps = (function () {
     };
     q('.co-j-ask').onclick = function () {
       var b = this, who = q('.co-j-name').value.trim();
-      if (!who) return err('Please type your name, so the lead knows who is asking.');
+      if (!who) return askName(function (v) { q('.co-j-name').value = v; q('.co-j-ask').click(); }, { note: 'So the lead knows who is asking to join.' });
       b.disabled = true; err('');
       var p = { id: it.id, ticket: secret(32), name: who, at: Date.now(), title: it.title };
       post({ action: 'askJoin', form: form, id: it.id, ticket: p.ticket, name: who, phone: form === 'sh' ? '' : q('.co-j-phone').value.trim() }).then(function (r) {
@@ -323,5 +324,29 @@ var SEPACurrentOps = (function () {
       if (askIt) { joinModal(form, askIt); var nm = document.querySelector('#co-join .co-j-name'); if (nm && !nm.value) nm.focus(); }
     });
   }
-  return { show: show };
+  // v0.27.79 (Sean, Oct 27: people missed "Your name" because it was up above): a small pop-up that asks for the
+  // person's name, on top of everything, whenever a name is needed and missing. done(name) once they type one.
+  // opt: { note: text under the heading, value: a name to start with }
+  function askName(done, opt) {
+    opt = opt || {};
+    var old = document.getElementById('co-name'); if (old) old.remove();
+    var m = document.createElement('div'); m.className = 'f-modal co-name-modal'; m.id = 'co-name';
+    m.innerHTML = '<div class="f-modal-box" role="dialog" aria-modal="true" aria-labelledby="co-name-t">' +
+      '<h2 id="co-name-t">What\'s your name?</h2>' +
+      '<p class="f-modal-note">' + esc(opt.note || 'So the lead and HQ know who is on this event.') + '</p>' +
+      '<form novalidate><label class="field">Your name <input class="co-name-in" autocomplete="name" autocapitalize="words" maxlength="60" value="' + esc(opt.value || '') + '"></label>' +
+      '<p class="form-error co-name-err" hidden>Please type your name.</p>' +
+      '<button type="submit" class="primary-btn co-name-go">Continue</button></form></div>';
+    document.body.appendChild(m);
+    var inp = m.querySelector('.co-name-in');
+    m.querySelector('form').onsubmit = function (e) {
+      e.preventDefault();
+      var v = inp.value.trim().replace(/\s+/g, ' ');
+      if (!v) { m.querySelector('.co-name-err').hidden = false; inp.focus(); return; }
+      lsSet('sepaAskName', v);
+      m.remove(); done(v);
+    };
+    setTimeout(function () { inp.focus(); }, 50);
+  }
+  return { show: show, askName: askName };
 })();
