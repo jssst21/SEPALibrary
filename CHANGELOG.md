@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.27.81 (Oct 27, 2026)
+- STRESS TEST FIXES (Oct 27 test: 145 saves turned away as "busy" from 8:31 to 8:37 PM with ~22 phones typing). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
+  - Large Scene Reporting Tool: what is typed goes out at most every 5 seconds (was about a second after each pause; Sean chose 5 over 8). Check-ins in between still bring in everyone else's entries and skip the save line. Hiding or leaving the page, and coming back online, send at once.
+  - Google script: worksheet saves (escSync) wait in the one-at-a-time line only while the worksheet's cell is read and rewritten, not for the whole request (checks, who is on it, join requests are outside the line). A plain check-in that finds it must write (an older worksheet picking up a phone's key) takes the line then and reads again.
+  - Busy said plainly: "Busy right now. What you typed is safe on this phone and will be sent by itself in a few seconds. No need to type it again." on the worksheet (was the same "No connection" message as a lost signal); the same idea on Add Property and the running log entries, and on the Reception Center's waiting intakes (busy intakes are retried every 5 seconds instead of showing an error).
+- Not doing a re-test for now (Sean: the test was about double a likely scene's users). Reception Center stress test waits for leadership's permission to use it.
+- app/sw.js CACHE is now sepa-tools-47
+- Version number is now ?v=0.27.81 on every page and the homepage footer reads v0.27.81
+
 ## v0.27.80 (Oct 27, 2026)
 - ADD PROPERTY: "Name of Primary" is now "Notes" (Sean). Same saved field, so entries already logged show under Notes; on the property cards it reads "Notes: ..." on its own line, and the Excel column is "Notes". Still up to 120 characters (a longer limit needs the Google script). The sheet's column header stays "Name of primary". Website only.
 - app/sw.js CACHE is now sepa-tools-46

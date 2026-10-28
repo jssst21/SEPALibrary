@@ -332,6 +332,7 @@
       s.className = 'esc-status';
       if (state === 'off') { s.textContent = 'The Reception Center Form is not switched on yet (the Google script needs its update). Intakes are kept on this phone.'; s.className += ' esc-warn'; }
       else if (state === 'nokey') { s.textContent = 'This phone is not allowed into that reception center. Ask your lead to tap "Add a responder" and send you the link.'; s.className += ' esc-warn'; }
+      else if (waiting && state === 'busy') { s.textContent = 'Busy right now. ' + waiting + ' intake' + (waiting === 1 ? ' is' : 's are') + ' safe on this phone and will be sent by ' + (waiting === 1 ? 'itself' : 'themselves') + ' in a few seconds. No need to enter ' + (waiting === 1 ? 'it' : 'them') + ' again.'; s.className += ' esc-warn'; }     // v0.27.81
       else if (waiting) { s.textContent = waiting + ' intake' + (waiting === 1 ? '' : 's') + ' waiting for a signal. They will be sent by themselves.'; s.className += ' esc-warn'; }
       else if (state === 'on') { s.textContent = 'Connected. Every intake is sent as soon as you save it.'; s.className += ' esc-ok'; }
       else if (state === 'offline') { s.textContent = 'No connection right now. You can keep going: intakes wait on this phone.'; s.className += ' esc-warn'; }
@@ -406,6 +407,7 @@
         if (r && r.nokey) state = 'nokey';
         else if (oldScript(r)) state = 'off';
         else if (r && r.offline) state = 'offline';
+        else if (r && r.busy) state = 'busy';     // v0.27.81: the save line was full; the 5-second check sends it again
         else {                     // Google refused this one (should not happen): keep it, say so
           state = 'on';
           $('rec-form-error').textContent = 'An intake could not be sent: ' + ((r && r.error) || 'unknown problem') + '. It is kept on this phone.';

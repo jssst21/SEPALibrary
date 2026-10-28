@@ -173,8 +173,9 @@ var NO_LOCK_ACTIONS = { escGet: 1, escList: 1, recGet: 1, recList: 1, recAsks: 1
   evPhotoAdd: 1 };     // v0.27.69: a photo upload (slow, to Drive) never holds up saving data
 function needsLock_(d) {
   if (NO_LOCK_ACTIONS[d.action]) return false;
-  // an Escalation check-in with nothing typed and no claim only reads (writes, if any, are tiny and rare)
-  if (d.action === 'escSync' && !d.claim && !(d.changes && Object.keys(d.changes).length)) return false;
+  // v0.27.81 (stress test Oct 27: 145 saves turned away as busy): escSync takes the lock ITSELF, only around reading
+  // and rewriting the worksheet's cell, not for the whole request (checks, who is on it, join requests stay outside).
+  if (d.action === 'escSync') return false;
   return true;
 }
 function doPost(e) {
@@ -1042,7 +1043,25 @@ function escSync_(d) {
   // Since website v0.27.1 a worksheet must be STARTED first (escStart, HQ user name and password).
   if (!row) return hq ? { ok: false, error: 'That worksheet was not found.' } : { ok: false, needStart: true, error: 'Starting a worksheet needs the HQ user name and password.' };
 
-  var w = row ? escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]) : { data: {}, meta: { r: 0, k: '', f: {} } };
+  // v0.27.81: something to write -> wait in the line (25 s at most) for just the read-merge-write below.
+  // A plain check-in reads without the line; if it turns out it must write (a phone's key on an older worksheet),
+  // it takes the line then and reads again, so it never writes over a save that came in meanwhile.
+  var lock = null, BUSY = { ok: false, busy: true, error: 'The system is busy. Please try again in a few seconds.' };
+  function takeLock() {      // '' = in the line and the row is there; otherwise the answer to send back
+    var l = LockService.getScriptLock();
+    if (!l.tryLock(25000)) return BUSY;
+    row = escFindRow_(sh, id);
+    if (!row) { l.releaseLock(); return { ok: true, cleared: true }; }     // HQ cleared it while this waited
+    lock = l; return '';
+  }
+  var got;
+  if (names.length || d.claim) { got = takeLock(); if (got) return got; }
+  try {
+  var w = escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]);
+  if (!lock && !hq && (!w.meta.k || (w.meta.e !== key && escKeyOk_(w.meta, id, key)))) {
+    got = takeLock(); if (got) return got;
+    w = escOpen_(sh.getRange(row, 7, 1, 1).getValues()[0][0]);
+  }
   var adopt = !hq && !w.meta.k;                // a new worksheet, or one saved before v0.18: this key becomes its key
   if (adopt) w.meta.k = escKeyMark_(id, key);
   else if (!hq && !escKeyOk_(w.meta, id, key)) return { ok: false, nokey: true, error: 'This link cannot open the worksheet.' };
@@ -1073,6 +1092,7 @@ function escSync_(d) {
     else if (touched) sh.getRange(row, 3, 1, 5).setValues([[nowText, safe_(clean_(w.data.incident_addresses, 200)), safe_(clean_(w.data.date_time, 80)), String(now.getTime()), text]]);
     else sh.getRange(row, 7, 1, 1).setValues([[text]]);
   }
+  } finally { if (lock) { SpreadsheetApp.flush(); lock.releaseLock(); } }
 
   var out = {};
   Object.keys(w.meta.f).forEach(function (k) { if (w.meta.f[k] > since) out[k] = w.data[k] || ''; });

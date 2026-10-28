@@ -115,7 +115,7 @@
         sending = false;
         if (r && r.ok) { x.st = 'saved'; keep(); render(); load(true); sendNext(); return; }
         if (r && r.cleared) { pend = []; keep(); return; }
-        x.st = 'wait'; x.err = r && !r.offline && r.error ? r.error : ''; keep(); render();      // tries again by itself (below)
+        x.st = 'wait'; x.err = r && r.busy ? 'busy' : r && !r.offline && r.error ? r.error : ''; keep(); render();     // v0.27.81: busy said plainly      // tries again by itself (below)
       });
     }
     setInterval(function () { if (!document.hidden) sendNext(); }, 10000);
@@ -140,7 +140,7 @@
         head.appendChild(el('b', '', x.by)); head.appendChild(document.createTextNode(' · ' + when(x.at)));
         li.appendChild(head); li.appendChild(el('span', 'sr-log-text', x.text));
         li.appendChild(el('small', 'ev-state' + (x.st === 'saved' ? ' ev-ok' : x.st === 'wait' ? ' ev-wait' : ''),
-          x.st === 'saved' ? '\u2713 Saved' : x.st === 'wait' ? (x.err ? 'Not saved yet: ' + x.err + ' Trying again...' : 'Not sent yet (no signal). It will send by itself.') : 'Sending...'));
+          x.st === 'saved' ? '\u2713 Saved' : x.st === 'wait' ? (x.err === 'busy' ? 'Busy right now. Your entry is safe and will send by itself. No need to type it again.' : x.err ? 'Not saved yet: ' + x.err + ' Trying again...' : 'Not sent yet (no signal). It will send by itself.') : 'Sending...'));
         ul.appendChild(li);
       });
       var list = S.log;

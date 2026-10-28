@@ -404,11 +404,19 @@
       location.href = pageLink('id=' + fresh);
     }
 
-    function sync() {
+    // v0.27.81 (stress test Oct 27: saves queued up and were turned away as "busy" with ~22 phones typing): what is
+    // typed goes out at most every 5 seconds (was about a second after each pause; Sean chose 5 over 8). Check-ins in between still bring
+    // in everyone else's entries; they send nothing, so they skip the save line. Leaving the page sends at once.
+    var PUSH_GAP = 5000, lastPush = 0;
+    function pushDelay() { return Math.max(1200, PUSH_GAP - (Date.now() - lastPush)); }
+    function sync(now) {
       if (busy) { again = true; return; }
       if (live === 'off' || live === 'nokey' || live === 'nostart') return;
       busy = true; again = false; clearTimeout(timer);
       var names = changedHere(), sent = {}, claiming = claim;
+      var held = names.length && !now && !claiming && live !== 'busy' && Date.now() - lastPush < PUSH_GAP;
+      if (held) names = [];          // too soon after the last send: just check in; the typing goes out shortly
+      else if (names.length) lastPush = Date.now();
       names.forEach(function (k) { sent[k] = cur(k); });
       var req = { action: 'escSync', id: id, key: key, since: meta.rev, changes: sent };
       if (hq) req.token = token();        // HQ typing (v0.27.28): the HQ login instead of the edit key
@@ -454,11 +462,13 @@
           startAsLead(id, key, placeName(), function (bad) { if (bad === null) { lead = true; live = 'unknown'; $('esc-joined-how').hidden = true; if (adds) adds.refresh(); leadOnly(); sync(); } });
         }
         else if (r && r.toolong) { live = 'on'; problem = r.error || 'This worksheet is too long to save.'; }
+        else if (r && r.busy) live = 'busy';      // v0.27.81: the save line was full; it goes again by itself
         else if (r && !r.offline && /unknown request/i.test(r.error || '')) live = 'off';
         else live = 'offline';
         status();
         if (again) queue(200);
-        else if (live === 'on' && !problem && changedHere().length) queue(1200);
+        else if (live === 'busy') queue(4000);
+        else if (live === 'on' && !problem && changedHere().length) queue(pushDelay());
       });
     }
     function queue(ms) { clearTimeout(timer); timer = setTimeout(sync, ms); }
@@ -536,6 +546,7 @@
       }
       else if (live === 'off') t = 'Saved on this device. Live sharing is not switched on yet (the Google script needs its update).';
       else if (live === 'offline') { t = 'Saved on this device. No connection: it will be sent when you are back online.'; s.className += ' esc-warn'; }
+      else if (live === 'busy') { t = 'Busy right now. What you typed is safe on this phone and will be sent by itself in a few seconds. No need to type it again.'; s.className += ' esc-warn'; }
       else if (live === 'nostart') { t = 'Saved on this device, but NOT shared yet: starting a worksheet needs the lead user name and password. Reload the page to try again.'; s.className += ' esc-warn'; }
       else if (live === 'nokey') { t = 'Saved on this device, but NOT shared: this phone was not added to that worksheet. Ask the person who started it to tap "Add a responder" and send you the link.'; s.className += ' esc-warn'; }
       else t = 'Saved on this device.';
@@ -598,10 +609,10 @@
       if (!lead) whose();
       if (typeof SEPAViewBar !== 'undefined') SEPAViewBar.setName(placeName());
       lastActive = Date.now();
-      if (live !== 'off' && live !== 'nokey') queue(1200);
+      if (live !== 'off' && live !== 'nokey') queue(pushDelay());
     });
-    window.addEventListener('online', function () { sync(); });
-    document.addEventListener('visibilitychange', function () { if (!document.hidden || changedHere().length) sync(); });
+    window.addEventListener('online', function () { sync(true); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden || changedHere().length) sync(!!document.hidden); });
     // Check in every 5 seconds while the worksheet is busy, every 15 seconds once it has been quiet for 2 minutes.
     // (v0.27.33: back to this after a day at once a minute, Sean Oct 15.)
     setInterval(function () {
@@ -654,8 +665,8 @@
     // ---- "Starting a new scene?" (v0.27.29: the red button in the bar replaces the old link at the bottom)
     function newSceneActions(isLead) {
       return newScene(isLead, function () {
-        if (!changedHere().length || live !== 'on') return goNewScene();
-        sync(); setTimeout(goNewScene, 1500);      // give the last entries a moment to go out first (they are kept on this device either way)
+        if (!changedHere().length || (live !== 'on' && live !== 'busy')) return goNewScene();
+        sync(true); setTimeout(goNewScene, 1500);      // give the last entries a moment to go out first (they are kept on this device either way)
       });
     }
   }

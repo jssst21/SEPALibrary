@@ -179,7 +179,7 @@ var SEPAProps = (function () {
         sending = false;
         if (r && r.cleared) { pend = []; keep(); render(); return; }
         if (r && r.ok) { x.st = 'saved'; keep(); load(true); sendNext(); return; }
-        x.st = 'wait'; x.err = r && !r.offline ? (r.error || '') : ''; keep(); render();
+        x.st = 'wait'; x.err = r && r.busy ? 'busy' : r && !r.offline ? (r.error || '') : ''; keep(); render();     // v0.27.81: busy said plainly
         clearTimeout(retry); retry = setTimeout(sendNext, 10000);
       });
     }
@@ -190,7 +190,7 @@ var SEPAProps = (function () {
       var have = {}; S.items.forEach(function (i) { have[i.pid] = 1; });
       pend = pend.filter(function (x) { return !(x.st === 'saved' && have[x.pid]); });
       var mine = pend.filter(function (x) { return !have[x.pid]; }).map(function (x) {
-        var i = { pid: x.pid, saved: x.at, by: x.by, pending: x.st === 'wait' ? (x.err ? 'Not saved yet: ' + x.err + ' Trying again...' : 'Not sent yet (no signal). It will send by itself.') : 'Sending...' };
+        var i = { pid: x.pid, saved: x.at, by: x.by, pending: x.st === 'wait' ? (x.err === 'busy' ? 'Busy right now. Your entry is safe and will send by itself. No need to type it again.' : x.err ? 'Not saved yet: ' + x.err + ' Trying again...' : 'Not sent yet (no signal). It will send by itself.') : 'Sending...' };
         FIELDS.forEach(function (k) { i[k] = x.p[k] || ''; }); return i;
       });
       return S.items.concat(mine);
@@ -247,7 +247,7 @@ var SEPAProps = (function () {
         if (i.primary) c.appendChild(el('p', '', 'Notes: ' + i.primary));     // v0.27.80: was the name of the primary
         if (i.place || i.shelter) c.appendChild(el('p', '', 'Place to go: ' + (i.place || 'not asked') + ' · Shelter: ' + (i.shelter || 'not asked')));
         c.appendChild(el('small', '', 'Logged by ' + (i.by || 'a responder') + ' ' + clock(i.saved) + (i.edited ? ' · Edited by ' + (i.edited_by || '') + ' ' + clock(i.edited) : '')));
-        if (i.pending) c.appendChild(el('small', 'ev-state' + (/^Not/.test(i.pending) ? ' ev-wait' : ''), i.pending));
+        if (i.pending) c.appendChild(el('small', 'ev-state' + (/^(Not|Busy)/.test(i.pending) ? ' ev-wait' : ''), i.pending));
         else {
           var acts = el('div', 'pa-acts'), eb = el('button', 'esc-btn', 'Edit'); eb.type = 'button';
           eb.setAttribute('aria-label', 'Edit ' + place(i)); eb.addEventListener('click', function () { openForm(i); }); acts.appendChild(eb);
