@@ -1,6 +1,6 @@
 /* RUNNING LOG for the Escalation and Reception Center forms (website v0.27.57, Sean Oct 20, 2026).
    The same running log as the Daily Shelter Report (js/shelter.js), with the same look (the sr-* styles
-   in css/style.css): type what happened, "Add to the log", and the entry is stamped with the time and
+   in css/style.css): type what happened, "Add new log entry", and the entry is stamped with the time and
    your name. "Flag as an issue" keeps an entry in red at the top until someone removes the flag.
    The box shows the flagged issues plus the 3 newest entries; older ones scroll inside the box, and
    "See all entries" opens them all. HQ can edit or remove an entry (it stays, marked by HQ).
@@ -69,17 +69,19 @@
     box.innerHTML =
       '<h2 class="sr-h">Running log</h2>' +
       '<p class="esc-how">What happened, when. Each entry is stamped with the time and your name. Flagged issues stay in red at the top.</p>' +
-      '<form id="' + p + 'form" novalidate>' +
-        '<label class="visually-hidden" for="' + p + 'in">New log entry</label>' +
+      // v0.27.82 (Sean, Oct 28): the entries first, the box for a new entry under them (was the other way round)
+      '<div class="sr-log-wrap" id="' + p + 'wrap"><ul class="sr-log" id="' + p + 'list"></ul></div>' +
+      '<p class="sr-log-more" id="' + p + 'more" hidden></p>' +
+      '<p class="form-error" id="' + p + 'note" hidden></p>' +
+      '<button type="button" class="esc-btn sr-log-all" id="' + p + 'all" hidden>See all entries</button>' +
+      // v0.27.82 (Sean): an "Add new log entry" heading above the box, the button below it
+      '<form class="ev-log-form" id="' + p + 'form" novalidate>' +
+        '<label class="ev-log-h" for="' + p + 'in">Add new log entry</label>' +
         '<textarea class="esc-in" id="' + p + 'in" rows="3" maxlength="3000" placeholder="Type what happened&hellip;"></textarea>' +
         '<button type="button" class="sr-flag-toggle" id="' + p + 'flag" aria-pressed="false"><span class="sr-flag-box" aria-hidden="true"></span>Flag as an issue (shows in red at the top of the log)</button>' +
         '<p class="form-error" id="' + p + 'error" hidden></p>' +
         '<button class="primary-btn" type="submit" id="' + p + 'btn">Add to the log</button>' +
-      '</form>' +
-      '<div class="sr-log-wrap" id="' + p + 'wrap"><ul class="sr-log" id="' + p + 'list"></ul></div>' +
-      '<p class="sr-log-more" id="' + p + 'more" hidden></p>' +
-      '<p class="form-error" id="' + p + 'note" hidden></p>' +
-      '<button type="button" class="esc-btn sr-log-all" id="' + p + 'all" hidden>See all entries</button>';
+      '</form>';
     o.host.innerHTML = ''; o.host.appendChild(box); o.host.hidden = false;
     var modal = el('div', 'f-modal sr-all-modal'); modal.hidden = true;
     modal.innerHTML =

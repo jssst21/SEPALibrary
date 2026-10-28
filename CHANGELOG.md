@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.27.83 (Oct 28, 2026)
+- TOP BAR, both forms and their Summary pages (Sean): the buttons sit together at the top (Intake / Summary or Worksheet / Scene Summary, then "Starting a new ..." / "Switch to HQ view"), with the event's name and "Logged in as ..." plus the log-out links under them. Was: name and logged-in line between the two rows of buttons. Website only.
+- app/sw.js CACHE is now sepa-tools-49
+- Version number is now ?v=0.27.83 on every page and the homepage footer reads v0.27.83
+
+## v0.27.82 (Oct 28, 2026)
+- RECEPTION CENTER summary (HQ and lead): "Scroll right for all information" centered between the totals and the table (Sean). The Large Scene Reporting Tool's property list is cards that fit the screen, so it has none.
+- RUNNING LOG, both forms (Sean): the entries come first, then "See all entries", then a centered bold "Add new log entry" heading, the typing box, "Flag as an issue", and the "Add to the log" button ("Add flagged issue to the log" when flagged). Was: the typing box above the entries.
+- Website only.
+- app/sw.js CACHE is now sepa-tools-48
+- Version number is now ?v=0.27.82 on every page and the homepage footer reads v0.27.82
+
 ## v0.27.81 (Oct 27, 2026)
 - STRESS TEST FIXES (Oct 27 test: 145 saves turned away as "busy" from 8:31 to 8:37 PM with ~22 phones typing). NEEDS THE GOOGLE SCRIPT UPDATE (paste and New version).
   - Large Scene Reporting Tool: what is typed goes out at most every 5 seconds (was about a second after each pause; Sean chose 5 over 8). Check-ins in between still bring in everyone else's entries and skip the save line. Hiding or leaving the page, and coming back online, send at once.

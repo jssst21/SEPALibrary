@@ -76,7 +76,9 @@ var SEPAViewBar = (function () {
       '<div class="vt-new-btns"><button type="button" class="vt-yes">' + esc(A.yesLabel) + '</button><button type="button" class="vt-no">Cancel</button></div></div>' : '';
     if (!sw && !ch && !acts && !who) { bar.hidden = true; return; }
     bar.hidden = false;
-    bar.innerHTML = sw + '<div class="vt-center"><b class="vt-name">' + esc(o.name || '') + '</b>' + ch + '</div>' + whoHtml() + acts;
+    // v0.27.83 (Sean, Oct 28): the buttons together at the top (the switch, then Starting a new... / Switch to HQ view),
+    // then the event's name and "Logged in as ..." under them (was: name and logged-in line between the two rows of buttons)
+    bar.innerHTML = sw + acts + '<div class="vt-center"><b class="vt-name">' + esc(o.name || '') + '</b>' + ch + '</div>' + whoHtml();
     wireWho();
     if (o.change) bar.querySelector('.vt-change').addEventListener('click', function () { openChange(o.change); });
     if (A) {
