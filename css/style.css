@@ -2194,7 +2194,7 @@ a.f-chip:hover { background: var(--bt); }
 .f-modal.co-name-modal { z-index: 70; }
 .co-name-modal .primary-btn { display: block; width: 100%; margin-top: 14px; }
 /* v0.27.82: "Scroll right for all information" above the Reception Center summary table */
-.rec-scroll-note { margin: 16px 0 0; font-size: 15px; font-weight: 700; color: var(--navy); text-align: center; }
+.rec-scroll-note { margin: 18px 0 0; font-size: 20px; font-weight: 800; color: var(--red); text-align: center; }   /* v0.27.86 (Sean): bigger, extra bold, red (was 15px navy) */
 .rec-scroll-note + .rec-table-wrap { margin-top: 6px; }
 /* v0.27.82: the Running log's new-entry box now sits under the entries, with a centered bold heading */
 .ev-log .ev-log-form { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
