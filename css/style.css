@@ -2059,6 +2059,8 @@ a.f-chip:hover { background: var(--bt); }
 .ev-photos .esc-buttons { margin: 0; }
 .ev-photos .esc-btn { flex: 1 1 160px; min-height: 44px; }
 .ev-photos .esc-btn[hidden] { display: none; }
+.ev-photos .esc-btn { background: var(--red); border-color: var(--red); color: #fff; }   /* v0.27.85 (Sean): solid red, Large Scene and Reception Center */
+.ev-photos .esc-btn:hover { background: var(--red-dark); border-color: var(--red-dark); }
 .ev-photos .esc-status { margin: 10px 0 0; }
 .ev-photo-modal .f-modal-box { max-width: 720px; }
 .ev-photo { margin: 14px 0 0; padding: 0 0 12px; border-bottom: 1px solid var(--line); }

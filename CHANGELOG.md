@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.85 (Oct 29, 2026)
+- "Add photo" and "See photos (n)" are solid red with white text (darker red on hover), on the Large Scene worksheet, its HQ Scene Summary and the Reception Center (Sean). Was: white with a navy outline. Website only.
+- app/sw.js CACHE is now sepa-tools-51
+- Version number is now ?v=0.27.85 on every page and the homepage footer reads v0.27.85
+
 ## v0.27.84 (Oct 28, 2026)
 - LARGE SCENE WORKSHEET (Sean): "Add photo" (and "See photos (n)" once there are photos) now sits at the end of Section 1, right above the Section 2 Stakeholders heading. Was: at the very bottom of the page. Same on the HQ Scene Summary (Sean: people rarely scroll to the bottom). Website only.
 - app/sw.js CACHE is now sepa-tools-50
