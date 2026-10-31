@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.88 (Oct 31, 2026)
+- APP ANNOUNCEMENTS (Sean): an announcement with no "Show until" date now disappears from the app 30 days after its Posted date (was: stayed until removed). Dated ones still disappear the day after "Show until". The row stays in the Sheet. GOOGLE SCRIPT CHANGE: needs a new deployment.
+- app/sw.js CACHE is now sepa-tools-54
+- Version number is now ?v=0.27.88 on every page and the homepage footer reads v0.27.88
+
 ## v0.27.87 (Oct 31, 2026)
 - LARGE SCENE start screen: the heading "Start a worksheet" now reads "Start a Response" (Sean). The red "Leads: Click Here to Start a Report" button and the Reception Center's "Start a reception center" are unchanged. Website only.
 - app/sw.js CACHE is now sepa-tools-53

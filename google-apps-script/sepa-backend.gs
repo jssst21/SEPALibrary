@@ -2336,12 +2336,20 @@ function rosterDelete_(form, id) {
      Title        - one short line, shown in bold
      Message      - optional, a sentence or two
      Link         - optional. If filled in (must start with https://), tapping the announcement opens it.
-     Show until   - optional date. After that day it disappears by itself. Blank = until removed.
+     Show until   - optional date. After that day it disappears by itself. Blank = 30 days after Posted (v0.27.88).
+     For sign-up links, Sean's wording for the Message is "Tap here to sign up".
      Hidden       - type YES to take it down without deleting the row.
    Phones show a small number on the bar for announcements that person has not opened yet. Nothing
    pops up. Changing an announcement's Title makes it count as new again.
    The tab is made the first time the app asks for announcements, with one example row in it.
    ========================================================= */
+var ANN_DEFAULT_DAYS = 30;   // v0.27.88 (Sean, Oct 31): an announcement with no "Show until" date disappears 30 days after its Posted date
+// "2026-10-31" plus n days, as "yyyy-MM-dd". Gives '' if the Posted date is not in that form (then it stays up until removed).
+function annPlusDays_(d, n) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || '');
+  if (!m) return '';
+  return Utilities.formatDate(new Date(+m[1], +m[2] - 1, +m[3] + n, 12), tz_(), 'yyyy-MM-dd');
+}
 var ANN_HEADERS = ['Posted (date)', 'Title', 'Message (optional)', 'Link (optional, https://...)', 'Show until (date, optional)', 'Hidden (type YES)'];
 
 function annList_() {
@@ -2352,6 +2360,7 @@ function annList_() {
     var title = clean_(r[1], 120);
     if (!title || isYes_(r[5])) return;
     var until = asDateText_(r[4]);
+    if (!until) until = annPlusDays_(asDateText_(r[0]), ANN_DEFAULT_DAYS);   // v0.27.88: no Show until = 30 days after Posted
     if (until && until < today) return;
     var link = clean_(r[3], 600);
     out.push({ d: asDateText_(r[0]), t: title, m: clean_(r[2], 600), u: /^https:\/\//i.test(link) ? link : '' });
