@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.87 (Oct 31, 2026)
+- LARGE SCENE start screen: the heading "Start a worksheet" now reads "Start a Response" (Sean). The red "Leads: Click Here to Start a Report" button and the Reception Center's "Start a reception center" are unchanged. Website only.
+- app/sw.js CACHE is now sepa-tools-53
+- Version number is now ?v=0.27.87 on every page and the homepage footer reads v0.27.87
+
 ## v0.27.86 (Oct 29, 2026)
 - RECEPTION CENTER summary (HQ and lead): "Scroll right for all information" is bigger (20px), extra bold and red (Sean). Was: 15px bold navy. Website only.
 - app/sw.js CACHE is now sepa-tools-52
