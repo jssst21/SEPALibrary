@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.27.90 (Nov 1, 2026)
+- LAUNCHER (Sean): Community (and its Photos, Shout Outs, Suggestions placeholders) is parked again until leadership approves the launcher. Call for Help moves into its slot as a normal tile, so the launcher is two columns of four: RC Care, Noggin / Large Scene, Reception Center / Sandboxes, Onboarding / Upcoming Events, Call for Help. Website only.
+- Saved for later (photo feed): a pop-up before the feed with "Do not post clients' faces or any other identifying information" and a "Please enter your name" field; new posts wait for a moderator.
+- app/sw.js CACHE is now sepa-tools-56
+- Version number is now ?v=0.27.90 on every page and the homepage footer reads v0.27.90
+
 ## v0.27.89 (Nov 1, 2026)
 - LAUNCHER (Sean): two new buttons under Sandboxes and Onboarding: "Upcoming Events" and "Community".
 - UPCOMING EVENTS: opens a list of classes and meetings (about four at a time in a scrolling box, with a yellow "Scroll for more events" pill that bounces). Each event shows its day and time and "Tap here to sign up", which opens that event's own Volunteer Connection page. A red number on the button counts events this phone has not seen. Events come from the new "Upcoming Events" tab in the Google Sheet (made with the November and early December 2026 events, 11 in all) and disappear the day after they happen. GOOGLE SCRIPT CHANGE: needs a new deployment.

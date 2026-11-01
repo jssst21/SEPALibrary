@@ -236,9 +236,12 @@
     <!-- v0.27.89 (Sean, Nov 1): Upcoming Events (list from the Sheet's Upcoming Events tab) and Community (placeholders) -->
     <a class="tile" href="#events"><em class="ev-count" id="ev-count" hidden></em>
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 16.5h2M11 16.5h2"/></svg><span>Upcoming Events</span></a>
-    <a class="tile" href="#community">
+    <!-- v0.27.90 (Sean, Nov 1): Community PARKED until leadership approves the launcher. To bring it back: delete "parked" here
+         and put "wide" back on Call for Help below. Photo feed plan: a pop-up before the feed with "Do not post
+         clients' faces or any other identifying information" plus a "Please enter your name" field. -->
+    <a class="tile parked" href="#community">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H8l-3.5 3v-3h-1a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z"/><path d="M15.5 9h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-1v3L15 17h-4.5a1 1 0 0 1-1-1v-2.5"/></svg><span>Community</span></a>
-    <a class="tile help wide" href="help.html">
+    <a class="tile help" href="help.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span>Call for Help</span></a>
   </nav>
 
@@ -302,7 +305,7 @@
 
   <p class="foot"><a href="/index.html">SEPA Resource Library website</a></p>
 </div>
-<script src="../js/config.js?v=0.27.89"></script>
+<script src="../js/config.js?v=0.27.90"></script>
 <script>
   /* ANNOUNCEMENTS (v0.27.19). Read from the Google Sheet's Announcements tab (see sepa-backend.gs,
      ANNOUNCEMENTS). The last list is kept on the phone so the bar still works with a weak signal.
