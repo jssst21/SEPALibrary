@@ -155,6 +155,19 @@
   #g-main .tile.wide span { font-size: 17px; }
   #g-main .tile.wide svg { width: 30px; height: 30px; }
   @media (max-width: 340px) { #g-main .tile span { font-size: 15px; } }
+  /* v0.27.89 UPCOMING EVENTS and COMMUNITY (Sean, Nov 1, 2026) */
+  .ev-wrap[hidden] { display: none; }
+  .ev-list { margin: 0; max-height: 400px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px; border-radius: 14px; background: rgba(0, 0, 0, .12); }
+  .ev-list p { color: var(--ink); font-weight: 600; }
+  .ev-more { display: table; margin: 10px auto 16px; padding: 7px 16px; border-radius: 999px; background: #ffd54a; color: #2a2420; font-size: 16px; font-weight: 800; box-shadow: 0 3px 8px rgba(60, 8, 16, .3); }
+  .ev-more[hidden] { display: none; }
+  .ev-more span { display: inline-block; margin-left: 4px; animation: evbob 1.2s ease-in-out infinite; }
+  @keyframes evbob { 50% { transform: translateY(3px); } }
+  @media (prefers-reduced-motion: reduce) { .ev-more span { animation: none; } }
+  .ev-count { position: absolute; top: 8px; right: 8px; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px; background: var(--red); border: 2px solid #fff; color: #fff; font-size: 13px; font-style: normal; font-weight: 800; line-height: 20px; text-align: center; }
+  .ev-count[hidden] { display: none; }
+  .tile.soon { opacity: .75; cursor: default; }
+  .tile.soon em { position: absolute; top: 7px; right: 7px; padding: 1px 6px; border-radius: 999px; background: #e3e0dc; color: #2a2420; font-size: 10px; font-style: normal; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 </style>
 </head>
 <body>
@@ -220,6 +233,11 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Community</span></a>
     <a class="tile" href="/pages/new.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9L12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11v4.5c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3V11M21.5 9v5"/></svg><span>Onboarding</span></a>
+    <!-- v0.27.89 (Sean, Nov 1): Upcoming Events (list from the Sheet's Upcoming Events tab) and Community (placeholders) -->
+    <a class="tile" href="#events"><em class="ev-count" id="ev-count" hidden></em>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 16.5h2M11 16.5h2"/></svg><span>Upcoming Events</span></a>
+    <a class="tile" href="#community">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H8l-3.5 3v-3h-1a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z"/><path d="M15.5 9h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-1v3L15 17h-4.5a1 1 0 0 1-1-1v-2.5"/></svg><span>Community</span></a>
     <a class="tile help wide" href="help.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span>Call for Help</span></a>
   </nav>
@@ -236,6 +254,17 @@
     <!-- v0.27.68 (Sean, Oct 23): RC Respond (Noggin) training site; same bell icon as the Noggin tile -->
     <a class="tile practice" href="https://ops-train-rcview-redcross.nogginapp.io/signin"><em>Practice</em>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2zM10 20a2 2 0 0 0 4 0"/></svg><span>Practice RC Respond/<wbr>Noggin</span></a>
+  </nav>
+  <!-- v0.27.89: Upcoming Events (about four show at a time; the box scrolls) -->
+  <div class="ev-wrap" id="g-events" hidden>
+    <ul class="ann-list ev-list" id="ev-list"><li class="ann-none">Loading events...</li></ul>
+    <p class="ev-more" id="ev-more" hidden>Scroll for more events<span aria-hidden="true">&darr;</span></p>
+  </div>
+  <!-- v0.27.89: Community. Three placeholders, not connected to anything yet (Sean). -->
+  <nav class="grid" id="g-comm" aria-label="Community" hidden>
+    <a class="tile soon" aria-disabled="true"><em>Coming soon</em><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Photos</span></a>
+    <a class="tile soon" aria-disabled="true"><em>Coming soon</em><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l6 4V6L6 10H3zM16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg><span>Shout Outs</span></a>
+    <a class="tile soon" aria-disabled="true"><em>Coming soon</em><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span>Suggestions</span></a>
   </nav>
   <nav class="grid" id="g-mc" aria-label="Mass Care" hidden>
     <a class="tile" href="https://www.redcross.org/scia">
@@ -273,7 +302,7 @@
 
   <p class="foot"><a href="/index.html">SEPA Resource Library website</a></p>
 </div>
-<script src="../js/config.js?v=0.27.88"></script>
+<script src="../js/config.js?v=0.27.89"></script>
 <script>
   /* ANNOUNCEMENTS (v0.27.19). Read from the Google Sheet's Announcements tab (see sepa-backend.gs,
      ANNOUNCEMENTS). The last list is kept on the phone so the bar still works with a weak signal.
@@ -308,6 +337,42 @@
   })();
 </script>
 <script>
+  /* v0.27.89 UPCOMING EVENTS. Read from the Sheet's Upcoming Events tab (sepa-backend.gs, UPCOMING EVENTS).
+     The last list is kept on the phone for a weak signal. The red number counts events this phone has not
+     seen; opening Upcoming Events marks them seen (remembered on this phone only). */
+  (function () {
+    var list = document.getElementById('ev-list'), more = document.getElementById('ev-more'), count = document.getElementById('ev-count');
+    var items = [];
+    function get(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+    function put(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+    function key(a) { return a.d + '|' + a.n; }
+    function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function today() { var n = new Date(); return n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2) + '-' + ('0' + n.getDate()).slice(-2); }
+    function nice(d) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); if (!m) return d || ''; return new Date(+m[1], m[2] - 1, +m[3]).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); }
+    function draw() {
+      var t = today(); items = items.filter(function (a) { return a.d >= t; });   // a past event goes even before the next refresh
+      var seen = get('sepaEvSeen', []), unread = items.filter(function (a) { return seen.indexOf(key(a)) < 0; }).length;
+      count.hidden = !unread; count.textContent = unread;
+      list.innerHTML = items.length ? items.map(function (a) {
+        var inner = '<b>' + esc(a.n) + '</b><p>' + esc(nice(a.d)) + (a.t ? ' &middot; ' + esc(a.t.replace(/([\dM])\s*-\s*(\d)/g, '$1\u2013$2')) : '') + '</p>' +
+          (a.u ? '<small><span class="go">Tap here to sign up &rsaquo;</span></small>' : '');
+        // target=_blank so Volunteer Connection opens in Safari and keeps the sign-in (see v0.27.16)
+        return '<li>' + (a.u ? '<a class="ann-item" target="_blank" rel="noopener" href="' + esc(a.u) + '">' + inner + '</a>' : '<div class="ann-item">' + inner + '</div>') + '</li>';
+      }).join('') : '<li class="ann-none">No upcoming events right now.</li>';
+      fit();
+    }
+    // "Scroll for more events" shows only while there is more below; it goes away at the bottom of the box.
+    function fit() { more.hidden = list.scrollHeight - list.clientHeight - list.scrollTop < 12; }
+    list.addEventListener('scroll', fit);
+    window.addEventListener('hashchange', function () { setTimeout(fit, 0); });
+    window.SEPAEventsSeen = function () { put('sepaEvSeen', items.map(key)); draw(); };
+    items = get('sepaEvLast', []); draw();
+    if (window.SEPA_BACKEND_URL) fetch(SEPA_BACKEND_URL + '?ev=1').then(function (r) { return r.json(); }).then(function (d) {
+      if (d && d.ok && d.items) { items = d.items; put('sepaEvLast', items); draw(); if (location.hash === '#events') window.SEPAEventsSeen(); }
+    }).catch(function () {});
+  })();
+</script>
+<script>
   /* SHARE (v0.27.23). Opens the QR screen; "Send the link" uses the phone's share menu, or copies the
      link where there is none (most computers). */
   (function () {
@@ -334,16 +399,17 @@
 <script>
   /* v0.27.49 Mass Care and Beta Tests grids: #mass-care and #beta swap the main grid for theirs. */
   (function () {
-    var views = { '': ['g-main', ''], '#mass-care': ['g-mc', 'Mass Care', '#'], '#beta': ['g-beta', 'Beta Tests', '#mass-care'], '#sandboxes': ['g-sand', 'Sandboxes', '#'] };
+    var views = { '': ['g-main', ''], '#mass-care': ['g-mc', 'Mass Care', '#'], '#beta': ['g-beta', 'Beta Tests', '#mass-care'], '#sandboxes': ['g-sand', 'Sandboxes', '#'], '#events': ['g-events', 'Upcoming Events', '#'], '#community': ['g-comm', 'Community', '#'] };
     var ann = document.querySelector('.ann');
     function show() {
       var v = views[location.hash] || views[''];
-      ['g-main', 'g-mc', 'g-beta', 'g-sand'].forEach(function (id) { document.getElementById(id).hidden = id !== v[0]; });
+      ['g-main', 'g-mc', 'g-beta', 'g-sand', 'g-events', 'g-comm'].forEach(function (id) { document.getElementById(id).hidden = id !== v[0]; });
       var head = document.getElementById('sub-head'); head.hidden = !v[1];
       if (ann) ann.hidden = !!v[1];
       if (v[1]) { document.getElementById('sub-title').textContent = v[1]; document.getElementById('sub-back').setAttribute('href', v[2]); }
     }
-    window.addEventListener('hashchange', show); show();
+    function seen() { if (location.hash === '#events' && window.SEPAEventsSeen) window.SEPAEventsSeen(); }
+    window.addEventListener('hashchange', function () { show(); seen(); }); show(); seen();
   })();
 </script>
 </body>

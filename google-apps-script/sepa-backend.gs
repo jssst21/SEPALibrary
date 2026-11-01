@@ -150,12 +150,14 @@ function json_(obj) {
 // GET = shift calendar data (public: counts only, never names).
 // ...exec?team=do gives the Duty Officers calendar; anything else gives Field Responders.
 // ...exec?ann=1 gives the SEPA Tools app's announcements (website v0.27.19). See ANNOUNCEMENTS at the end.
+// ...exec?ev=1 gives the launcher's Upcoming Events (website v0.27.89). See UPCOMING EVENTS at the end.
 // ...exec?lib=1 gives the list of library documents (website v0.27), and ...exec?find=[...] searches
 // inside them. See LIBRARY FILES at the end.
 function doGet(e) {
   var p = (e && e.parameter) || {};
   try {
     if (p.ann) return json_(annList_());
+    if (p.ev) return json_(evList_());     // v0.27.89: the launcher's Upcoming Events list
     if (p.lib) return json_(libPublic_(libList_(false)));
     if (p.find) return json_(libSearch_(p.find));
   } catch (err) {
@@ -3425,4 +3427,45 @@ function testSurvey_(d) {
     safe_(clean_(a.role, 20)), Number(a.find) || '', safe_(clean_(a.join, 20)), safe_(clean_(a.fail, 5)), safe_(clean_(a.failWhat, 1000)),
     Number(a.paper) || '', safe_(clean_(a.change, 1000)), safe_(clean_(a.name, 60))]);
   return { ok: true };
+}
+
+/* =========================================================
+   UPCOMING EVENTS (website v0.27.89, Sean Nov 1, 2026)
+   The SEPA Tools launcher's "Upcoming Events" button lists classes and meetings. Leadership adds a
+   row to the Upcoming Events tab in this Sheet:
+     Date       - the day, like 2026-11-14 (the list is in date order; same day keeps the Sheet's order)
+     Event name - as it should appear, one line
+     Time       - shown as typed, like 9:00 AM-12:00 PM
+     Link       - the event's OWN Volunteer Connection page (...vms_registration_event_detail&registration_id=...),
+                  not the whole calendar, which is unreadable on a phone (Sean). Must start with https://
+     Hidden     - type YES to take it down without deleting the row.
+   An event disappears by itself the day after its Date. Phones show a red number on the button for
+   events that phone has not seen yet. The tab is made, with the November 2026 events, the first time a
+   phone asks for the list.
+   ========================================================= */
+var EV_HEADERS = ['Date (yyyy-mm-dd)', 'Event name', 'Time (as shown)', 'Link (event page, https://...)', 'Hidden (type YES)'];
+
+function evList_() {
+  makeTab_('Upcoming Events', EV_HEADERS, [
+    ['2026-11-02', 'SCIA for Intake Workers (Virtual)', '6:00-7:00 PM', 'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=22479777', ''],
+    ['2026-11-03', 'RC Care - Lunch & Learn', '12:30-1:30 PM', 'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=22516836', ''],
+    ['2026-11-12', 'DelVal Chapter Workforce Meeting', '6:00-8:00 PM', 'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=22583704', ''],
+    ['2026-11-14', 'MRV/ERV Certification', '9:00 AM-12:00 PM', 'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=22586738', ''],
+    ['2026-11-17', 'Towing Certification', '10:00 AM-12:00 PM (two sessions)', 'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=22586723', ''],
+    ['2026-11-17', 'Regional DAT Meeting', '5:30-8:00 PM', 'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=22254333', ''],
+    ['2026-11-18', 'Shelter Supervisor', '9:30 AM-12:00 PM', 'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=22586736', ''],
+    ['2026-11-19', 'Disaster Assessment Fundamentals & Survey123', '3:00-6:00 PM', 'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=22581544', ''],
+    ['2026-11-19', 'Monthly Disaster Workforce Meeting: Philadelphia County', '6:00-7:30 PM', 'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=21558690', ''],
+    ['2026-11-21', 'DAT Response Fundamentals (in-person)', '1:00-4:00 PM', 'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=22589333', ''],
+    ['2026-12-02', 'Disaster Supervision Fundamentals', '10:00 AM-1:00 PM', 'https://volunteerconnection.redcross.org/?nd=vms_registration_event_detail&registration_id=22586730', '']
+  ]);
+  var today = today_(), out = [];
+  rows_('Upcoming Events').forEach(function (r, i) {
+    var name = clean_(r[1], 160), d = asDateText_(r[0]);
+    if (!name || !/^\d{4}-\d{2}-\d{2}$/.test(d) || isYes_(r[4]) || d < today) return;
+    var link = clean_(r[3], 600);
+    out.push({ d: d, n: name, t: clean_(asText_(r[2]), 80), u: /^https:\/\//i.test(link) ? link : '', i: i });
+  });
+  out.sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : a.i - b.i; });
+  return { ok: true, items: out.slice(0, 60).map(function (x) { return { d: x.d, n: x.n, t: x.t, u: x.u }; }) };
 }

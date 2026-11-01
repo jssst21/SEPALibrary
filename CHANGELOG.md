@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.27.89 (Nov 1, 2026)
+- LAUNCHER (Sean): two new buttons under Sandboxes and Onboarding: "Upcoming Events" and "Community".
+- UPCOMING EVENTS: opens a list of classes and meetings (about four at a time in a scrolling box, with a yellow "Scroll for more events" pill that bounces). Each event shows its day and time and "Tap here to sign up", which opens that event's own Volunteer Connection page. A red number on the button counts events this phone has not seen. Events come from the new "Upcoming Events" tab in the Google Sheet (made with the November and early December 2026 events, 11 in all) and disappear the day after they happen. GOOGLE SCRIPT CHANGE: needs a new deployment.
+- COMMUNITY: opens three placeholder buttons, Photos, Shout Outs and Suggestions, marked "Coming soon" and not connected to anything yet. (The older parked Community tile for the photo forum is unchanged and still hidden.)
+- app/sw.js CACHE is now sepa-tools-55
+- Version number is now ?v=0.27.89 on every page and the homepage footer reads v0.27.89
+
 ## v0.27.88 (Oct 31, 2026)
 - APP ANNOUNCEMENTS (Sean): an announcement with no "Show until" date now disappears from the app 30 days after its Posted date (was: stayed until removed). Dated ones still disappear the day after "Show until". The row stays in the Sheet. GOOGLE SCRIPT CHANGE: needs a new deployment.
 - app/sw.js CACHE is now sepa-tools-54
