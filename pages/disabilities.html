@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Helping People with Disabilities - SEPA Resource Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css?v=0.27.91">
+<style>
+  .page-logo-static { display: inline-block; }
+</style>
+</head>
+<body class="home page-red">
+
+<!-- HELPING PEOPLE WITH DISABILITIES (v0.27.91, Sean Nov 10, 2026). A STANDALONE page for a presentation:
+     on purpose it has no search, no menu and no links to the rest of the site, is not linked from anywhere,
+     is not in the site search (js/search-data.js) and asks search engines not to list it (robots noindex).
+     Share it by its address: sepalibrary.org/pages/disabilities.html
+     The list is every file in the Google Drive folder "SEPA Library Files / Mass Care Resources / Helping Clients
+     with Disabilities" (the same files as on Mass Care). To add, remove or rename one: do it in Drive. -->
+
+<div class="page-wrap page-wide">
+
+  <header class="page-top">
+    <span class="page-logo-card page-logo-static"><img class="page-logo" src="../images/logo.png" alt="SEPA Resource Library"></span>
+  </header>
+
+  <h1 class="page-title">Helping People with Disabilities</h1>
+
+  <div class="mc-resources">
+    <p class="mc-hint">Click a title to open it, or Download to save a copy.</p>
+    <div id="dis-list"><p class="lib-note">Loading the resources&hellip;</p></div>
+  </div>
+
+</div>
+
+<script src="../js/config.js?v=0.27.91"></script>
+<script src="../js/library.js?v=0.27.91"></script>
+<script>
+(function () {
+  var FOLDER = 'Mass Care Resources/Helping Clients with Disabilities';
+  var box = document.getElementById('dis-list');
+  SEPALib.load(function (lib) {
+    if (!lib) { box.innerHTML = '<p class="lib-note">The resources could not be loaded right now. Please check your connection and try again in a minute.</p>'; return; }
+    var parts = SEPALib.underPath(lib, FOLDER);
+    if (!parts.length) { box.innerHTML = '<p class="lib-note">No resources are listed here right now.</p>'; return; }
+    box.innerHTML = SEPALib.sectionHtml('', 'Guides', parts).html;
+  });
+})();
+</script>
+</body>
+</html>

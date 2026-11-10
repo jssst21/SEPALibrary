@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.91 (Nov 10, 2026)
+- NEW STANDALONE PAGE (Sean): pages/disabilities.html, "Helping People with Disabilities", for a presentation. Lists every file in the Drive folder Mass Care Resources / Helping Clients with Disabilities (open or Download). On purpose: no search, no menu, no links to the rest of the site, not linked from anywhere, not in the site search, and robots noindex. Share it by its address. Website only.
+- app/sw.js CACHE is now sepa-tools-57
+- Version number is now ?v=0.27.91 on every page and the homepage footer reads v0.27.91
+
 ## v0.27.90 (Nov 1, 2026)
 - LAUNCHER (Sean): Community (and its Photos, Shout Outs, Suggestions placeholders) is parked again until leadership approves the launcher. Call for Help moves into its slot as a normal tile, so the launcher is two columns of four: RC Care, Noggin / Large Scene, Reception Center / Sandboxes, Onboarding / Upcoming Events, Call for Help. Website only.
 - Saved for later (photo feed): a pop-up before the feed with "Do not post clients' faces or any other identifying information" and a "Please enter your name" field; new posts wait for a moderator.
