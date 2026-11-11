@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.92 (Nov 10, 2026)
+- LAUNCHER Call for Help (Sean): Evan Holland (219-508-7614, photo from Contacts) replaces Sean Snyder, in the same spot. Website only.
+- app/sw.js CACHE is now sepa-tools-58
+- Version number is now ?v=0.27.92 on every page and the homepage footer reads v0.27.92
+
 ## v0.27.91 (Nov 10, 2026)
 - NEW STANDALONE PAGE (Sean): pages/disabilities.html, "Helping People with Disabilities", for a presentation. Lists every file in the Drive folder Mass Care Resources / Helping Clients with Disabilities (open or Download). On purpose: no search, no menu, no links to the rest of the site, not linked from anywhere, not in the site search, and robots noindex. Share it by its address. Website only.
 - app/sw.js CACHE is now sepa-tools-57
