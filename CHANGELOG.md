@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.94 (Nov 15, 2026)
+- HQ LOGIN LASTS 7 DAYS (Sean): an HQ login on a device now lasts 7 days (was 24 hours), so HQ is not asked to log in again every day of a longer event. Nothing else changes. GOOGLE SCRIPT CHANGE: needs a new deployment.
+- app/sw.js CACHE is now sepa-tools-60
+- Version number is now ?v=0.27.94 on every page and the homepage footer reads v0.27.94
+
 ## v0.27.93 (Nov 15, 2026)
 - NO LOCKOUT ON HQ AND LEAD LOGINS (Sean): the "Too many tries. Please wait 15 minutes" block is removed from the HQ login and the lead login (Large Scene, Reception Center, Shelter). It counted everyone's wrong tries together (8 in all), so a few people mistyping could lock everybody out. Wrong tries now just say the user name and password do not match. The forums keep their own limit, which is per email address. GOOGLE SCRIPT CHANGE: needs a new deployment.
 - app/sw.js CACHE is now sepa-tools-59
