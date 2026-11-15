@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.27.93 (Nov 15, 2026)
+- NO LOCKOUT ON HQ AND LEAD LOGINS (Sean): the "Too many tries. Please wait 15 minutes" block is removed from the HQ login and the lead login (Large Scene, Reception Center, Shelter). It counted everyone's wrong tries together (8 in all), so a few people mistyping could lock everybody out. Wrong tries now just say the user name and password do not match. The forums keep their own limit, which is per email address. GOOGLE SCRIPT CHANGE: needs a new deployment.
+- app/sw.js CACHE is now sepa-tools-59
+- Version number is now ?v=0.27.93 on every page and the homepage footer reads v0.27.93
+
 ## v0.27.92 (Nov 10, 2026)
 - LAUNCHER Call for Help (Sean): Evan Holland (219-508-7614, photo from Contacts) replaces Sean Snyder, in the same spot. Website only.
 - app/sw.js CACHE is now sepa-tools-58

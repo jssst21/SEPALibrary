@@ -945,13 +945,13 @@ function escPing_(d) {
   return { ok: true, cleared: id ? escIsCleared_(id) : false };
 }
 
+/* NO LOCKOUT on the HQ and lead logins (website v0.27.93, Sean Nov 15, 2026): wrong tries are not counted, so
+   nobody is ever told to wait 15 minutes. The forums keep their own per-email limit (fLogin_, fReset_). */
 function escLogin_(d) {
   var s = escLoginSettings_();
   if (!s.user || !s.pass) return { ok: false, login: true, locked: true, error: 'The HQ user name and password have not been set yet. The site admin sets them in the Google Sheet.' };
   var user = clean_(d.user, 60), pw = String(d.password || '');
-  if (tooManyTries_('esc-hq')) return { ok: false, login: true, error: 'Too many tries. Please wait 15 minutes and try again.' };
   if (user.toLowerCase() !== s.user.toLowerCase() || pw !== s.pass) {
-    noteFail_('esc-hq');
     return { ok: false, login: true, error: 'That user name and password do not match.' };
   }
   return { ok: true, token: newSession_(escMark_(s)) };
@@ -1398,12 +1398,10 @@ function leadDenied_(d) {
   var hqSet = !!(s.user && s.pass), leadSet = !!(l.user && l.pass);
   if (!hqSet && !leadSet) return { ok: false, leadLogin: true, locked: true, error: 'The lead user name and password have not been set yet. The site admin sets them in the Google Sheet.' };
   if (d.user == null && d.password == null) return { ok: false, leadLogin: true, error: '' };
-  if (tooManyTries_('lead-start')) return { ok: false, leadLogin: true, error: 'Too many tries. Please wait 15 minutes and try again.' };
   var user = clean_(d.user, 60).toLowerCase(), pw = String(d.password || '');
   // The lead login, or (as before) the HQ login.
   if (leadSet && user === l.user.toLowerCase() && pw === l.pass) return null;
   if (hqSet && user === s.user.toLowerCase() && pw === s.pass) return null;
-  noteFail_('lead-start');
   return { ok: false, leadLogin: true, error: 'That user name and password do not match.' };
 }
 /* The lead user name and password from the Settings tab (rows added blank the first time). */
